@@ -38,6 +38,8 @@ struct DeploymentConfig {
     exchange_router: Address,
     liquidation_handler: Address,
     pool_configuration_utils: Address,
+    weth: Address,
+    multicall: Address,
     creation_block: u64,
 }
 
@@ -50,6 +52,8 @@ pub enum Deployment {
 // admin stuff
 pub const LOG_BLOCK_RANGE: u64 = 1024;
 pub const MULTICALL_CHUNK_SIZE: usize = 100;
+pub const RAY_DECIMALS: U256 = 27;
+pub const WETH_DECIMALS: U256 = 18;
 pub const STATE_CACHE_FILE: &str = "borrowers.json";
 
 fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
@@ -61,6 +65,8 @@ fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
             exchange_router: Address::from_str("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5").unwrap(),
             liquidation_handler: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
             pool_configuration_utils: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
+            weth: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
+            multicall: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
             creation_block: 1,
         }
     }
@@ -75,31 +81,22 @@ pub struct StateCache {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Borrower {
     address: Address,
-    collateral: HashSet<Address>,
-    debt: HashSet<Address>,
     health: u64
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct PoolConfig {
+pub struct Pool {
     underlying_asset: Address,
-    poolToken: Address,
-    debtToken: Address,
-//    liquidation_threshold: u64,
-    decimals: u64,
-    protocol_fee: u64,
 }
 
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct UpStrategy<M> {
-    /// Ethers client.
     client: Arc<M>,
-    /// Amount of profits to bid in gas
     bid_percentage: u64,
     last_block_number: u64,
     borrowers: HashMap<Address, Borrower>,
-    pools: HashMap<Address, PoolConfig>,
+    pools: HashMap<Address, Pool>,
     chain_id: u64,
     config: DeploymentConfig,
     liquidator: Address,
@@ -137,7 +134,7 @@ impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
     async fn sync_state(&mut self) -> Result<()> {
         info!("syncing state");
 
-        self.update_pools_config().await?;
+        self.update_pools().await?;
         self.approve_tokens().await?;
         self.load_cache()?;
         self.update_state().await?;
@@ -149,7 +146,6 @@ impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
     // Process incoming events, seeing if we can arb new orders, and updating the internal state on new blocks.
     async fn process_event(&mut self, event: Event) -> Option<Action> {
         match event {
-            // Event::NewBlock(block) => self.process_new_block_event(block).await,
             Event::NewTick(block) => self.process_new_tick_event(block).await,
         }
     }
@@ -195,19 +191,13 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     }
 
     // for all known borrowers, return a sorted set of those with health factor < 1
-    async fn get_underwater_borrowers(&mut self) -> Result<Vec<(Address, U256)>> {
+    async fn get_underwater_borrowers(&mut self) -> Result<Vec<(Address, U256, U256, U256)>> {
         let reader = Reader::<M>::new(self.config.reader, self.client.clone());
 
         let mut underwater_borrowers = Vec::new();
 
         // call pool.getUserAccountData(user) for each borrower
-        let mut multicall = Multicall::new(
-            self.client.clone(),
-            Some(H160::from_str(
-                "0xcA11bde05977b3631167028862bE2a173976CA11",
-            )?),
-        )
-        .await?;
+        let mut multicall = Multicall::new(self.client.clone(), self.config.multicall).await?;
         let borrowers: Vec<&Borrower> = self
             .borrowers
             .values()
@@ -222,7 +212,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             }
 
             let result: Vec<(U256, U256, bool, U256, U256)> = multicall.call_array().await?;
-            for (borrower, (health_factor, is_health_factor_higher_than_liquidation_threshold, _, _,) in zip(chunk, result) {
+            for (borrower, (health_factor, is_health_factor_higher_than_liquidation_threshold, user_total_collateral_usd, user_total_debt_usd,) in zip(chunk, result) {
                 if (!is_health_factor_higher_than_liquidation_threshold) {
                     info!(
                         "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
@@ -272,15 +262,12 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 // fetch assets if user already a borrower
                 if self.borrowers.contains_key(&user) {
                     let borrower = self.borrowers.get_mut(&user).unwrap();
-                    borrower.debt.insert(log.pool);
                     return;
                 } else {
                     self.borrowers.insert(
                         user,
                         Borrower {
                             address: user,
-                            collateral: HashSet::new(),
-                            debt: HashSet::from([log.pool]),
                         },
                     );
                 }
@@ -409,9 +396,8 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 .call()
                 .await?;
             if allowance == U256::zero() {
-                // TODO remove unwrap once we figure out whats broken
                 underlying_asset
-                    .approve(self.config.liquidation_handler, U256::max()
+                    .approve(self.config.liquidation_handler, U256::MAX()
                     .nonce(nonce)
                     .send()
                     .await
@@ -426,29 +412,20 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         Ok(())
     }
 
-    async fn update_pools_config(&mut self) -> Result<()> {
-
+    async fn update_pools(&mut self) -> Result<()> {
         let reader = Reader::<M>::new(self.config.reader, self.client.clone());
-        let pool_configuration_utils = PoolConfigurationUtils::<M>::new(self.config.pool_configuration_utils, self.client.clone());
         let all_pools = reader.get_pools(self.config.data_store).await?;
         info!("all_pools: {:?}", all_pools);
         for pool in all_pools {
-            let decimals = pool_configuration_utils.get_decimals(pool.configuration).await?;
-            let protocol_fee = pool_configuration_utils.get_fee_factor(pool.configuration).await?;
             self.pools.insert(
                 pool.underlying_asset
-                PoolConfig {
+                Pool {
                     underlying_asset: pool.underlying_asset,
-                    poolToken: pool.token_address,
-                    debtToken: pool.debt_token,
-                    decimals: decimals,
-                    protocol_fee: protocol_fee,
                 },
             );           
         }
 
         Ok(())
-
     }
 
     async fn get_best_liquidation_opportunity(&mut self) -> Result<Option<LiquidationOpportunity>> {
@@ -493,12 +470,12 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         health_factor: &user_total_collateral_usd,
         health_factor: &user_total_debt_usd,
     ) -> Result<LiquidationOpportunity> {
-
-        let eth_price = get_eth_price();
+        let reader = Reader::<M>::new(self.config.reader, self.client.clone());
+        let eth_price = reader.get_price(self.config.data_store, self.config.weth).await?;
 
         let mut op = LiquidationOpportunity {
             borrower: borrower.address,
-            profit: (user_total_collateral_usd - user_total_debt_usd)/eth_price ,
+            profit: (user_total_collateral_usd - user_total_debt_usd)*10_U256.pow(WETH_DECIMALS)/eth_price ,
         };
 
         Ok(op)
