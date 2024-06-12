@@ -1,5 +1,5 @@
 # up-liquidator-rs
-This is an [paradigmxyz/artemis](https://github.com/paradigmxyz/artemis) bot that liquidates up positions on chain
+This is an [paradigmxyz/artemis](https://github.com/paradigmxyz/artemis) bot that liquidates UP positions on chain
 
 # Usage
 
