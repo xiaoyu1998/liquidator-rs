@@ -79,15 +79,24 @@ pub struct StateCache {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Position {
+    pool: Address,
+    collateral: u64,
+    debt: u64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Borrower {
     address: Address,
+    positions: HashMap<Address, Position>,
     health: u64
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Pool {
-    underlying_asset: Address,
-}
+// #[derive(Debug, Serialize, Deserialize)]
+// pub struct Pool {
+//     underlying_asset: Address,
+//     price:u64,
+// }
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -96,10 +105,10 @@ pub struct UpStrategy<M> {
     bid_percentage: u64,
     last_block_number: u64,
     borrowers: HashMap<Address, Borrower>,
-    pools: HashMap<Address, Pool>,
+    //pools: HashMap<Address, Pool>,
     chain_id: u64,
     config: DeploymentConfig,
-    liquidator: Address,
+    //liquidator: Address,
     //liquidation_threshold:u64
 }
 
@@ -115,18 +124,18 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             bid_percentage: config.bid_percentage,
             last_block_number: 0,
             borrowers: HashMap::new(),
-            pools: HashMap::new(),
+           // pools: HashMap::new(),
             chain_id: config.chain_id,
             config: get_deployment_config(deployment),
-            liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
+            //liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
         }
     }
 }
 
-struct LiquidationProfit {
-    borrower: Address,
-    profit: I256,
-}
+// struct LiquidationProfit {
+//     borrower: Address,
+//     profit: I256,
+// }
 
 #[async_trait]
 impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
@@ -134,8 +143,8 @@ impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
     async fn sync_state(&mut self) -> Result<()> {
         info!("syncing state");
 
-        self.update_pools().await?;
-        self.approve_tokens().await?;
+        // self.update_pools().await?;
+        // self.approve_tokens().await?;
         self.load_cache()?;
         self.update_state().await?;
 
@@ -156,38 +165,44 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     /// Process new block events, updating the internal state.
     async fn process_new_tick_event(&mut self, event: NewTick) -> Option<Action> {
         info!("received new tick: {:?}", event);
+
+        // self.update_pools()
+        //     .await
+        //     .map_err(|e| error!("Update Pools error: {}", e))
+        //     .ok()?;
+
         self.update_state()
             .await
             .map_err(|e| error!("Update State error: {}", e))
             .ok()?;
 
-        info!("Total borrower count: {}", self.borrowers.len());
-        let op = self
-            .get_best_liquidation_opportunity()
-            .await
-            .map_err(|e| error!("Error finding liq ops: {}", e))
-            .ok()??;
+        // info!("Total borrower count: {}", self.borrowers.len());
+        // let op = self
+        //     .get_best_liquidation_opportunity()
+        //     .await
+        //     .map_err(|e| error!("Error finding liq ops: {}", e))
+        //     .ok()??;
 
-        info!("Best op - profit: {}", op.profit);
+        // info!("Best op - profit: {}", op.profit);
 
-        if op.profit < I256::from(0) {
-            info!("No profitable ops, passing");
-            return None;
-        }
+        // if op.profit < I256::from(0) {
+        //     info!("No profitable ops, passing");
+        //     return None;
+        // }
 
-        return Some(Action::SubmitTx(SubmitTxToMempool {
-            tx: self
-                .build_liquidation_tx(&op)
-                .await
-                .map_err(|e| error!("Error building liquidation: {}", e))
-                .ok()?,
-            gas_bid_info: Some(GasBidInfo {
-                bid_percentage: self.bid_percentage,
-                total_profit: U256::from_dec_str(&op.profit.to_string())
-                    .map_err(|e| error!("Failed to bid: {}", e))
-                    .ok()?,
-            }),
-        }));
+        // return Some(Action::SubmitTx(SubmitTxToMempool {
+        //     tx: self
+        //         .build_liquidation_tx(&op)
+        //         .await
+        //         .map_err(|e| error!("Error building liquidation: {}", e))
+        //         .ok()?,
+        //     gas_bid_info: Some(GasBidInfo {
+        //         bid_percentage: self.bid_percentage,
+        //         total_profit: U256::from_dec_str(&op.profit.to_string())
+        //             .map_err(|e| error!("Failed to bid: {}", e))
+        //             .ok()?,
+        //     }),
+        // }));
     }
 
     // for all known borrowers, return a sorted set of those with health factor < 1
@@ -246,6 +261,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         Ok(())
     }
 
+
     // update known borrower state from last block to latest block
     async fn update_state(&mut self) -> Result<()> {
         let latest_block = self.client.get_block_number().await?;
@@ -253,6 +269,35 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             "Updating state from block {} to {}",
             self.last_block_number, latest_block
         );
+
+        self.get_deposit_logs(self.last_block_number.into(), latest_block)
+            .await?
+            .into_iter()
+            .for_each(|log| {
+                let user = log.depositer;
+                // fetch assets if user already a borrower
+                if self.borrowers.contains_key(&user) {
+                    let borrower = self.borrowers.get_mut(&user).unwrap();
+                    borrower.positions.insert(log.pool, {
+                        pool:log.pool,
+                        collateral:log.collateral,
+                        debt_scaled:log.debt_scaled,
+                    })
+                    return;
+                } else {
+                    self.borrowers.insert(
+                        user,
+                        Borrower {
+                            address: user,
+                            positions: HashMap<Address, Position>::from([log.pool, {
+                                pool:log.pool,
+                                collateral:log.collateral,
+                                debt_scaled:log.debt_scaled,                               
+                            }])
+                        },
+                    );
+                }
+            });
 
         self.get_borrow_logs(self.last_block_number.into(), latest_block)
             .await?
@@ -262,12 +307,22 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 // fetch assets if user already a borrower
                 if self.borrowers.contains_key(&user) {
                     let borrower = self.borrowers.get_mut(&user).unwrap();
+                    borrower.positions.insert(log.pool, {
+                        pool:log.pool,
+                        collateral:log.collateral,
+                        debt_scaled:log.debt_scaled,
+                    })
                     return;
                 } else {
                     self.borrowers.insert(
                         user,
                         Borrower {
                             address: user,
+                            positions: HashMap<Address, Position>::from([log.pool, {
+                                pool:log.pool,
+                                collateral:log.collateral,
+                                debt_scaled:log.debt_scaled,                               
+                            }])
                         },
                     );
                 }
@@ -278,11 +333,55 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .into_iter()
             .for_each(|log| {
                 let user = log.repayer;
-                let reader = Reader::<M>::new(self.config.reader, self.client.clone());
-                let factor = reader.get_liquidation_health_factor(user).await?;
-                if (factor.user_total_debt_usd == 0) {
-                    self.borrowers.remove(user.address);
-                }
+                let borrower = self.borrowers.get_mut(&user).unwrap();
+                borrower.positions.insert(log.pool, {
+                    pool:log.pool,
+                    collateral:log.collateral,
+                    debt_scaled:log.debt_scaled,
+                })  
+                if (log.collateral == 0 && log.debt_scaled == 0) {
+                    self.borrowers.remove(user);
+                }          
+
+                return;
+            });
+
+        self.get_redeem_logs(self.last_block_number.into(), latest_block)
+            .await?
+            .into_iter()
+            .for_each(|log| {
+                let user = log.redeemer;
+                let borrower = self.borrowers.get_mut(&user).unwrap();
+                borrower.positions.insert(log.pool, {
+                    pool:log.pool,
+                    collateral:log.collateral,
+                    debt_scaled:log.debt_scaled,
+                })  
+                if (log.collateral == 0 && log.debt_scaled == 0) {
+                    self.borrowers.remove(user);
+                }          
+
+                return;
+            });
+
+        self.get_swap_logs(self.last_block_number.into(), latest_block)
+            .await?
+            .into_iter()
+            .for_each(|log| {
+                let user = log.account;
+                let borrower = self.borrowers.get_mut(&user).unwrap();
+                borrower.positions.insert(log.pool_in, {
+                    pool:log.pool_in,
+                    collateral:log.collateral_in,
+                    debt_scaled:log.debt_scaled_in,
+                }) 
+                borrower.positions.insert(log.pool_out, {
+                    pool:log.pool_out,
+                    collateral:log.collateral_out,
+                    debt_scaled:log.debt_scaled_out,
+                }) 
+        
+
                 return;
             });
 
@@ -291,7 +390,32 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .into_iter()
             .for_each(|log| {
                 let user = log.account;
-                self.borrowers.remove(user.address);
+                self.borrowers.remove(user);
+                return;
+            });
+
+        self.get_close_position_logs(self.last_block_number.into(), latest_block)
+            .await?
+            .into_iter()
+            .for_each(|log| {
+                let user = log.account;
+                let borrower = self.borrowers.get_mut(&user).unwrap();
+                borrower.positions.remove(log.pool)
+                borrower.positions.insert(log.pool_usd, {
+                    pool:log.pool_usd,
+                    collateral:log.collateral_usd,
+                    debt_scaled:log.debt_scaled_usd,
+                })
+                return;
+            });
+
+        self.get_close_logs(self.last_block_number.into(), latest_block)
+            .await?
+            .into_iter()
+            .for_each(|log| {
+                let user = log.account;
+                self.borrowers.remove(user);
+                })
                 return;
             });
 
@@ -305,6 +429,30 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         file.write_all(serde_json::to_string(&cache)?.as_bytes())?;
 
         Ok(())
+    }
+
+    // fetch all borrow events from the from_block to to_block
+    async fn get_deposit_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<DepositFilter>> {
+        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+
+        let mut res = Vec::new();
+        for start_block in
+            (from_block.as_u64()..to_block.as_u64()).step_by(LOG_BLOCK_RANGE as usize)
+        {
+            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block.as_u64());
+            event_emitter.deposit_filter()
+                .from_block(start_block)
+                .to_block(end_block)
+                .address(ValueOrArray::Value(self.config.event_emitter))
+                .query()
+                .await?
+                .into_iter()
+                .for_each(|log| {
+                    res.push(log);
+                });
+        }
+
+        Ok(res)
     }
 
     // fetch all borrow events from the from_block to to_block
@@ -355,6 +503,54 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         Ok(res)
     }
 
+    // fetch all redeem events from the from_block to to_block
+    async fn get_redeem_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<RedeemFilter>> {
+        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+
+        let mut res = Vec::new();
+        for start_block in
+            (from_block.as_u64()..to_block.as_u64()).step_by(LOG_BLOCK_RANGE as usize)
+        {
+            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block.as_u64());
+            event_emitter.redeem_filter()
+                .from_block(start_block)
+                .to_block(end_block)
+                .address(ValueOrArray::Value(self.config.event_emitter))
+                .query()
+                .await?
+                .into_iter()
+                .for_each(|log| {
+                    res.push(log);
+                });
+        }
+
+        Ok(res)
+    }
+
+    // fetch all swap events from the from_block to to_block
+    async fn get_swap_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<SwapFilter>> {
+        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+
+        let mut res = Vec::new();
+        for start_block in
+            (from_block.as_u64()..to_block.as_u64()).step_by(LOG_BLOCK_RANGE as usize)
+        {
+            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block.as_u64());
+            event_emitter.swap_filter()
+                .from_block(start_block)
+                .to_block(end_block)
+                .address(ValueOrArray::Value(self.config.event_emitter))
+                .query()
+                .await?
+                .into_iter()
+                .for_each(|log| {
+                    res.push(log);
+                });
+        }
+
+        Ok(res)
+    }
+
     // fetch all liquidation events from the from_block to to_block
     async fn get_liquidation_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<LiquidationFilter>> {
         let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
@@ -379,112 +575,162 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         Ok(res)
     }
 
-    async fn approve_tokens(&mut self) -> Result<()> {
-        let mut nonce = self
-            .client
-            .get_transaction_count(
-                self.client
-                    .default_sender()
-                    .ok_or(anyhow!("No connected sender"))?,
-                None,
-            )
-            .await?;
-        for pool in self.pools.keys() {
-            let underlying_asset = IERC20::new(pool.underlying_asset.clone(), self.client.clone());
-            let allowance = underlying_asset
-                .allowance(self.liquidator, self.config.liquidation_handler)
-                .call()
-                .await?;
-            if allowance == U256::zero() {
-                underlying_asset
-                    .approve(self.config.liquidation_handler, U256::MAX()
-                    .nonce(nonce)
-                    .send()
-                    .await
-                    .map_err(|e| {
-                        error!("approve failed: {:?}", e);
-                        e
-                    })?;
-                nonce = nonce + 1;
-            }
+    // fetch all close position events from the from_block to to_block
+    async fn get_close_position_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<ClosePositionFilter>> {
+        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+
+        let mut res = Vec::new();
+        for start_block in
+            (from_block.as_u64()..to_block.as_u64()).step_by(LOG_BLOCK_RANGE as usize)
+        {
+            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block.as_u64());
+            event_emitter.close_position_filter()
+                .from_block(start_block)
+                .to_block(end_block)
+                .address(ValueOrArray::Value(self.config.event_emitter))
+                .query()
+                .await?
+                .into_iter()
+                .for_each(|log| {
+                    res.push(log);
+                });
         }
 
-        Ok(())
+        Ok(res)
     }
 
-    async fn update_pools(&mut self) -> Result<()> {
-        let reader = Reader::<M>::new(self.config.reader, self.client.clone());
-        let all_pools = reader.get_pools(self.config.data_store).await?;
-        info!("all_pools: {:?}", all_pools);
-        for pool in all_pools {
-            self.pools.insert(
-                pool.underlying_asset
-                Pool {
-                    underlying_asset: pool.underlying_asset,
-                },
-            );           
+    // fetch all close events from the from_block to to_block
+    async fn get_close_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<CloseFilter>> {
+        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+
+        let mut res = Vec::new();
+        for start_block in
+            (from_block.as_u64()..to_block.as_u64()).step_by(LOG_BLOCK_RANGE as usize)
+        {
+            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block.as_u64());
+            event_emitter.close_filter()
+                .from_block(start_block)
+                .to_block(end_block)
+                .address(ValueOrArray::Value(self.config.event_emitter))
+                .query()
+                .await?
+                .into_iter()
+                .for_each(|log| {
+                    res.push(log);
+                });
         }
 
-        Ok(())
+        Ok(res)
     }
 
-    async fn get_best_liquidation_opportunity(&mut self) -> Result<Option<LiquidationOpportunity>> {
-        let underwaters = self.get_underwater_borrowers().await?;
+    // async fn approve_tokens(&mut self) -> Result<()> {
+    //     let mut nonce = self
+    //         .client
+    //         .get_transaction_count(
+    //             self.client
+    //                 .default_sender()
+    //                 .ok_or(anyhow!("No connected sender"))?,
+    //             None,
+    //         )
+    //         .await?;
+    //     for pool in self.pools.keys() {
+    //         let underlying_asset = IERC20::new(pool.underlying_asset.clone(), self.client.clone());
+    //         let allowance = underlying_asset
+    //             .allowance(self.liquidator, self.config.liquidation_handler)
+    //             .call()
+    //             .await?;
+    //         if allowance == U256::zero() {
+    //             underlying_asset
+    //                 .approve(self.config.liquidation_handler, U256::MAX()
+    //                 .nonce(nonce)
+    //                 .send()
+    //                 .await
+    //                 .map_err(|e| {
+    //                     error!("approve failed: {:?}", e);
+    //                     e
+    //                 })?;
+    //             nonce = nonce + 1;
+    //         }
+    //     }
 
-        if underwaters.len() == 0 {
-            return Err(anyhow!("No underwater borrowers found"));
-        }
+    //     Ok(())
+    // }
 
-        info!("Found {} underwaters", underwaters.len());
-        let mut best_bonus: I256 = I256::MIN;
-        let mut best_op: Option<LiquidationOpportunity> = None;
+    // async fn update_pools(&mut self) -> Result<()> {
+    //     let reader = Reader::<M>::new(self.config.reader, self.client.clone());
+    //     let all_pools = reader.get_pools(self.config.data_store).await?;
+    //     info!("all_pools: {:?}", all_pools);
+    //     for pool in all_pools {
 
-        for (borrower, health_factor, user_total_collateral_usd, user_total_debt_usd) in underwaters {
-            if let Some(op) = self
-                .get_liquidation_profit(
-                    self.borrowers
-                        .get(&borrower)
-                        .ok_or(anyhow!("Borrower not found"))?,
-                    &health_factor,
-                    &user_total_collateral_usd,
-                    &user_total_debt_usd,
-                )
-                .await
-                .map_err(|e| info!("Liquidation op failed {}", e))
-                .ok()
-            {
-                if op.profit > best_bonus {
-                    best_bonus = op.profit;
-                    best_op = Some(op);
-                }
-            }
-        }
+    //         self.pools.insert(
+    //             pool.underlying_asset
+    //             Pool {
+    //                 underlying_asset: pool.underlying_asset,
+    //                 price:reader.getPrice(self.config.data_store, pool.underlying_asset),
+    //             },
+    //         );           
+    //     }
 
-        Ok(best_op)
-    }
+    //     Ok(())
+    // }
 
-    async fn get_liquidation_profit(
-        &self,
-        borrower: &Borrower,
-        health_factor: &U256,
-        health_factor: &user_total_collateral_usd,
-        health_factor: &user_total_debt_usd,
-    ) -> Result<LiquidationOpportunity> {
-        let reader = Reader::<M>::new(self.config.reader, self.client.clone());
-        let eth_price = reader.get_price(self.config.data_store, self.config.weth).await?;
+    // async fn get_best_liquidation_opportunity(&mut self) -> Result<Option<LiquidationOpportunity>> {
+    //     let underwaters = self.get_underwater_borrowers().await?;
 
-        let mut op = LiquidationOpportunity {
-            borrower: borrower.address,
-            profit: (user_total_collateral_usd - user_total_debt_usd)*10_U256.pow(WETH_DECIMALS)/eth_price ,
-        };
+    //     if underwaters.len() == 0 {
+    //         return Err(anyhow!("No underwater borrowers found"));
+    //     }
 
-        Ok(op)
-    }
+    //     info!("Found {} underwaters", underwaters.len());
+    //     let mut best_bonus: I256 = I256::MIN;
+    //     let mut best_op: Option<LiquidationOpportunity> = None;
 
-    async fn build_liquidation_tx(&self, op: &LiquidationOpportunity) -> Result<TypedTransaction> {
-        let exchange_router = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
-        let mut call = exchange_router.execute_liquidation({account:op.borrower});
-        Ok(call.tx.set_chain_id(self.chain_id).clone())
-    }
+    //     for (borrower, health_factor, user_total_collateral_usd, user_total_debt_usd) in underwaters {
+    //         if let Some(op) = self
+    //             .get_liquidation_profit(
+    //                 self.borrowers
+    //                     .get(&borrower)
+    //                     .ok_or(anyhow!("Borrower not found"))?,
+    //                 &health_factor,
+    //                 &user_total_collateral_usd,
+    //                 &user_total_debt_usd,
+    //             )
+    //             .await
+    //             .map_err(|e| info!("Liquidation op failed {}", e))
+    //             .ok()
+    //         {
+    //             if op.profit > best_bonus {
+    //                 best_bonus = op.profit;
+    //                 best_op = Some(op);
+    //             }
+    //         }
+    //     }
+
+    //     Ok(best_op)
+    // }
+
+    // async fn get_liquidation_profit(
+    //     &self,
+    //     borrower: &Borrower,
+    //     health_factor: &U256,
+    //     health_factor: &user_total_collateral_usd,
+    //     health_factor: &user_total_debt_usd,
+    // ) -> Result<LiquidationOpportunity> {
+    //     let reader = Reader::<M>::new(self.config.reader, self.client.clone());
+    //     let eth_price = reader.get_price(self.config.data_store, self.config.weth).await?;
+
+    //     let mut op = LiquidationOpportunity {
+    //         borrower: borrower.address,
+    //         profit: (user_total_collateral_usd - user_total_debt_usd)*10_U256.pow(WETH_DECIMALS)/eth_price ,
+    //     };
+
+    //     Ok(op)
+    // }
+
+    // async fn build_liquidation_tx(&self, op: &LiquidationOpportunity) -> Result<TypedTransaction> {
+    //     let exchange_router = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
+    //     let mut call = exchange_router.execute_liquidation({account:op.borrower});
+    //     Ok(call.tx.set_chain_id(self.chain_id).clone())
+    // }
 
 }
