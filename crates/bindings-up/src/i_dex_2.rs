@@ -41,7 +41,7 @@ pub mod i_dex_2 {
                                         ],
                                     ),
                                     internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("struct IDex2.SwapParams"),
+                                        ::std::borrow::ToOwned::to_owned("struct IDex2.SwapParams2"),
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
@@ -83,7 +83,7 @@ pub mod i_dex_2 {
                                         ],
                                     ),
                                     internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("struct IDex2.SwapParams"),
+                                        ::std::borrow::ToOwned::to_owned("struct IDex2.SwapParams2"),
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
@@ -152,7 +152,7 @@ pub mod i_dex_2 {
         pub fn swap_exact_in(
             &self,
             from: ::ethers::core::types::Address,
-            params: SwapParams,
+            params: SwapParams2,
             to: ::ethers::core::types::Address,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
@@ -163,7 +163,7 @@ pub mod i_dex_2 {
         pub fn swap_exact_out(
             &self,
             from: ::ethers::core::types::Address,
-            params: SwapParams,
+            params: SwapParams2,
             to: ::ethers::core::types::Address,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
@@ -196,7 +196,7 @@ pub mod i_dex_2 {
     )]
     pub struct SwapExactInCall {
         pub from: ::ethers::core::types::Address,
-        pub params: SwapParams,
+        pub params: SwapParams2,
         pub to: ::ethers::core::types::Address,
     }
     ///Container type for all input parameters for the `swapExactOut` function with signature `swapExactOut(address,(address,address,uint24,uint256,uint160),address)` and selector `0x3cc8c0ef`
@@ -218,7 +218,7 @@ pub mod i_dex_2 {
     )]
     pub struct SwapExactOutCall {
         pub from: ::ethers::core::types::Address,
-        pub params: SwapParams,
+        pub params: SwapParams2,
         pub to: ::ethers::core::types::Address,
     }
     ///Container type for all of the contract's call

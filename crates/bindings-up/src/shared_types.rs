@@ -64,7 +64,7 @@ pub struct ClosePositionParams {
 pub struct DepositParams {
     pub underlying_asset: ::ethers::core::types::Address,
 }
-///`SwapParams(address,address,uint24,uint256,uint160)`
+///`SwapParams2(address,address,uint24,uint256,uint160)`
 #[derive(
     Clone,
     ::ethers::contract::EthAbiType,
@@ -77,7 +77,7 @@ pub struct DepositParams {
     Eq,
     Hash
 )]
-pub struct SwapParams {
+pub struct SwapParams2 {
     pub token_in: ::ethers::core::types::Address,
     pub token_out: ::ethers::core::types::Address,
     pub fee: u32,
@@ -120,7 +120,7 @@ pub struct CalculateInterestRatesParams {
 pub struct LiquidationParams {
     pub account: ::ethers::core::types::Address,
 }
-///`Props(uint256,uint256,uint256,uint256,uint256,address,address,address,address,uint256,uint256,uint256,uint256)`
+///`PoolProps(uint256,uint256,uint256,uint256,uint256,address,address,address,address,uint256,uint256,uint256,uint256)`
 #[derive(
     Clone,
     ::ethers::contract::EthAbiType,
@@ -133,7 +133,7 @@ pub struct LiquidationParams {
     Eq,
     Hash
 )]
-pub struct Props {
+pub struct PoolProps {
     pub key_id: ::ethers::core::types::U256,
     pub liquidity_index: ::ethers::core::types::U256,
     pub liquidity_rate: ::ethers::core::types::U256,
@@ -148,7 +148,7 @@ pub struct Props {
     pub unclaimed_fee: ::ethers::core::types::U256,
     pub last_update_timestamp: ::ethers::core::types::U256,
 }
-///`Props(address,address,uint256,uint256,uint256,uint256,uint256,bool,bool)`
+///`PositionProps(address,address,uint256,uint256,uint256,uint256,uint256,bool,bool)`
 #[derive(
     Clone,
     ::ethers::contract::EthAbiType,
@@ -161,7 +161,7 @@ pub struct Props {
     Eq,
     Hash
 )]
-pub struct Props {
+pub struct PositionProps {
     pub account: ::ethers::core::types::Address,
     pub underlying_asset: ::ethers::core::types::Address,
     pub entry_long_price: ::ethers::core::types::U256,
