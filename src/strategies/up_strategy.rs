@@ -1,16 +1,27 @@
 use super::types::Config;
 use crate::collectors::time_collector::NewTick;
 use anyhow::{anyhow, Result};
-use artemis_core::executors::mempool_executor::{GasBidInfo, SubmitTxToMempool};
+//use artemis_core::executors::mempool_executor::{GasBidInfo, SubmitTxToMempool};
 use artemis_core::types::Strategy;
 use async_trait::async_trait;
-use bindings_uf::{
-    reader::Reader,
-    data_store::DataStore,
-    event_emitter::EventEmitter,
-    exchange_router::ExchangeRouter,
-    liquidation_handler::LiquidationHandler,
-    ierc20::IERC20,
+use bindings_up::{
+    // reader::Reader,
+    // data_store::DataStore,
+    // event_emitter::EventEmitter,
+    // exchange_router::ExchangeRouter,
+    // liquidation_handler::LiquidationHandler,
+    // ierc20::IERC20,
+    event_emitter::{
+        EventEmitter, 
+        DepositFilter, 
+        BorrowFilter, 
+        RepayFilter, 
+        RedeemFilter, 
+        SwapFilter, 
+        LiquidationFilter, 
+        ClosePositionFilter, 
+        CloseFilter
+    },
 };
 use clap::{Parser, ValueEnum};
 use ethers::{
@@ -18,9 +29,9 @@ use ethers::{
     providers::Middleware,
     types::{transaction::eip2718::TypedTransaction, Address, ValueOrArray, H160, I256, U256, U64},
 };
-use ethers_contract::Multicall;
+// use ethers_contract::Multicall;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap};
 use std::fs::File;
 use std::io::Write;
 use std::iter::zip;
@@ -45,15 +56,14 @@ struct DeploymentConfig {
 
 #[derive(Debug, Clone, Parser, ValueEnum)]
 pub enum Deployment {
-    TESTNET,
-    OPTIMISM,
+    TESTNET
 }
 
 // admin stuff
 pub const LOG_BLOCK_RANGE: u64 = 1024;
 pub const MULTICALL_CHUNK_SIZE: usize = 100;
-pub const RAY_DECIMALS: U256 = 27;
-pub const WETH_DECIMALS: U256 = 18;
+pub const RAY_DECIMALS: u64 = 27;
+pub const WETH_DECIMALS: u64 = 18;
 pub const STATE_CACHE_FILE: &str = "borrowers.json";
 
 fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
@@ -81,15 +91,15 @@ pub struct StateCache {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Position {
     pool: Address,
-    collateral: u64,
-    debt: u64,
+    collateral: U256,
+    debt_scaled: U256,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Borrower {
     address: Address,
     positions: HashMap<Address, Position>,
-    health: u64
+    //health: u64
 }
 
 // #[derive(Debug, Serialize, Deserialize)]
@@ -153,9 +163,12 @@ impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
     }
 
     // Process incoming events, seeing if we can arb new orders, and updating the internal state on new blocks.
-    async fn process_event(&mut self, event: Event) -> Option<Action> {
+    async fn process_event(&mut self, event: Event) -> Vec<Action> {
         match event {
-            Event::NewTick(block) => self.process_new_tick_event(block).await,
+            Event::NewTick(block) => self
+                .process_new_tick_event(block)
+                .await
+                .map_or(vec![], |a| vec![a]),
         }
     }
 }
@@ -203,45 +216,46 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         //             .ok()?,
         //     }),
         // }));
+        return None;
     }
 
-    // for all known borrowers, return a sorted set of those with health factor < 1
-    async fn get_underwater_borrowers(&mut self) -> Result<Vec<(Address, U256, U256, U256)>> {
-        let reader = Reader::<M>::new(self.config.reader, self.client.clone());
+    // // for all known borrowers, return a sorted set of those with health factor < 1
+    // async fn get_underwater_borrowers(&mut self) -> Result<Vec<(Address, U256, U256, U256)>> {
+    //     let reader = Reader::<M>::new(self.config.reader, self.client.clone());
 
-        let mut underwater_borrowers = Vec::new();
+    //     let mut underwater_borrowers = Vec::new();
 
-        // call pool.getUserAccountData(user) for each borrower
-        let mut multicall = Multicall::new(self.client.clone(), self.config.multicall).await?;
-        let borrowers: Vec<&Borrower> = self
-            .borrowers
-            .values()
-            .filter(|b| b.debt.len() > 0)
-            .collect();
+    //     // call pool.getUserAccountData(user) for each borrower
+    //     let mut multicall = Multicall::new(self.client.clone(), self.config.multicall).await?;
+    //     let borrowers: Vec<&Borrower> = self
+    //         .borrowers
+    //         .values()
+    //         .filter(|b| b.debt.len() > 0)
+    //         .collect();
 
-        for chunk in borrowers.chunks(MULTICALL_CHUNK_SIZE) {
-            multicall.clear_calls();
+    //     for chunk in borrowers.chunks(MULTICALL_CHUNK_SIZE) {
+    //         multicall.clear_calls();
 
-            for borrower in chunk {
-                multicall.add_call(reader.get_liquidation_health_factor(borrower.address), false);
-            }
+    //         for borrower in chunk {
+    //             multicall.add_call(reader.get_liquidation_health_factor(borrower.address), false);
+    //         }
 
-            let result: Vec<(U256, U256, bool, U256, U256)> = multicall.call_array().await?;
-            for (borrower, (health_factor, is_health_factor_higher_than_liquidation_threshold, user_total_collateral_usd, user_total_debt_usd,) in zip(chunk, result) {
-                if (!is_health_factor_higher_than_liquidation_threshold) {
-                    info!(
-                        "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
-                        borrower, health_factor, user_total_collateral_usd, user_total_debt_usd
-                    );
-                    underwater_borrowers.push((borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd));
-                }
-            }
-        }
+    //         let result: Vec<(U256, U256, bool, U256, U256)> = multicall.call_array().await?;
+    //         for (borrower, (health_factor, is_health_factor_higher_than_liquidation_threshold, user_total_collateral_usd, user_total_debt_usd,_) in zip(chunk, result) {
+    //             if (!is_health_factor_higher_than_liquidation_threshold) {
+    //                 info!(
+    //                     "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
+    //                     borrower, health_factor, user_total_collateral_usd, user_total_debt_usd
+    //                 );
+    //                 underwater_borrowers.push((borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd));
+    //             }
+    //         }
+    //     }
 
-        // sort borrowers by health factor
-        underwater_borrowers.sort_by(|a, b| a.1.cmp(&b.1));
-        Ok(underwater_borrowers)
-    }
+    //     // sort borrowers by health factor
+    //     underwater_borrowers.sort_by(|a, b| a.1.cmp(&b.1));
+    //     Ok(underwater_borrowers)
+    // }
 
     // load borrower state cache from file if exists
     fn load_cache(&mut self) -> Result<()> {
@@ -278,25 +292,31 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 // fetch assets if user already a borrower
                 if self.borrowers.contains_key(&user) {
                     let borrower = self.borrowers.get_mut(&user).unwrap();
-                    borrower.positions.insert(log.pool, {
-                        pool:log.pool,
-                        collateral:log.collateral,
-                        debt_scaled:log.debt_scaled,
-                    })
-                    return;
+                    borrower.positions.insert(
+                        log.pool, 
+                        Position {
+                            pool:log.pool,
+                            collateral:log.collateral,
+                            debt_scaled:log.debt_scaled,
+                        }
+                    );
                 } else {
                     self.borrowers.insert(
                         user,
                         Borrower {
                             address: user,
-                            positions: HashMap<Address, Position>::from([log.pool, {
-                                pool:log.pool,
-                                collateral:log.collateral,
-                                debt_scaled:log.debt_scaled,                               
-                            }])
+                            positions: HashMap::from([(
+                                log.pool, 
+                                Position {
+                                    pool:log.pool,
+                                    collateral:log.collateral,
+                                    debt_scaled:log.debt_scaled,                               
+                                }
+                            )])
                         },
                     );
                 }
+                return;
             });
 
         self.get_borrow_logs(self.last_block_number.into(), latest_block)
@@ -307,25 +327,31 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 // fetch assets if user already a borrower
                 if self.borrowers.contains_key(&user) {
                     let borrower = self.borrowers.get_mut(&user).unwrap();
-                    borrower.positions.insert(log.pool, {
-                        pool:log.pool,
-                        collateral:log.collateral,
-                        debt_scaled:log.debt_scaled,
-                    })
-                    return;
+                    borrower.positions.insert(
+                        log.pool, 
+                        Position {
+                            pool:log.pool,
+                            collateral:log.collateral,
+                            debt_scaled:log.debt_scaled,
+                        }
+                    );
                 } else {
                     self.borrowers.insert(
                         user,
                         Borrower {
                             address: user,
-                            positions: HashMap<Address, Position>::from([log.pool, {
-                                pool:log.pool,
-                                collateral:log.collateral,
-                                debt_scaled:log.debt_scaled,                               
-                            }])
+                            positions: HashMap::from([(
+                                log.pool, 
+                                Position {
+                                    pool:log.pool,
+                                    collateral:log.collateral,
+                                    debt_scaled:log.debt_scaled
+                                }
+                            )])
                         },
                     );
                 }
+                return;
             });
 
         self.get_repay_logs(self.last_block_number.into(), latest_block)
@@ -334,15 +360,17 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .for_each(|log| {
                 let user = log.repayer;
                 let borrower = self.borrowers.get_mut(&user).unwrap();
-                borrower.positions.insert(log.pool, {
-                    pool:log.pool,
-                    collateral:log.collateral,
-                    debt_scaled:log.debt_scaled,
-                })  
-                if (log.collateral == 0 && log.debt_scaled == 0) {
-                    self.borrowers.remove(user);
+                borrower.positions.insert(
+                    log.pool, 
+                    Position {
+                        pool:log.pool,
+                        collateral:log.collateral,
+                        debt_scaled:log.debt_scaled
+                    }
+                ); 
+                if log.collateral == U256::from(0) && log.debt_scaled == U256::from(0)  {
+                    self.borrowers.remove(&user);
                 }          
-
                 return;
             });
 
@@ -352,15 +380,17 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .for_each(|log| {
                 let user = log.redeemer;
                 let borrower = self.borrowers.get_mut(&user).unwrap();
-                borrower.positions.insert(log.pool, {
-                    pool:log.pool,
-                    collateral:log.collateral,
-                    debt_scaled:log.debt_scaled,
-                })  
-                if (log.collateral == 0 && log.debt_scaled == 0) {
-                    self.borrowers.remove(user);
+                borrower.positions.insert(
+                    log.pool,
+                    Position {
+                        pool:log.pool,
+                        collateral:log.collateral,
+                        debt_scaled:log.debt_scaled,
+                    }
+                );
+                if log.collateral == U256::from(0)  && log.debt_scaled == U256::from(0)  {
+                    self.borrowers.remove(&user);
                 }          
-
                 return;
             });
 
@@ -370,18 +400,22 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .for_each(|log| {
                 let user = log.account;
                 let borrower = self.borrowers.get_mut(&user).unwrap();
-                borrower.positions.insert(log.pool_in, {
-                    pool:log.pool_in,
-                    collateral:log.collateral_in,
-                    debt_scaled:log.debt_scaled_in,
-                }) 
-                borrower.positions.insert(log.pool_out, {
-                    pool:log.pool_out,
-                    collateral:log.collateral_out,
-                    debt_scaled:log.debt_scaled_out,
-                }) 
-        
-
+                borrower.positions.insert(
+                    log.pool_in, 
+                    Position {
+                        pool:log.pool_in,
+                        collateral:log.collateral_in,
+                        debt_scaled:log.debt_scaled_in
+                    }
+                );
+                borrower.positions.insert(
+                    log.pool_out,
+                    Position {
+                        pool:log.pool_out,
+                        collateral:log.collateral_out,
+                        debt_scaled:log.debt_scaled_out
+                    }
+                );
                 return;
             });
 
@@ -390,7 +424,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .into_iter()
             .for_each(|log| {
                 let user = log.account;
-                self.borrowers.remove(user);
+                self.borrowers.remove(&user);
                 return;
             });
 
@@ -400,12 +434,15 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .for_each(|log| {
                 let user = log.account;
                 let borrower = self.borrowers.get_mut(&user).unwrap();
-                borrower.positions.remove(log.pool)
-                borrower.positions.insert(log.pool_usd, {
-                    pool:log.pool_usd,
-                    collateral:log.collateral_usd,
-                    debt_scaled:log.debt_scaled_usd,
-                })
+                borrower.positions.remove(&log.pool);
+                borrower.positions.insert(
+                    log.pool_usd, 
+                    Position {
+                        pool:log.pool_usd,
+                        collateral:log.collateral_usd,
+                        debt_scaled:log.debt_scaled_usd,
+                    }
+                );
                 return;
             });
 
@@ -414,8 +451,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .into_iter()
             .for_each(|log| {
                 let user = log.account;
-                self.borrowers.remove(user);
-                })
+                self.borrowers.remove(&user);
                 return;
             });
 
@@ -433,7 +469,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
     // fetch all borrow events from the from_block to to_block
     async fn get_deposit_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<DepositFilter>> {
-        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+        let event_emitter = EventEmitter::<M>::new(self.config.event_emitter, self.client.clone());
 
         let mut res = Vec::new();
         for start_block in
@@ -457,7 +493,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
     // fetch all borrow events from the from_block to to_block
     async fn get_borrow_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<BorrowFilter>> {
-        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+        let event_emitter = EventEmitter::<M>::new(self.config.event_emitter, self.client.clone());
 
         let mut res = Vec::new();
         for start_block in
@@ -481,7 +517,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
     // fetch all repay events from the from_block to to_block
     async fn get_repay_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<RepayFilter>> {
-        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+        let event_emitter = EventEmitter::<M>::new(self.config.event_emitter, self.client.clone());
 
         let mut res = Vec::new();
         for start_block in
@@ -505,7 +541,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
     // fetch all redeem events from the from_block to to_block
     async fn get_redeem_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<RedeemFilter>> {
-        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+        let event_emitter = EventEmitter::<M>::new(self.config.event_emitter, self.client.clone());
 
         let mut res = Vec::new();
         for start_block in
@@ -529,7 +565,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
     // fetch all swap events from the from_block to to_block
     async fn get_swap_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<SwapFilter>> {
-        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+        let event_emitter = EventEmitter::<M>::new(self.config.event_emitter, self.client.clone());
 
         let mut res = Vec::new();
         for start_block in
@@ -553,7 +589,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
     // fetch all liquidation events from the from_block to to_block
     async fn get_liquidation_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<LiquidationFilter>> {
-        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+        let event_emitter = EventEmitter::<M>::new(self.config.event_emitter, self.client.clone());
 
         let mut res = Vec::new();
         for start_block in
@@ -577,7 +613,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
     // fetch all close position events from the from_block to to_block
     async fn get_close_position_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<ClosePositionFilter>> {
-        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+        let event_emitter = EventEmitter::<M>::new(self.config.event_emitter, self.client.clone());
 
         let mut res = Vec::new();
         for start_block in
@@ -601,7 +637,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
     // fetch all close events from the from_block to to_block
     async fn get_close_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<CloseFilter>> {
-        let event_emitter = Pool::<M>::new(self.config.event_emitter, self.client.clone());
+        let event_emitter = EventEmitter::<M>::new(self.config.event_emitter, self.client.clone());
 
         let mut res = Vec::new();
         for start_block in
