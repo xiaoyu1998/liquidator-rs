@@ -16,113 +16,6 @@ pub mod config_store_utils {
             constructor: ::core::option::Option::None,
             functions: ::core::convert::From::from([
                 (
-                    ::std::borrow::ToOwned::to_owned("getDebtMultiplierFactorForRedeem"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "getDebtMultiplierFactorForRedeem",
-                            ),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("dataStore"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("address"),
-                                    ),
-                                },
-                            ],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                        },
-                    ],
-                ),
-                (
-                    ::std::borrow::ToOwned::to_owned(
-                        "getHealthFactorCollateralRateThreshold",
-                    ),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "getHealthFactorCollateralRateThreshold",
-                            ),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("dataStore"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("address"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("underlyingAsset"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("address"),
-                                    ),
-                                },
-                            ],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                        },
-                    ],
-                ),
-                (
-                    ::std::borrow::ToOwned::to_owned(
-                        "getHealthFactorLiquidationThreshold",
-                    ),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "getHealthFactorLiquidationThreshold",
-                            ),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("dataStore"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("address"),
-                                    ),
-                                },
-                            ],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                        },
-                    ],
-                ),
-                (
                     ::std::borrow::ToOwned::to_owned("getPoolActive"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -501,34 +394,6 @@ pub mod config_store_utils {
                 ),
             )
         }
-        ///Calls the contract's `getDebtMultiplierFactorForRedeem` (0x349c1a72) function
-        pub fn get_debt_multiplier_factor_for_redeem(
-            &self,
-            data_store: ::ethers::core::types::Address,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
-            self.0
-                .method_hash([52, 156, 26, 114], data_store)
-                .expect("method not found (this should never happen)")
-        }
-        ///Calls the contract's `getHealthFactorCollateralRateThreshold` (0xef5cb53d) function
-        pub fn get_health_factor_collateral_rate_threshold(
-            &self,
-            data_store: ::ethers::core::types::Address,
-            underlying_asset: ::ethers::core::types::Address,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
-            self.0
-                .method_hash([239, 92, 181, 61], (data_store, underlying_asset))
-                .expect("method not found (this should never happen)")
-        }
-        ///Calls the contract's `getHealthFactorLiquidationThreshold` (0xb3b8c8e5) function
-        pub fn get_health_factor_liquidation_threshold(
-            &self,
-            data_store: ::ethers::core::types::Address,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
-            self.0
-                .method_hash([179, 184, 200, 229], data_store)
-                .expect("method not found (this should never happen)")
-        }
         ///Calls the contract's `getPoolActive` (0xa168153f) function
         pub fn get_pool_active(
             &self,
@@ -625,67 +490,6 @@ pub mod config_store_utils {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
-    }
-    ///Container type for all input parameters for the `getDebtMultiplierFactorForRedeem` function with signature `getDebtMultiplierFactorForRedeem(address)` and selector `0x349c1a72`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthCall,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethcall(
-        name = "getDebtMultiplierFactorForRedeem",
-        abi = "getDebtMultiplierFactorForRedeem(address)"
-    )]
-    pub struct GetDebtMultiplierFactorForRedeemCall {
-        pub data_store: ::ethers::core::types::Address,
-    }
-    ///Container type for all input parameters for the `getHealthFactorCollateralRateThreshold` function with signature `getHealthFactorCollateralRateThreshold(address,address)` and selector `0xef5cb53d`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthCall,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethcall(
-        name = "getHealthFactorCollateralRateThreshold",
-        abi = "getHealthFactorCollateralRateThreshold(address,address)"
-    )]
-    pub struct GetHealthFactorCollateralRateThresholdCall {
-        pub data_store: ::ethers::core::types::Address,
-        pub underlying_asset: ::ethers::core::types::Address,
-    }
-    ///Container type for all input parameters for the `getHealthFactorLiquidationThreshold` function with signature `getHealthFactorLiquidationThreshold(address)` and selector `0xb3b8c8e5`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthCall,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethcall(
-        name = "getHealthFactorLiquidationThreshold",
-        abi = "getHealthFactorLiquidationThreshold(address)"
-    )]
-    pub struct GetHealthFactorLiquidationThresholdCall {
-        pub data_store: ::ethers::core::types::Address,
     }
     ///Container type for all input parameters for the `getPoolActive` function with signature `getPoolActive(address,address)` and selector `0xa168153f`
     #[derive(
@@ -870,11 +674,6 @@ pub mod config_store_utils {
         Hash
     )]
     pub enum ConfigStoreUtilsCalls {
-        GetDebtMultiplierFactorForRedeem(GetDebtMultiplierFactorForRedeemCall),
-        GetHealthFactorCollateralRateThreshold(
-            GetHealthFactorCollateralRateThresholdCall,
-        ),
-        GetHealthFactorLiquidationThreshold(GetHealthFactorLiquidationThresholdCall),
         GetPoolActive(GetPoolActiveCall),
         GetPoolBorrowCapacity(GetPoolBorrowCapacityCall),
         GetPoolBorrowingEnabled(GetPoolBorrowingEnabledCall),
@@ -890,21 +689,6 @@ pub mod config_store_utils {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <GetDebtMultiplierFactorForRedeemCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::GetDebtMultiplierFactorForRedeem(decoded));
-            }
-            if let Ok(decoded) = <GetHealthFactorCollateralRateThresholdCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::GetHealthFactorCollateralRateThreshold(decoded));
-            }
-            if let Ok(decoded) = <GetHealthFactorLiquidationThresholdCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::GetHealthFactorLiquidationThreshold(decoded));
-            }
             if let Ok(decoded) = <GetPoolActiveCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
@@ -956,15 +740,6 @@ pub mod config_store_utils {
     impl ::ethers::core::abi::AbiEncode for ConfigStoreUtilsCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::GetDebtMultiplierFactorForRedeem(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetHealthFactorCollateralRateThreshold(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::GetHealthFactorLiquidationThreshold(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::GetPoolActive(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -998,15 +773,6 @@ pub mod config_store_utils {
     impl ::core::fmt::Display for ConfigStoreUtilsCalls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::GetDebtMultiplierFactorForRedeem(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
-                Self::GetHealthFactorCollateralRateThreshold(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
-                Self::GetHealthFactorLiquidationThreshold(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
                 Self::GetPoolActive(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPoolBorrowCapacity(element) => {
                     ::core::fmt::Display::fmt(element, f)
@@ -1023,24 +789,6 @@ pub mod config_store_utils {
                 }
                 Self::GetPoolUsd(element) => ::core::fmt::Display::fmt(element, f),
             }
-        }
-    }
-    impl ::core::convert::From<GetDebtMultiplierFactorForRedeemCall>
-    for ConfigStoreUtilsCalls {
-        fn from(value: GetDebtMultiplierFactorForRedeemCall) -> Self {
-            Self::GetDebtMultiplierFactorForRedeem(value)
-        }
-    }
-    impl ::core::convert::From<GetHealthFactorCollateralRateThresholdCall>
-    for ConfigStoreUtilsCalls {
-        fn from(value: GetHealthFactorCollateralRateThresholdCall) -> Self {
-            Self::GetHealthFactorCollateralRateThreshold(value)
-        }
-    }
-    impl ::core::convert::From<GetHealthFactorLiquidationThresholdCall>
-    for ConfigStoreUtilsCalls {
-        fn from(value: GetHealthFactorLiquidationThresholdCall) -> Self {
-            Self::GetHealthFactorLiquidationThreshold(value)
         }
     }
     impl ::core::convert::From<GetPoolActiveCall> for ConfigStoreUtilsCalls {
@@ -1088,52 +836,6 @@ pub mod config_store_utils {
             Self::GetPoolUsd(value)
         }
     }
-    ///Container type for all return fields from the `getDebtMultiplierFactorForRedeem` function with signature `getDebtMultiplierFactorForRedeem(address)` and selector `0x349c1a72`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthAbiType,
-        ::ethers::contract::EthAbiCodec,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    pub struct GetDebtMultiplierFactorForRedeemReturn(pub ::ethers::core::types::U256);
-    ///Container type for all return fields from the `getHealthFactorCollateralRateThreshold` function with signature `getHealthFactorCollateralRateThreshold(address,address)` and selector `0xef5cb53d`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthAbiType,
-        ::ethers::contract::EthAbiCodec,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    pub struct GetHealthFactorCollateralRateThresholdReturn(
-        pub ::ethers::core::types::U256,
-    );
-    ///Container type for all return fields from the `getHealthFactorLiquidationThreshold` function with signature `getHealthFactorLiquidationThreshold(address)` and selector `0xb3b8c8e5`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthAbiType,
-        ::ethers::contract::EthAbiCodec,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    pub struct GetHealthFactorLiquidationThresholdReturn(
-        pub ::ethers::core::types::U256,
-    );
     ///Container type for all return fields from the `getPoolActive` function with signature `getPoolActive(address,address)` and selector `0xa168153f`
     #[derive(
         Clone,

@@ -53,6 +53,24 @@ pub mod i_event_emitter {
                                         ::std::borrow::ToOwned::to_owned("uint256"),
                                     ),
                                 },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("collateral"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("debtScaled"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
                             ],
                             outputs: ::std::vec![],
                             constant: ::core::option::Option::None,
@@ -178,6 +196,24 @@ pub mod i_event_emitter {
                                         ::std::borrow::ToOwned::to_owned("uint256"),
                                     ),
                                 },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("collateralUsd"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("debtScaledUsd"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
                             ],
                             outputs: ::std::vec![],
                             constant: ::core::option::Option::None,
@@ -207,6 +243,24 @@ pub mod i_event_emitter {
                                 },
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("depositAmount"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("collateral"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("debtScaled"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Uint(
                                         256usize,
                                     ),
@@ -443,6 +497,24 @@ pub mod i_event_emitter {
                                         ::std::borrow::ToOwned::to_owned("uint256"),
                                     ),
                                 },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("collateral"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("debtScaled"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
                             ],
                             outputs: ::std::vec![],
                             constant: ::core::option::Option::None,
@@ -484,6 +556,24 @@ pub mod i_event_emitter {
                                     kind: ::ethers::core::abi::ethabi::ParamType::Bool,
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("bool"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("collateral"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("debtScaled"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
                                     ),
                                 },
                             ],
@@ -592,6 +682,42 @@ pub mod i_event_emitter {
                                         ::std::borrow::ToOwned::to_owned("uint256"),
                                     ),
                                 },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("collateralIn"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("debtScaledIn"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("collateralOut"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("debtScaledOut"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
                             ],
                             outputs: ::std::vec![],
                             constant: ::core::option::Option::None,
@@ -692,18 +818,27 @@ pub mod i_event_emitter {
                 ),
             )
         }
-        ///Calls the contract's `emitBorrow` (0xd30597e2) function
+        ///Calls the contract's `emitBorrow` (0xf002e0bd) function
         pub fn emit_borrow(
             &self,
             underlying_asset: ::ethers::core::types::Address,
             account: ::ethers::core::types::Address,
             borrow_amount: ::ethers::core::types::U256,
             borrow_rate: ::ethers::core::types::U256,
+            collateral: ::ethers::core::types::U256,
+            debt_scaled: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash(
-                    [211, 5, 151, 226],
-                    (underlying_asset, account, borrow_amount, borrow_rate),
+                    [240, 2, 224, 189],
+                    (
+                        underlying_asset,
+                        account,
+                        borrow_amount,
+                        borrow_rate,
+                        collateral,
+                        debt_scaled,
+                    ),
                 )
                 .expect("method not found (this should never happen)")
         }
@@ -729,7 +864,7 @@ pub mod i_event_emitter {
                 )
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `emitClosePosition` (0x6c1456dd) function
+        ///Calls the contract's `emitClosePosition` (0x87a454ec) function
         pub fn emit_close_position(
             &self,
             underlying_asset: ::ethers::core::types::Address,
@@ -738,10 +873,12 @@ pub mod i_event_emitter {
             collateral_amount: ::ethers::core::types::U256,
             debt_amount: ::ethers::core::types::U256,
             remain_amount_usd: ::ethers::core::types::U256,
+            collateral_usd: ::ethers::core::types::U256,
+            debt_scaled_usd: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash(
-                    [108, 20, 86, 221],
+                    [135, 164, 84, 236],
                     (
                         underlying_asset,
                         underlying_asset_usd,
@@ -749,21 +886,25 @@ pub mod i_event_emitter {
                         collateral_amount,
                         debt_amount,
                         remain_amount_usd,
+                        collateral_usd,
+                        debt_scaled_usd,
                     ),
                 )
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `emitDeposit` (0x8b7711b4) function
+        ///Calls the contract's `emitDeposit` (0x7ba59a8b) function
         pub fn emit_deposit(
             &self,
             underlying_asset: ::ethers::core::types::Address,
             account: ::ethers::core::types::Address,
             deposit_amount: ::ethers::core::types::U256,
+            collateral: ::ethers::core::types::U256,
+            debt_scaled: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash(
-                    [139, 119, 17, 180],
-                    (underlying_asset, account, deposit_amount),
+                    [123, 165, 154, 139],
+                    (underlying_asset, account, deposit_amount, collateral, debt_scaled),
                 )
                 .expect("method not found (this should never happen)")
         }
@@ -830,33 +971,51 @@ pub mod i_event_emitter {
                 )
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `emitRedeem` (0xbb0e0b2c) function
+        ///Calls the contract's `emitRedeem` (0x25ecca95) function
         pub fn emit_redeem(
             &self,
             underlying_asset: ::ethers::core::types::Address,
             account: ::ethers::core::types::Address,
             to: ::ethers::core::types::Address,
             redeem_amount: ::ethers::core::types::U256,
+            collateral: ::ethers::core::types::U256,
+            debt_scaled: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash(
-                    [187, 14, 11, 44],
-                    (underlying_asset, account, to, redeem_amount),
+                    [37, 236, 202, 149],
+                    (
+                        underlying_asset,
+                        account,
+                        to,
+                        redeem_amount,
+                        collateral,
+                        debt_scaled,
+                    ),
                 )
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `emitRepay` (0xe764ac72) function
+        ///Calls the contract's `emitRepay` (0x5b63816e) function
         pub fn emit_repay(
             &self,
             underlying_asset: ::ethers::core::types::Address,
             repayer: ::ethers::core::types::Address,
             repay_amount: ::ethers::core::types::U256,
             use_collateral: bool,
+            collateral: ::ethers::core::types::U256,
+            debt_scaled: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash(
-                    [231, 100, 172, 114],
-                    (underlying_asset, repayer, repay_amount, use_collateral),
+                    [91, 99, 129, 110],
+                    (
+                        underlying_asset,
+                        repayer,
+                        repay_amount,
+                        use_collateral,
+                        collateral,
+                        debt_scaled,
+                    ),
                 )
                 .expect("method not found (this should never happen)")
         }
@@ -875,7 +1034,7 @@ pub mod i_event_emitter {
                 )
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `emitSwap` (0x68c0c115) function
+        ///Calls the contract's `emitSwap` (0x66e4d17a) function
         pub fn emit_swap(
             &self,
             underlying_asset_in: ::ethers::core::types::Address,
@@ -884,10 +1043,14 @@ pub mod i_event_emitter {
             amount_in: ::ethers::core::types::U256,
             amount_out: ::ethers::core::types::U256,
             fee: ::ethers::core::types::U256,
+            collateral_in: ::ethers::core::types::U256,
+            debt_scaled_in: ::ethers::core::types::U256,
+            collateral_out: ::ethers::core::types::U256,
+            debt_scaled_out: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash(
-                    [104, 192, 193, 21],
+                    [102, 228, 209, 122],
                     (
                         underlying_asset_in,
                         underlying_asset_out,
@@ -895,6 +1058,10 @@ pub mod i_event_emitter {
                         amount_in,
                         amount_out,
                         fee,
+                        collateral_in,
+                        debt_scaled_in,
+                        collateral_out,
+                        debt_scaled_out,
                     ),
                 )
                 .expect("method not found (this should never happen)")
@@ -921,7 +1088,7 @@ pub mod i_event_emitter {
             Self::new(contract.address(), contract.client())
         }
     }
-    ///Container type for all input parameters for the `emitBorrow` function with signature `emitBorrow(address,address,uint256,uint256)` and selector `0xd30597e2`
+    ///Container type for all input parameters for the `emitBorrow` function with signature `emitBorrow(address,address,uint256,uint256,uint256,uint256)` and selector `0xf002e0bd`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -934,12 +1101,17 @@ pub mod i_event_emitter {
         Eq,
         Hash
     )]
-    #[ethcall(name = "emitBorrow", abi = "emitBorrow(address,address,uint256,uint256)")]
+    #[ethcall(
+        name = "emitBorrow",
+        abi = "emitBorrow(address,address,uint256,uint256,uint256,uint256)"
+    )]
     pub struct EmitBorrowCall {
         pub underlying_asset: ::ethers::core::types::Address,
         pub account: ::ethers::core::types::Address,
         pub borrow_amount: ::ethers::core::types::U256,
         pub borrow_rate: ::ethers::core::types::U256,
+        pub collateral: ::ethers::core::types::U256,
+        pub debt_scaled: ::ethers::core::types::U256,
     }
     ///Container type for all input parameters for the `emitClose` function with signature `emitClose(address,address,uint256,uint256,uint256)` and selector `0x324ac765`
     #[derive(
@@ -965,7 +1137,7 @@ pub mod i_event_emitter {
         pub amount_usd_after_repay_and_sell_collateral: ::ethers::core::types::U256,
         pub amount_usd_after_buy_collateral_and_repay: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `emitClosePosition` function with signature `emitClosePosition(address,address,address,uint256,uint256,uint256)` and selector `0x6c1456dd`
+    ///Container type for all input parameters for the `emitClosePosition` function with signature `emitClosePosition(address,address,address,uint256,uint256,uint256,uint256,uint256)` and selector `0x87a454ec`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -980,7 +1152,7 @@ pub mod i_event_emitter {
     )]
     #[ethcall(
         name = "emitClosePosition",
-        abi = "emitClosePosition(address,address,address,uint256,uint256,uint256)"
+        abi = "emitClosePosition(address,address,address,uint256,uint256,uint256,uint256,uint256)"
     )]
     pub struct EmitClosePositionCall {
         pub underlying_asset: ::ethers::core::types::Address,
@@ -989,8 +1161,10 @@ pub mod i_event_emitter {
         pub collateral_amount: ::ethers::core::types::U256,
         pub debt_amount: ::ethers::core::types::U256,
         pub remain_amount_usd: ::ethers::core::types::U256,
+        pub collateral_usd: ::ethers::core::types::U256,
+        pub debt_scaled_usd: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `emitDeposit` function with signature `emitDeposit(address,address,uint256)` and selector `0x8b7711b4`
+    ///Container type for all input parameters for the `emitDeposit` function with signature `emitDeposit(address,address,uint256,uint256,uint256)` and selector `0x7ba59a8b`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -1003,11 +1177,16 @@ pub mod i_event_emitter {
         Eq,
         Hash
     )]
-    #[ethcall(name = "emitDeposit", abi = "emitDeposit(address,address,uint256)")]
+    #[ethcall(
+        name = "emitDeposit",
+        abi = "emitDeposit(address,address,uint256,uint256,uint256)"
+    )]
     pub struct EmitDepositCall {
         pub underlying_asset: ::ethers::core::types::Address,
         pub account: ::ethers::core::types::Address,
         pub deposit_amount: ::ethers::core::types::U256,
+        pub collateral: ::ethers::core::types::U256,
+        pub debt_scaled: ::ethers::core::types::U256,
     }
     ///Container type for all input parameters for the `emitLiquidation` function with signature `emitLiquidation(address,address,uint256,uint256,uint256,uint256)` and selector `0x94e0dd1d`
     #[derive(
@@ -1083,7 +1262,7 @@ pub mod i_event_emitter {
         pub debt: ::ethers::core::types::U256,
         pub price: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `emitRedeem` function with signature `emitRedeem(address,address,address,uint256)` and selector `0xbb0e0b2c`
+    ///Container type for all input parameters for the `emitRedeem` function with signature `emitRedeem(address,address,address,uint256,uint256,uint256)` and selector `0x25ecca95`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -1096,14 +1275,19 @@ pub mod i_event_emitter {
         Eq,
         Hash
     )]
-    #[ethcall(name = "emitRedeem", abi = "emitRedeem(address,address,address,uint256)")]
+    #[ethcall(
+        name = "emitRedeem",
+        abi = "emitRedeem(address,address,address,uint256,uint256,uint256)"
+    )]
     pub struct EmitRedeemCall {
         pub underlying_asset: ::ethers::core::types::Address,
         pub account: ::ethers::core::types::Address,
         pub to: ::ethers::core::types::Address,
         pub redeem_amount: ::ethers::core::types::U256,
+        pub collateral: ::ethers::core::types::U256,
+        pub debt_scaled: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `emitRepay` function with signature `emitRepay(address,address,uint256,bool)` and selector `0xe764ac72`
+    ///Container type for all input parameters for the `emitRepay` function with signature `emitRepay(address,address,uint256,bool,uint256,uint256)` and selector `0x5b63816e`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -1116,12 +1300,17 @@ pub mod i_event_emitter {
         Eq,
         Hash
     )]
-    #[ethcall(name = "emitRepay", abi = "emitRepay(address,address,uint256,bool)")]
+    #[ethcall(
+        name = "emitRepay",
+        abi = "emitRepay(address,address,uint256,bool,uint256,uint256)"
+    )]
     pub struct EmitRepayCall {
         pub underlying_asset: ::ethers::core::types::Address,
         pub repayer: ::ethers::core::types::Address,
         pub repay_amount: ::ethers::core::types::U256,
         pub use_collateral: bool,
+        pub collateral: ::ethers::core::types::U256,
+        pub debt_scaled: ::ethers::core::types::U256,
     }
     ///Container type for all input parameters for the `emitSupply` function with signature `emitSupply(address,address,address,uint256)` and selector `0x9324595b`
     #[derive(
@@ -1143,7 +1332,7 @@ pub mod i_event_emitter {
         pub to: ::ethers::core::types::Address,
         pub supply_amount: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `emitSwap` function with signature `emitSwap(address,address,address,uint256,uint256,uint256)` and selector `0x68c0c115`
+    ///Container type for all input parameters for the `emitSwap` function with signature `emitSwap(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)` and selector `0x66e4d17a`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -1158,7 +1347,7 @@ pub mod i_event_emitter {
     )]
     #[ethcall(
         name = "emitSwap",
-        abi = "emitSwap(address,address,address,uint256,uint256,uint256)"
+        abi = "emitSwap(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256)"
     )]
     pub struct EmitSwapCall {
         pub underlying_asset_in: ::ethers::core::types::Address,
@@ -1167,6 +1356,10 @@ pub mod i_event_emitter {
         pub amount_in: ::ethers::core::types::U256,
         pub amount_out: ::ethers::core::types::U256,
         pub fee: ::ethers::core::types::U256,
+        pub collateral_in: ::ethers::core::types::U256,
+        pub debt_scaled_in: ::ethers::core::types::U256,
+        pub collateral_out: ::ethers::core::types::U256,
+        pub debt_scaled_out: ::ethers::core::types::U256,
     }
     ///Container type for all input parameters for the `emitWithdraw` function with signature `emitWithdraw(address,address,address,uint256)` and selector `0xa250ab9a`
     #[derive(
