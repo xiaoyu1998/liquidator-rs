@@ -5,8 +5,8 @@ use anyhow::{anyhow, Result};
 use artemis_core::types::Strategy;
 use async_trait::async_trait;
 use bindings_up::{
-    // reader::Reader,
-    // data_store::DataStore,
+    reader::Reader,
+    data_store::DataStore,
     // event_emitter::EventEmitter,
     // exchange_router::ExchangeRouter,
     // liquidation_handler::LiquidationHandler,
@@ -48,7 +48,6 @@ struct DeploymentConfig {
     event_emitter: Address,
     exchange_router: Address,
     liquidation_handler: Address,
-    pool_configuration_utils: Address,
     weth: Address,
     multicall: Address,
     creation_block: u64,
@@ -69,12 +68,11 @@ pub const STATE_CACHE_FILE: &str = "borrowers.json";
 fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
     match deployment {
         Deployment::TESTNET => DeploymentConfig {
-            data_store: Address::from_str("0x2d8A3C5677189723C4cB8873CfC9C8976FDF38Ac").unwrap(),
-            reader: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
-            event_emitter: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
+            data_store: Address::from_str("0xbCd367a2E942cDA6F9ce5633A2f1C001a99F3bB0").unwrap(),
+            reader: Address::from_str("0x9E192Af6eda7F0b4569Ae74B31D55b64e10a02CE").unwrap(),
+            event_emitter: Address::from_str("0xdFdFa4487d8f04CfDD5A797CDeD13236bF355aF8").unwrap(),
             exchange_router: Address::from_str("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5").unwrap(),
-            liquidation_handler: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
-            pool_configuration_utils: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
+            liquidation_handler: Address::from_str("0x95401dc811bb5740090279Ba06cfA8fcF6113778").unwrap(),
             weth: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
             multicall: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
             creation_block: 1,
@@ -86,6 +84,7 @@ fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
 pub struct StateCache {
     last_block_number: u64,
     borrowers: HashMap<Address, Borrower>,
+    pools: HashMap<Address, Pool>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -102,11 +101,11 @@ pub struct Borrower {
     //health: u64
 }
 
-// #[derive(Debug, Serialize, Deserialize)]
-// pub struct Pool {
-//     underlying_asset: Address,
-//     price:u64,
-// }
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Pool {
+    underlying_asset: Address,
+    price: U256,
+}
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -115,7 +114,7 @@ pub struct UpStrategy<M> {
     bid_percentage: u64,
     last_block_number: u64,
     borrowers: HashMap<Address, Borrower>,
-    //pools: HashMap<Address, Pool>,
+    pools: HashMap<Address, Pool>,
     chain_id: u64,
     config: DeploymentConfig,
     //liquidator: Address,
@@ -134,7 +133,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             bid_percentage: config.bid_percentage,
             last_block_number: 0,
             borrowers: HashMap::new(),
-           // pools: HashMap::new(),
+            pools: HashMap::new(),
             chain_id: config.chain_id,
             config: get_deployment_config(deployment),
             //liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
@@ -153,7 +152,7 @@ impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
     async fn sync_state(&mut self) -> Result<()> {
         info!("syncing state");
 
-        // self.update_pools().await?;
+        self.update_pools().await?;
         // self.approve_tokens().await?;
         self.load_cache()?;
         self.update_state().await?;
@@ -179,10 +178,10 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     async fn process_new_tick_event(&mut self, event: NewTick) -> Option<Action> {
         info!("received new tick: {:?}", event);
 
-        // self.update_pools()
-        //     .await
-        //     .map_err(|e| error!("Update Pools error: {}", e))
-        //     .ok()?;
+        self.update_pools()
+            .await
+            .map_err(|e| error!("Update Pools error: {}", e))
+            .ok()?;
 
         self.update_state()
             .await
@@ -265,6 +264,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 info!("read state cache from file");
                 self.last_block_number = cache.last_block_number;
                 self.borrowers = cache.borrowers;
+                self.pools = cache.pools;
             }
             Err(_) => {
                 info!("no state cache file found, creating new one");
@@ -284,12 +284,13 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             self.last_block_number, latest_block
         );
 
+    
         self.get_deposit_logs(self.last_block_number.into(), latest_block)
             .await?
             .into_iter()
             .for_each(|log| {
                 let user = log.depositer;
-                // fetch assets if user already a borrower
+                //info!("deposit {}", log);         
                 if self.borrowers.contains_key(&user) {
                     let borrower = self.borrowers.get_mut(&user).unwrap();
                     borrower.positions.insert(
@@ -324,6 +325,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .into_iter()
             .for_each(|log| {
                 let user = log.borrower;
+                //info!("borrow {}", log);
                 // fetch assets if user already a borrower
                 if self.borrowers.contains_key(&user) {
                     let borrower = self.borrowers.get_mut(&user).unwrap();
@@ -359,6 +361,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .into_iter()
             .for_each(|log| {
                 let user = log.repayer;
+                //info!("repay {}", log);
                 let borrower = self.borrowers.get_mut(&user).unwrap();
                 borrower.positions.insert(
                     log.pool, 
@@ -379,6 +382,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .into_iter()
             .for_each(|log| {
                 let user = log.redeemer;
+                //info!("redeem {}", log);
                 let borrower = self.borrowers.get_mut(&user).unwrap();
                 borrower.positions.insert(
                     log.pool,
@@ -399,6 +403,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .into_iter()
             .for_each(|log| {
                 let user = log.account;
+                //info!("swap {}", log);
                 let borrower = self.borrowers.get_mut(&user).unwrap();
                 borrower.positions.insert(
                     log.pool_in, 
@@ -423,6 +428,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .await?
             .into_iter()
             .for_each(|log| {
+                //info!("liquidation {}", log);
                 let user = log.account;
                 self.borrowers.remove(&user);
                 return;
@@ -433,6 +439,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .into_iter()
             .for_each(|log| {
                 let user = log.account;
+                //info!("close_position {}", log);
                 let borrower = self.borrowers.get_mut(&user).unwrap();
                 borrower.positions.remove(&log.pool);
                 borrower.positions.insert(
@@ -450,6 +457,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .await?
             .into_iter()
             .for_each(|log| {
+                info!("close {}", log);
                 let user = log.account;
                 self.borrowers.remove(&user);
                 return;
@@ -459,6 +467,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         let cache = StateCache {
             last_block_number: latest_block.as_u64(),
             borrowers: self.borrowers.clone(),
+            pools: self.pools.clone(),
         };
         self.last_block_number = latest_block.as_u64();
         let mut file = File::create(STATE_CACHE_FILE)?;
@@ -467,7 +476,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         Ok(())
     }
 
-    // fetch all borrow events from the from_block to to_block
+    // fetch all deposit events from the from_block to to_block
     async fn get_deposit_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<DepositFilter>> {
         let event_emitter = EventEmitter::<M>::new(self.config.event_emitter, self.client.clone());
 
@@ -692,23 +701,24 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     //     Ok(())
     // }
 
-    // async fn update_pools(&mut self) -> Result<()> {
-    //     let reader = Reader::<M>::new(self.config.reader, self.client.clone());
-    //     let all_pools = reader.get_pools(self.config.data_store).await?;
-    //     info!("all_pools: {:?}", all_pools);
-    //     for pool in all_pools {
+    async fn update_pools(&mut self) -> Result<()> {
+        let reader = Reader::<M>::new(self.config.reader, self.client.clone());
+        let all_pools = reader.get_pools(self.config.data_store).await?;
+        //info!("all_pools: {:?}", all_pools);
+        for pool in all_pools {
+            let price  = reader.get_price(self.config.data_store, pool.underlying_asset).await?;
+            info!("pool:{} {} ", pool.underlying_asset, price);
+            self.pools.insert(
+                pool.underlying_asset,
+                Pool {
+                    underlying_asset: pool.underlying_asset,
+                    price: price,
+                },
+            );           
+        }
 
-    //         self.pools.insert(
-    //             pool.underlying_asset
-    //             Pool {
-    //                 underlying_asset: pool.underlying_asset,
-    //                 price:reader.getPrice(self.config.data_store, pool.underlying_asset),
-    //             },
-    //         );           
-    //     }
-
-    //     Ok(())
-    // }
+        Ok(())
+    }
 
     // async fn get_best_liquidation_opportunity(&mut self) -> Result<Option<LiquidationOpportunity>> {
     //     let underwaters = self.get_underwater_borrowers().await?;
