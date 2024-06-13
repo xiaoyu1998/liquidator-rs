@@ -279,18 +279,22 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     // update known borrower state from last block to latest block
     async fn update_state(&mut self) -> Result<()> {
         let latest_block = self.client.get_block_number().await?;
+        let mut start_block = self.last_block_number + 1;
+        if start_block > latest_block.as_u64() {
+            start_block = latest_block.as_u64();
+        }
         info!(
             "Updating state from block {} to {}",
-            self.last_block_number, latest_block
+            start_block, latest_block
         );
 
     
-        self.get_deposit_logs(self.last_block_number.into(), latest_block)
+        self.get_deposit_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
             .for_each(|log| {
-                let user = log.depositer;
-                //info!("deposit {}", log);         
+                info!("deposit {:?} {:?} {} {}", log.depositer, log.pool, log.collateral, log.debt_scaled);   
+                let user = log.depositer;      
                 if self.borrowers.contains_key(&user) {
                     let borrower = self.borrowers.get_mut(&user).unwrap();
                     borrower.positions.insert(
@@ -320,13 +324,12 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 return;
             });
 
-        self.get_borrow_logs(self.last_block_number.into(), latest_block)
+        self.get_borrow_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
             .for_each(|log| {
+                info!("borrow {:?} {:?} {} {}", log.borrower, log.pool, log.collateral, log.debt_scaled);   
                 let user = log.borrower;
-                //info!("borrow {}", log);
-                // fetch assets if user already a borrower
                 if self.borrowers.contains_key(&user) {
                     let borrower = self.borrowers.get_mut(&user).unwrap();
                     borrower.positions.insert(
@@ -356,12 +359,12 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 return;
             });
 
-        self.get_repay_logs(self.last_block_number.into(), latest_block)
+        self.get_repay_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
             .for_each(|log| {
+                info!("repay {:?} {:?} {} {}", log.repayer, log.pool, log.collateral, log.debt_scaled);   
                 let user = log.repayer;
-                //info!("repay {}", log);
                 let borrower = self.borrowers.get_mut(&user).unwrap();
                 borrower.positions.insert(
                     log.pool, 
@@ -377,12 +380,12 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 return;
             });
 
-        self.get_redeem_logs(self.last_block_number.into(), latest_block)
+        self.get_redeem_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
             .for_each(|log| {
+                info!("redeem {:?} {:?} {} {}", log.redeemer, log.pool, log.collateral, log.debt_scaled); 
                 let user = log.redeemer;
-                //info!("redeem {}", log);
                 let borrower = self.borrowers.get_mut(&user).unwrap();
                 borrower.positions.insert(
                     log.pool,
@@ -398,10 +401,12 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 return;
             });
 
-        self.get_swap_logs(self.last_block_number.into(), latest_block)
+        self.get_swap_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
             .for_each(|log| {
+                info!("swap_in {:?} {:?} {} {}", log.account, log.pool_in, log.collateral_in, log.debt_scaled_in); 
+                info!("swap_out {:?} {:?} {} {}", log.account, log.pool_out, log.collateral_out, log.debt_scaled_out); 
                 let user = log.account;
                 //info!("swap {}", log);
                 let borrower = self.borrowers.get_mut(&user).unwrap();
@@ -424,22 +429,23 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 return;
             });
 
-        self.get_liquidation_logs(self.last_block_number.into(), latest_block)
+        self.get_liquidation_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
             .for_each(|log| {
-                //info!("liquidation {}", log);
+                info!("liquidation {:?}", log.account);
                 let user = log.account;
                 self.borrowers.remove(&user);
                 return;
             });
 
-        self.get_close_position_logs(self.last_block_number.into(), latest_block)
+        self.get_close_position_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
             .for_each(|log| {
+                info!("close_position {:?} {:?}", log.account, log.pool); 
+                info!("close_position {:?} {:?} {} {}", log.account, log.pool_usd, log.collateral_usd, log.debt_scaled_usd); 
                 let user = log.account;
-                //info!("close_position {}", log);
                 let borrower = self.borrowers.get_mut(&user).unwrap();
                 borrower.positions.remove(&log.pool);
                 borrower.positions.insert(
@@ -453,11 +459,11 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 return;
             });
 
-        self.get_close_logs(self.last_block_number.into(), latest_block)
+        self.get_close_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("close {}", log);
+                info!("close {:?}", log.account);
                 let user = log.account;
                 self.borrowers.remove(&user);
                 return;
@@ -707,7 +713,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         //info!("all_pools: {:?}", all_pools);
         for pool in all_pools {
             let price  = reader.get_price(self.config.data_store, pool.underlying_asset).await?;
-            info!("pool:{} {} ", pool.underlying_asset, price);
+            info!("pool {:?} {} ", pool.underlying_asset, price);
             self.pools.insert(
                 pool.underlying_asset,
                 Pool {
