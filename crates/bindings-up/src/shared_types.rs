@@ -133,7 +133,7 @@ pub struct LiquidationParams {
     Eq,
     Hash
 )]
-pub struct Props {
+pub struct PoolProps {
     pub key_id: ::ethers::core::types::U256,
     pub liquidity_index: ::ethers::core::types::U256,
     pub liquidity_rate: ::ethers::core::types::U256,
@@ -161,7 +161,7 @@ pub struct Props {
     Eq,
     Hash
 )]
-pub struct Props {
+pub struct PositionProps {
     pub account: ::ethers::core::types::Address,
     pub underlying_asset: ::ethers::core::types::Address,
     pub entry_long_price: ::ethers::core::types::U256,

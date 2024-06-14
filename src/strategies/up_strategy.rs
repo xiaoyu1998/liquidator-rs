@@ -68,9 +68,9 @@ pub const STATE_CACHE_FILE: &str = "borrowers.json";
 fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
     match deployment {
         Deployment::TESTNET => DeploymentConfig {
-            data_store: Address::from_str("0xbCd367a2E942cDA6F9ce5633A2f1C001a99F3bB0").unwrap(),
-            reader: Address::from_str("0x9E192Af6eda7F0b4569Ae74B31D55b64e10a02CE").unwrap(),
-            event_emitter: Address::from_str("0xdFdFa4487d8f04CfDD5A797CDeD13236bF355aF8").unwrap(),
+            data_store: Address::from_str("0x4B962Bc43951528A2bA7713E836B9EEB0528B791").unwrap(),
+            reader: Address::from_str("0x1D380146EB9216751fE453854ed23544Af04baE2").unwrap(),
+            event_emitter: Address::from_str("0x7C9d309C2D87d7Af8b1D5060D78A9e000e0aD4b4").unwrap(),
             exchange_router: Address::from_str("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5").unwrap(),
             liquidation_handler: Address::from_str("0x95401dc811bb5740090279Ba06cfA8fcF6113778").unwrap(),
             weth: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
@@ -104,7 +104,7 @@ pub struct Borrower {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Pool {
     underlying_asset: Address,
-    symbol: string,
+    symbol: String,
     price: U256,
 }
 
@@ -280,7 +280,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     // update known borrower state from last block to latest block
     async fn update_state(&mut self) -> Result<()> {
         let latest_block = self.client.get_block_number().await?;
-        let mut start_block = self.last_block_number + 1;
+        let mut start_block = self.last_block_number;
         if start_block > latest_block.as_u64() {
             start_block = latest_block.as_u64();
         }
@@ -294,7 +294,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("deposit {} {} {} {}", log.depositer, log.pool, log.collateral, log.debt_scaled);   
+                info!("deposit {:?} {} {} {}", log.depositer, self.pools.get(&log.pool).unwrap().symbol, log.collateral, log.debt_scaled);   
                 let user = log.depositer;      
                 if self.borrowers.contains_key(&user) {
                     let borrower = self.borrowers.get_mut(&user).unwrap();
@@ -329,7 +329,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("borrow {} {} {} {}", log.borrower, log.pool, log.collateral, log.debt_scaled);   
+                info!("borrow {:?} {} {} {}", log.borrower, self.pools.get(&log.pool).unwrap().symbol, log.collateral, log.debt_scaled);   
                 let user = log.borrower;
                 if self.borrowers.contains_key(&user) {
                     let borrower = self.borrowers.get_mut(&user).unwrap();
@@ -364,7 +364,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("repay {} {} {} {}", log.repayer, log.pool, log.collateral, log.debt_scaled);   
+                info!("repay {:?} {} {} {}", log.repayer, self.pools.get(&log.pool).unwrap().symbol, log.collateral, log.debt_scaled);   
                 let user = log.repayer;
                 let borrower = self.borrowers.get_mut(&user).unwrap();
                 borrower.positions.insert(
@@ -385,7 +385,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("redeem {} {} {} {}", log.redeemer, log.pool, log.collateral, log.debt_scaled); 
+                info!("redeem {:?} {} {} {}", log.redeemer, self.pools.get(&log.pool).unwrap().symbol, log.collateral, log.debt_scaled); 
                 let user = log.redeemer;
                 let borrower = self.borrowers.get_mut(&user).unwrap();
                 borrower.positions.insert(
@@ -406,8 +406,8 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("swap_in {} {} {} {}", log.account, log.pool_in, log.collateral_in, log.debt_scaled_in); 
-                info!("swap_out {} {} {} {}", log.account, log.pool_out, log.collateral_out, log.debt_scaled_out); 
+                info!("swapIn {:?} {} {} {}", log.account, self.pools.get(&log.pool_in).unwrap().symbol, log.collateral_in, log.debt_scaled_in); 
+                info!("swapOut {:?} {} {} {}", log.account, self.pools.get(&log.pool_out).unwrap().symbol, log.collateral_out, log.debt_scaled_out); 
                 let user = log.account;
                 //info!("swap {}", log);
                 let borrower = self.borrowers.get_mut(&user).unwrap();
@@ -444,8 +444,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("close_position {} {}", log.account, log.pool); 
-                info!("close_position {} {} {} {}", log.account, log.pool_usd, log.collateral_usd, log.debt_scaled_usd); 
+                info!("close_position {:?} {} {} {} {} ", log.account, self.pools.get(&log.pool).unwrap().symbol, self.pools.get(&log.pool_usd).unwrap().symbol, log.collateral_usd, log.debt_scaled_usd); 
                 let user = log.account;
                 let borrower = self.borrowers.get_mut(&user).unwrap();
                 borrower.positions.remove(&log.pool);
@@ -713,8 +712,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         let all_pools = reader.get_pools_price(self.config.data_store).await?;
         //info!("all_pools: {:?}", all_pools);
         for pool in all_pools {
-            let price  = reader.get_price(self.config.data_store, pool.underlying_asset).await?;
-            info!("pool {:?} {} ", pool.underlying_asset, price);
+            info!("pool {:?} {} {} ", pool.underlying_asset, pool.symbol, pool.price);
             self.pools.insert(
                 pool.underlying_asset,
                 Pool {
