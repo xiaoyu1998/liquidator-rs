@@ -578,6 +578,7 @@ pub mod reader {
                                             ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                             ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                             ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                             ::ethers::core::abi::ethabi::ParamType::String,
                                             ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                             ::ethers::core::abi::ethabi::ParamType::Bool,
@@ -695,6 +696,7 @@ pub mod reader {
                                                     ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                                     ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                                     ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                                    ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                                     ::ethers::core::abi::ethabi::ParamType::String,
                                                     ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                                     ::ethers::core::abi::ethabi::ParamType::Bool,
@@ -705,6 +707,46 @@ pub mod reader {
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned(
                                             "struct ReaderUtils.GetPoolInfo[]",
+                                        ),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("getPoolsPrice"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("getPoolsPrice"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("dataStore"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Array(
+                                        ::std::boxed::Box::new(
+                                            ::ethers::core::abi::ethabi::ParamType::Tuple(
+                                                ::std::vec![
+                                                    ::ethers::core::abi::ethabi::ParamType::Address,
+                                                    ::ethers::core::abi::ethabi::ParamType::String,
+                                                    ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                                ],
+                                            ),
+                                        ),
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned(
+                                            "struct ReaderUtils.GetPoolPrice[]",
                                         ),
                                     ),
                                 },
@@ -1189,6 +1231,18 @@ pub mod reader {
                 .method_hash([26, 48, 129, 117], data_store)
                 .expect("method not found (this should never happen)")
         }
+        ///Calls the contract's `getPoolsPrice` (0xf91c5877) function
+        pub fn get_pools_price(
+            &self,
+            data_store: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::std::vec::Vec<GetPoolPrice>,
+        > {
+            self.0
+                .method_hash([249, 28, 88, 119], data_store)
+                .expect("method not found (this should never happen)")
+        }
         ///Calls the contract's `getPosition` (0x713390f5) function
         pub fn get_position(
             &self,
@@ -1534,6 +1588,23 @@ pub mod reader {
     pub struct GetPoolsInfoCall {
         pub data_store: ::ethers::core::types::Address,
     }
+    ///Container type for all input parameters for the `getPoolsPrice` function with signature `getPoolsPrice(address)` and selector `0xf91c5877`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "getPoolsPrice", abi = "getPoolsPrice(address)")]
+    pub struct GetPoolsPriceCall {
+        pub data_store: ::ethers::core::types::Address,
+    }
     ///Container type for all input parameters for the `getPosition` function with signature `getPosition(address,address,address)` and selector `0x713390f5`
     #[derive(
         Clone,
@@ -1654,6 +1725,7 @@ pub mod reader {
         GetPoolInfo(GetPoolInfoCall),
         GetPools(GetPoolsCall),
         GetPoolsInfo(GetPoolsInfoCall),
+        GetPoolsPrice(GetPoolsPriceCall),
         GetPosition(GetPositionCall),
         GetPositionInfo(GetPositionInfoCall),
         GetPositions(GetPositionsCall),
@@ -1730,6 +1802,11 @@ pub mod reader {
             ) {
                 return Ok(Self::GetPoolsInfo(decoded));
             }
+            if let Ok(decoded) = <GetPoolsPriceCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::GetPoolsPrice(decoded));
+            }
             if let Ok(decoded) = <GetPositionCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
@@ -1798,6 +1875,9 @@ pub mod reader {
                 Self::GetPoolsInfo(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+                Self::GetPoolsPrice(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::GetPosition(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -1848,6 +1928,7 @@ pub mod reader {
                 Self::GetPoolInfo(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPools(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPoolsInfo(element) => ::core::fmt::Display::fmt(element, f),
+                Self::GetPoolsPrice(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPosition(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPositionInfo(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPositions(element) => ::core::fmt::Display::fmt(element, f),
@@ -1919,6 +2000,11 @@ pub mod reader {
     impl ::core::convert::From<GetPoolsInfoCall> for ReaderCalls {
         fn from(value: GetPoolsInfoCall) -> Self {
             Self::GetPoolsInfo(value)
+        }
+    }
+    impl ::core::convert::From<GetPoolsPriceCall> for ReaderCalls {
+        fn from(value: GetPoolsPriceCall) -> Self {
+            Self::GetPoolsPrice(value)
         }
     }
     impl ::core::convert::From<GetPositionCall> for ReaderCalls {
@@ -2108,6 +2194,20 @@ pub mod reader {
         serde::Deserialize,
     )]
     pub struct GetPoolsInfoReturn(pub ::std::vec::Vec<GetPoolInfo>);
+    ///Container type for all return fields from the `getPoolsPrice` function with signature `getPoolsPrice(address)` and selector `0xf91c5877`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetPoolsPriceReturn(pub ::std::vec::Vec<GetPoolPrice>);
     ///Container type for all return fields from the `getPosition` function with signature `getPosition(address,address,address)` and selector `0x713390f5`
     #[derive(
         Clone,
@@ -2248,7 +2348,7 @@ pub mod reader {
         pub balance_supply: ::ethers::core::types::U256,
         pub supply_apy: ::ethers::core::types::U256,
     }
-    ///`GetPoolInfo(uint256,uint256,uint256,uint256,uint256,address,address,address,address,uint256,uint256,uint256,uint256,bool,bool,bool,bool,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,string,uint256,bool)`
+    ///`GetPoolInfo(uint256,uint256,uint256,uint256,uint256,address,address,address,address,uint256,uint256,uint256,uint256,bool,bool,bool,bool,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,string,uint256,bool)`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -2291,10 +2391,29 @@ pub mod reader {
         pub total_debt: ::ethers::core::types::U256,
         pub borrow_usage_ratio: ::ethers::core::types::U256,
         pub optimal_usage_ratio: ::ethers::core::types::U256,
+        pub rate_base: ::ethers::core::types::U256,
         pub rate_slope_1: ::ethers::core::types::U256,
         pub rate_slope_2: ::ethers::core::types::U256,
         pub symbol: ::std::string::String,
         pub price: ::ethers::core::types::U256,
         pub is_usd: bool,
+    }
+    ///`GetPoolPrice(address,string,uint256)`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetPoolPrice {
+        pub underlying_asset: ::ethers::core::types::Address,
+        pub symbol: ::std::string::String,
+        pub price: ::ethers::core::types::U256,
     }
 }

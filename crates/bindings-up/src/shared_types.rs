@@ -120,7 +120,7 @@ pub struct CalculateInterestRatesParams {
 pub struct LiquidationParams {
     pub account: ::ethers::core::types::Address,
 }
-///`PoolProps(uint256,uint256,uint256,uint256,uint256,address,address,address,address,uint256,uint256,uint256,uint256)`
+///`Props(uint256,uint256,uint256,uint256,uint256,address,address,address,address,uint256,uint256,uint256,uint256)`
 #[derive(
     Clone,
     ::ethers::contract::EthAbiType,
@@ -133,7 +133,7 @@ pub struct LiquidationParams {
     Eq,
     Hash
 )]
-pub struct PoolProps {
+pub struct Props {
     pub key_id: ::ethers::core::types::U256,
     pub liquidity_index: ::ethers::core::types::U256,
     pub liquidity_rate: ::ethers::core::types::U256,
@@ -148,7 +148,7 @@ pub struct PoolProps {
     pub unclaimed_fee: ::ethers::core::types::U256,
     pub last_update_timestamp: ::ethers::core::types::U256,
 }
-///`PositionProps(address,address,uint256,uint256,uint256,uint256,uint256,bool,bool)`
+///`Props(address,address,uint256,uint256,uint256,uint256,uint256,bool,bool)`
 #[derive(
     Clone,
     ::ethers::contract::EthAbiType,
@@ -161,7 +161,7 @@ pub struct PoolProps {
     Eq,
     Hash
 )]
-pub struct PositionProps {
+pub struct Props {
     pub account: ::ethers::core::types::Address,
     pub underlying_asset: ::ethers::core::types::Address,
     pub entry_long_price: ::ethers::core::types::U256,

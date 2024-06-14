@@ -596,7 +596,7 @@ pub mod position_store_utils {
             &self,
             data_store_address: ::ethers::core::types::Address,
             key: [u8; 32],
-        ) -> ::ethers::contract::builders::ContractCall<M, PositionProps> {
+        ) -> ::ethers::contract::builders::ContractCall<M, Props> {
             self.0
                 .method_hash([123, 130, 215, 78], (data_store_address, key))
                 .expect("method not found (this should never happen)")
@@ -1281,7 +1281,7 @@ pub mod position_store_utils {
         Eq,
         Hash
     )]
-    pub struct GetReturn(pub PositionProps);
+    pub struct GetReturn(pub Props);
     ///Container type for all return fields from the `getDebtMultiplierFactorForRedeem` function with signature `getDebtMultiplierFactorForRedeem(address)` and selector `0x349c1a72`
     #[derive(
         Clone,
