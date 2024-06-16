@@ -1221,7 +1221,7 @@ pub mod pool_store_utils {
             &self,
             data_store_address: ::ethers::core::types::Address,
             key: ::ethers::core::types::Address,
-        ) -> ::ethers::contract::builders::ContractCall<M, Props> {
+        ) -> ::ethers::contract::builders::ContractCall<M, PoolProps> {
             self.0
                 .method_hash([216, 30, 132, 35], (data_store_address, key))
                 .expect("method not found (this should never happen)")
@@ -1317,7 +1317,7 @@ pub mod pool_store_utils {
             &self,
             data_store_address: ::ethers::core::types::Address,
             id: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, Props> {
+        ) -> ::ethers::contract::builders::ContractCall<M, PoolProps> {
             self.0
                 .method_hash([117, 80, 186, 239], (data_store_address, id))
                 .expect("method not found (this should never happen)")
@@ -2664,7 +2664,7 @@ pub mod pool_store_utils {
         serde::Serialize,
         serde::Deserialize,
     )]
-    pub struct GetReturn(pub Props);
+    pub struct GetReturn(pub PoolProps);
     ///Container type for all return fields from the `getBorrowRate` function with signature `getBorrowRate(address,address)` and selector `0x4c07b465`
     #[derive(
         Clone,
@@ -2785,7 +2785,7 @@ pub mod pool_store_utils {
         serde::Serialize,
         serde::Deserialize,
     )]
-    pub struct GetPoolByIdReturn(pub Props);
+    pub struct GetPoolByIdReturn(pub PoolProps);
     ///Container type for all return fields from the `getPoolDecimals` function with signature `getPoolDecimals(address,address)` and selector `0x163c352f`
     #[derive(
         Clone,

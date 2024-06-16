@@ -787,7 +787,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
         let mut op = LiquidationOpportunity {
             borrower: borrower.address,
-            profit: I256::from_dec_str(&ray_div( user_total_collateral_usd - user_total_debt_usd, eth_price).to_string()),
+            profit: I256::from_dec_str(&ray_div( user_total_collateral_usd - user_total_debt_usd, eth_price).to_string())?,
         };
 
         Ok(op)
