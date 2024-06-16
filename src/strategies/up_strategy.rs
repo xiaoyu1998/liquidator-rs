@@ -787,7 +787,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
         let mut op = LiquidationOpportunity {
             borrower: borrower.address,
-            profit: ray_div( user_total_collateral_usd - user_total_debt_usd, eth_price),
+            profit: I256::from_dec_str(&ray_div( user_total_collateral_usd - user_total_debt_usd, eth_price).to_string()),
         };
 
         Ok(op)
@@ -800,14 +800,18 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     }
 
 }
-
-pub static PRECISION: U256 = U256::from(10).pow(U256::from(27));
-pub static HALF_PRECISION: U256 = U256::from(5)*U256::from(10).pow(U256::from(26));
+// TODO: update to constant
+// static PRECISION: U256 = U256::from(10).pow(U256::from(27));
+// static HALF_PRECISION: U256 = U256::from(5)*U256::from(10).pow(U256::from(26));
 
 fn ray_mul(a: U256, b: U256) -> U256 {
-    return (a*b + HALF_PRECISION)/PRECISION; 
+    let _PRECISION: U256 = U256::from("1000000000000000000000000000");
+    let _HALF_PRECISION: U256 = U256::from("500000000000000000000000000");
+    return (a*b + _HALF_PRECISION)/_PRECISION; 
 }
 
 fn ray_div(a: U256, b: U256) -> U256 {
-    return (a*PRECISION + b/U256::from(2))/b;
+    let _PRECISION: U256 = U256::from("1000000000000000000000000000");
+    let _HALF_PRECISION: U256 = U256::from("500000000000000000000000000");
+    return (a*_PRECISION + b/U256::from(2))/b;
 }
