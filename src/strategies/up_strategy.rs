@@ -1,14 +1,12 @@
 use super::types::Config;
 use crate::collectors::time_collector::NewTick;
 use anyhow::{anyhow, Result};
-//use artemis_core::executors::mempool_executor::{GasBidInfo, SubmitTxToMempool};
+use artemis_core::executors::mempool_executor::{GasBidInfo, SubmitTxToMempool};
 use artemis_core::types::Strategy;
 use async_trait::async_trait;
 use bindings_up::{
     reader::Reader,
-    data_store::DataStore,
-    // event_emitter::EventEmitter,
-    // exchange_router::ExchangeRouter,
+    exchange_router::ExchangeRouter,
     // liquidation_handler::LiquidationHandler,
     // ierc20::IERC20,
     event_emitter::{
@@ -22,6 +20,7 @@ use bindings_up::{
         ClosePositionFilter, 
         CloseFilter
     },
+    shared_types::LiquidationParams,
 };
 use clap::{Parser, ValueEnum};
 use ethers::{
@@ -59,11 +58,9 @@ pub enum Deployment {
 }
 
 // admin stuff
+pub const STATE_CACHE_FILE: &str = "borrowers.json";
 pub const LOG_BLOCK_RANGE: u64 = 1024;
 pub const MULTICALL_CHUNK_SIZE: usize = 100;
-pub const RAY_DECIMALS: u64 = 27;
-pub const WETH_DECIMALS: u64 = 18;
-pub const STATE_CACHE_FILE: &str = "borrowers.json";
 
 fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
     match deployment {
@@ -118,8 +115,8 @@ pub struct UpStrategy<M> {
     pools: HashMap<Address, Pool>,
     chain_id: u64,
     config: DeploymentConfig,
-    //liquidator: Address,
-    //liquidation_threshold:u64
+    liquidator: Address,
+    liquidation_threshold: U256
 }
 
 impl<M: Middleware + 'static> UpStrategy<M> {
@@ -137,15 +134,16 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             pools: HashMap::new(),
             chain_id: config.chain_id,
             config: get_deployment_config(deployment),
-            //liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
+            liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
+            liquidation_threshold: U256::zero()
         }
     }
 }
 
-// struct LiquidationProfit {
-//     borrower: Address,
-//     profit: I256,
-// }
+struct LiquidationOpportunity {
+    borrower: Address,
+    profit: I256,
+}
 
 #[async_trait]
 impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
@@ -157,6 +155,7 @@ impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
         // self.approve_tokens().await?;
         self.load_cache()?;
         self.update_state().await?;
+        self.update_liquidation_threshold().await?;
 
         info!("done syncing state");
         Ok(())
@@ -189,73 +188,35 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .map_err(|e| error!("Update State error: {}", e))
             .ok()?;
 
-        // info!("Total borrower count: {}", self.borrowers.len());
-        // let op = self
-        //     .get_best_liquidation_opportunity()
-        //     .await
-        //     .map_err(|e| error!("Error finding liq ops: {}", e))
-        //     .ok()??;
+        info!("Total borrower count: {}", self.borrowers.len());
+        let op = self
+            .get_best_liquidation_opportunity()
+            .await
+            .map_err(|e| error!("Error finding liq ops: {}", e))
+            .ok()??;
 
-        // info!("Best op - profit: {}", op.profit);
+        info!("Best op - profit: {}", op.profit);
 
-        // if op.profit < I256::from(0) {
-        //     info!("No profitable ops, passing");
-        //     return None;
-        // }
+        if op.profit < I256::from(0) {
+            info!("No profitable ops, passing");
+            return None;
+        }
 
-        // return Some(Action::SubmitTx(SubmitTxToMempool {
-        //     tx: self
-        //         .build_liquidation_tx(&op)
-        //         .await
-        //         .map_err(|e| error!("Error building liquidation: {}", e))
-        //         .ok()?,
-        //     gas_bid_info: Some(GasBidInfo {
-        //         bid_percentage: self.bid_percentage,
-        //         total_profit: U256::from_dec_str(&op.profit.to_string())
-        //             .map_err(|e| error!("Failed to bid: {}", e))
-        //             .ok()?,
-        //     }),
-        // }));
+        return Some(Action::SubmitTx(SubmitTxToMempool {
+            tx: self
+                .build_liquidation_tx(&op)
+                .await
+                .map_err(|e| error!("Error building liquidation: {}", e))
+                .ok()?,
+            gas_bid_info: Some(GasBidInfo {
+                bid_percentage: self.bid_percentage,
+                total_profit: U256::from_dec_str(&op.profit.to_string())
+                    .map_err(|e| error!("Failed to bid: {}", e))
+                    .ok()?,
+            }),
+        }));
         return None;
     }
-
-    // // for all known borrowers, return a sorted set of those with health factor < 1
-    // async fn get_underwater_borrowers(&mut self) -> Result<Vec<(Address, U256, U256, U256)>> {
-    //     let reader = Reader::<M>::new(self.config.reader, self.client.clone());
-
-    //     let mut underwater_borrowers = Vec::new();
-
-    //     // call pool.getUserAccountData(user) for each borrower
-    //     let mut multicall = Multicall::new(self.client.clone(), self.config.multicall).await?;
-    //     let borrowers: Vec<&Borrower> = self
-    //         .borrowers
-    //         .values()
-    //         .filter(|b| b.debt.len() > 0)
-    //         .collect();
-
-    //     for chunk in borrowers.chunks(MULTICALL_CHUNK_SIZE) {
-    //         multicall.clear_calls();
-
-    //         for borrower in chunk {
-    //             multicall.add_call(reader.get_liquidation_health_factor(borrower.address), false);
-    //         }
-
-    //         let result: Vec<(U256, U256, bool, U256, U256)> = multicall.call_array().await?;
-    //         for (borrower, (health_factor, is_health_factor_higher_than_liquidation_threshold, user_total_collateral_usd, user_total_debt_usd,_) in zip(chunk, result) {
-    //             if (!is_health_factor_higher_than_liquidation_threshold) {
-    //                 info!(
-    //                     "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
-    //                     borrower, health_factor, user_total_collateral_usd, user_total_debt_usd
-    //                 );
-    //                 underwater_borrowers.push((borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd));
-    //             }
-    //         }
-    //     }
-
-    //     // sort borrowers by health factor
-    //     underwater_borrowers.sort_by(|a, b| a.1.cmp(&b.1));
-    //     Ok(underwater_borrowers)
-    // }
 
     // load borrower state cache from file if exists
     fn load_cache(&mut self) -> Result<()> {
@@ -726,63 +687,127 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         Ok(())
     }
 
-    // async fn get_best_liquidation_opportunity(&mut self) -> Result<Option<LiquidationOpportunity>> {
-    //     let underwaters = self.get_underwater_borrowers().await?;
+    async fn update_liquidation_threshold(&mut self) -> Result<()> {
+        let reader = Reader::<M>::new(self.config.reader, self.client.clone());
+        self.liquidation_threshold = reader.get_liquidation_health_factor(self.config.data_store).await?;
+        Ok(())
+    }
 
-    //     if underwaters.len() == 0 {
-    //         return Err(anyhow!("No underwater borrowers found"));
-    //     }
+    async fn get_best_liquidation_opportunity(&mut self) -> Result<Option<LiquidationOpportunity>> {
+        let underwaters = self.get_underwater_borrowers().await?;
 
-    //     info!("Found {} underwaters", underwaters.len());
-    //     let mut best_bonus: I256 = I256::MIN;
-    //     let mut best_op: Option<LiquidationOpportunity> = None;
+        if underwaters.len() == 0 {
+            return Err(anyhow!("No underwater borrowers found"));
+        }
 
-    //     for (borrower, health_factor, user_total_collateral_usd, user_total_debt_usd) in underwaters {
-    //         if let Some(op) = self
-    //             .get_liquidation_profit(
-    //                 self.borrowers
-    //                     .get(&borrower)
-    //                     .ok_or(anyhow!("Borrower not found"))?,
-    //                 &health_factor,
-    //                 &user_total_collateral_usd,
-    //                 &user_total_debt_usd,
-    //             )
-    //             .await
-    //             .map_err(|e| info!("Liquidation op failed {}", e))
-    //             .ok()
-    //         {
-    //             if op.profit > best_bonus {
-    //                 best_bonus = op.profit;
-    //                 best_op = Some(op);
-    //             }
-    //         }
-    //     }
+        info!("Found {} underwaters", underwaters.len());
+        let mut best_bonus: I256 = I256::MIN;
+        let mut best_op: Option<LiquidationOpportunity> = None;
 
-    //     Ok(best_op)
-    // }
+        for (borrower, health_factor, user_total_collateral_usd, user_total_debt_usd) in underwaters {
+            if let Some(op) = self
+                .get_liquidation_profit(
+                    self.borrowers
+                        .get(&borrower)
+                        .ok_or(anyhow!("Borrower not found"))?,
+                    &health_factor,
+                    &user_total_collateral_usd,
+                    &user_total_debt_usd,
+                )
+                .await
+                .map_err(|e| info!("Liquidation op failed {}", e))
+                .ok()
+            {
+                if op.profit > best_bonus {
+                    best_bonus = op.profit;
+                    best_op = Some(op);
+                }
+            }
+        }
 
-    // async fn get_liquidation_profit(
-    //     &self,
-    //     borrower: &Borrower,
-    //     health_factor: &U256,
-    //     health_factor: &user_total_collateral_usd,
-    //     health_factor: &user_total_debt_usd,
-    // ) -> Result<LiquidationOpportunity> {
-    //     let reader = Reader::<M>::new(self.config.reader, self.client.clone());
-    //     let eth_price = reader.get_price(self.config.data_store, self.config.weth).await?;
+        Ok(best_op)
+    }
 
-    //     let mut op = LiquidationOpportunity {
-    //         borrower: borrower.address,
-    //         profit: (user_total_collateral_usd - user_total_debt_usd)*10_U256.pow(WETH_DECIMALS)/eth_price ,
-    //     };
+    // for all known borrowers, return a sorted set of those with health factor < liquidation_threshold
+    async fn get_underwater_borrowers(&mut self) -> Result<Vec<(Address, U256, U256, U256)>> {
+        let reader = Reader::<M>::new(self.config.reader, self.client.clone());
 
-    //     Ok(op)
-    // }
+        let mut underwater_borrowers = Vec::new();
 
-    // async fn build_liquidation_tx(&self, op: &LiquidationOpportunity) -> Result<TypedTransaction> {
-    //     let exchange_router = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
-    //     let mut call = exchange_router.execute_liquidation({account:op.borrower});
-    //     Ok(call.tx.set_chain_id(self.chain_id).clone())
-    // }
+        let borrowers: Vec<&Borrower> = self
+            .borrowers
+            .values()
+            .filter(|b| b.positions.len() > 0)
+            .collect();
 
+        for chunk in borrowers.chunks(MULTICALL_CHUNK_SIZE) {
+            let result: Vec<(U256, U256, U256)> = chunk.iter().map(|borrower| {
+                let mut user_total_collateral_usd = U256::from(0);
+                let mut user_total_debt_usd = U256::from(0);
+                for (_, position) in &borrower.positions {
+                    let price = self.pools.get(&position.pool).unwrap().price;
+                    user_total_collateral_usd += ray_mul(price, position.collateral);
+                    user_total_debt_usd += ray_mul(price, position.debt_scaled);
+                }               
+
+                let health_factor = if user_total_debt_usd == U256::zero() {
+                    U256::max_value()
+                } else {
+                    ray_div(user_total_collateral_usd, user_total_debt_usd) 
+                };
+
+                (health_factor, user_total_collateral_usd, user_total_debt_usd) 
+            }).collect();
+
+            for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
+                if health_factor < self.liquidation_threshold {
+                    info!(
+                        "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
+                        borrower, health_factor, user_total_collateral_usd, user_total_debt_usd
+                    );
+                    underwater_borrowers.push((borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd));
+                }
+            }
+        }
+
+        // sort borrowers by health factor
+        underwater_borrowers.sort_by(|a, b| a.1.cmp(&b.1));
+        Ok(underwater_borrowers)
+    }
+
+    async fn get_liquidation_profit(
+        &self,
+        borrower: &Borrower,
+        health_factor: &U256,
+        user_total_collateral_usd: &U256,
+        user_total_debt_usd: &U256,
+    ) -> Result<LiquidationOpportunity> {
+
+        let eth_price = self.pools.get(&self.config.weth).unwrap().price;
+
+        let mut op = LiquidationOpportunity {
+            borrower: borrower.address,
+            profit: ray_div( user_total_collateral_usd - user_total_debt_usd, eth_price),
+        };
+
+        Ok(op)
+    }
+
+    async fn build_liquidation_tx(&self, op: &LiquidationOpportunity) -> Result<TypedTransaction> {
+        let exchange_router = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
+        let mut call = exchange_router.execute_liquidation(LiquidationParams{account: op.borrower});
+        Ok(call.tx.set_chain_id(self.chain_id).clone())
+    }
+
+}
+
+pub static PRECISION: U256 = U256::from(10).pow(U256::from(27));
+pub static HALF_PRECISION: U256 = U256::from(5)*U256::from(10).pow(U256::from(26));
+
+fn ray_mul(a: U256, b: U256) -> U256 {
+    return (a*b + HALF_PRECISION)/PRECISION; 
+}
+
+fn ray_div(a: U256, b: U256) -> U256 {
+    return (a*PRECISION + b/U256::from(2))/b;
 }
