@@ -61,6 +61,33 @@ pub mod reader_position_utils {
                             constant: ::core::option::Option::None,
                             state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
                         },
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "_getLiquidationHealthFactor",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("dataStore"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
                     ],
                 ),
             ]),
@@ -114,13 +141,31 @@ pub mod reader_position_utils {
             )
         }
         ///Calls the contract's `_getLiquidationHealthFactor` (0x22ab36f4) function
-        pub fn get_liquidation_health_factor(
+        pub fn get_liquidation_health_factor_with_account(
             &self,
             data_store: ::ethers::core::types::Address,
             account: ::ethers::core::types::Address,
-        ) -> ::ethers::contract::builders::ContractCall<M, GetLiquidationHealthFactor> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            (
+                ::ethers::core::types::U256,
+                ::ethers::core::types::U256,
+                bool,
+                ::ethers::core::types::U256,
+                ::ethers::core::types::U256,
+            ),
+        > {
             self.0
                 .method_hash([34, 171, 54, 244], (data_store, account))
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `_getLiquidationHealthFactor` (0x67774023) function
+        pub fn get_liquidation_health_factor(
+            &self,
+            data_store: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
+            self.0
+                .method_hash([103, 119, 64, 35], data_store)
                 .expect("method not found (this should never happen)")
         }
     }
@@ -147,9 +192,98 @@ pub mod reader_position_utils {
         name = "_getLiquidationHealthFactor",
         abi = "_getLiquidationHealthFactor(address,address)"
     )]
-    pub struct GetLiquidationHealthFactorCall {
+    pub struct GetLiquidationHealthFactorWithAccountCall {
         pub data_store: ::ethers::core::types::Address,
         pub account: ::ethers::core::types::Address,
+    }
+    ///Container type for all input parameters for the `_getLiquidationHealthFactor` function with signature `_getLiquidationHealthFactor(address)` and selector `0x67774023`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(
+        name = "_getLiquidationHealthFactor",
+        abi = "_getLiquidationHealthFactor(address)"
+    )]
+    pub struct GetLiquidationHealthFactorCall {
+        pub data_store: ::ethers::core::types::Address,
+    }
+    ///Container type for all of the contract's call
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        serde::Serialize,
+        serde::Deserialize,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub enum ReaderPositionUtilsCalls {
+        GetLiquidationHealthFactorWithAccount(GetLiquidationHealthFactorWithAccountCall),
+        GetLiquidationHealthFactor(GetLiquidationHealthFactorCall),
+    }
+    impl ::ethers::core::abi::AbiDecode for ReaderPositionUtilsCalls {
+        fn decode(
+            data: impl AsRef<[u8]>,
+        ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
+            let data = data.as_ref();
+            if let Ok(decoded) = <GetLiquidationHealthFactorWithAccountCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::GetLiquidationHealthFactorWithAccount(decoded));
+            }
+            if let Ok(decoded) = <GetLiquidationHealthFactorCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::GetLiquidationHealthFactor(decoded));
+            }
+            Err(::ethers::core::abi::Error::InvalidData.into())
+        }
+    }
+    impl ::ethers::core::abi::AbiEncode for ReaderPositionUtilsCalls {
+        fn encode(self) -> Vec<u8> {
+            match self {
+                Self::GetLiquidationHealthFactorWithAccount(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetLiquidationHealthFactor(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+            }
+        }
+    }
+    impl ::core::fmt::Display for ReaderPositionUtilsCalls {
+        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+            match self {
+                Self::GetLiquidationHealthFactorWithAccount(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::GetLiquidationHealthFactor(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+            }
+        }
+    }
+    impl ::core::convert::From<GetLiquidationHealthFactorWithAccountCall>
+    for ReaderPositionUtilsCalls {
+        fn from(value: GetLiquidationHealthFactorWithAccountCall) -> Self {
+            Self::GetLiquidationHealthFactorWithAccount(value)
+        }
+    }
+    impl ::core::convert::From<GetLiquidationHealthFactorCall>
+    for ReaderPositionUtilsCalls {
+        fn from(value: GetLiquidationHealthFactorCall) -> Self {
+            Self::GetLiquidationHealthFactor(value)
+        }
     }
     ///Container type for all return fields from the `_getLiquidationHealthFactor` function with signature `_getLiquidationHealthFactor(address,address)` and selector `0x22ab36f4`
     #[derive(
@@ -164,5 +298,27 @@ pub mod reader_position_utils {
         Eq,
         Hash
     )]
-    pub struct GetLiquidationHealthFactorReturn(pub GetLiquidationHealthFactor);
+    pub struct GetLiquidationHealthFactorWithAccountReturn(
+        pub (
+            ::ethers::core::types::U256,
+            ::ethers::core::types::U256,
+            bool,
+            ::ethers::core::types::U256,
+            ::ethers::core::types::U256,
+        ),
+    );
+    ///Container type for all return fields from the `_getLiquidationHealthFactor` function with signature `_getLiquidationHealthFactor(address)` and selector `0x67774023`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetLiquidationHealthFactorReturn(pub ::ethers::core::types::U256);
 }

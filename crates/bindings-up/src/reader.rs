@@ -174,6 +174,33 @@ pub mod reader {
                                         ::std::borrow::ToOwned::to_owned("address"),
                                     ),
                                 },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "getLiquidationHealthFactor",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("dataStore"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("account"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Address,
@@ -1121,8 +1148,17 @@ pub mod reader {
                 )
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `getLiquidationHealthFactor` (0x6d7c4892) function
+        ///Calls the contract's `getLiquidationHealthFactor` (0x4d4de17d) function
         pub fn get_liquidation_health_factor(
+            &self,
+            data_store: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
+            self.0
+                .method_hash([77, 77, 225, 125], data_store)
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `getLiquidationHealthFactor` (0x6d7c4892) function
+        pub fn get_liquidation_health_factor_with_account(
             &self,
             data_store: ::ethers::core::types::Address,
             account: ::ethers::core::types::Address,
@@ -1389,6 +1425,26 @@ pub mod reader {
         pub underlying_asset_b: ::ethers::core::types::Address,
         pub amount_in: ::ethers::core::types::U256,
     }
+    ///Container type for all input parameters for the `getLiquidationHealthFactor` function with signature `getLiquidationHealthFactor(address)` and selector `0x4d4de17d`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(
+        name = "getLiquidationHealthFactor",
+        abi = "getLiquidationHealthFactor(address)"
+    )]
+    pub struct GetLiquidationHealthFactorCall {
+        pub data_store: ::ethers::core::types::Address,
+    }
     ///Container type for all input parameters for the `getLiquidationHealthFactor` function with signature `getLiquidationHealthFactor(address,address)` and selector `0x6d7c4892`
     #[derive(
         Clone,
@@ -1406,7 +1462,7 @@ pub mod reader {
         name = "getLiquidationHealthFactor",
         abi = "getLiquidationHealthFactor(address,address)"
     )]
-    pub struct GetLiquidationHealthFactorCall {
+    pub struct GetLiquidationHealthFactorWithAccountCall {
         pub data_store: ::ethers::core::types::Address,
         pub account: ::ethers::core::types::Address,
     }
@@ -1716,6 +1772,7 @@ pub mod reader {
         GetDexPoolFeeAmount(GetDexPoolFeeAmountCall),
         GetDexPoolSwapConstantFee(GetDexPoolSwapConstantFeeCall),
         GetLiquidationHealthFactor(GetLiquidationHealthFactorCall),
+        GetLiquidationHealthFactorWithAccount(GetLiquidationHealthFactorWithAccountCall),
         GetLiquidityAndDebt(GetLiquidityAndDebtCall),
         GetLiquidityAndDebts(GetLiquidityAndDebtsCall),
         GetMarginAndSupply(GetMarginAndSupplyCall),
@@ -1756,6 +1813,11 @@ pub mod reader {
                 data,
             ) {
                 return Ok(Self::GetLiquidationHealthFactor(decoded));
+            }
+            if let Ok(decoded) = <GetLiquidationHealthFactorWithAccountCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::GetLiquidationHealthFactorWithAccount(decoded));
             }
             if let Ok(decoded) = <GetLiquidityAndDebtCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -1850,6 +1912,9 @@ pub mod reader {
                 Self::GetLiquidationHealthFactor(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+                Self::GetLiquidationHealthFactorWithAccount(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::GetLiquidityAndDebt(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -1909,6 +1974,9 @@ pub mod reader {
                 Self::GetLiquidationHealthFactor(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
+                Self::GetLiquidationHealthFactorWithAccount(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::GetLiquidityAndDebt(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -1955,6 +2023,12 @@ pub mod reader {
     impl ::core::convert::From<GetLiquidationHealthFactorCall> for ReaderCalls {
         fn from(value: GetLiquidationHealthFactorCall) -> Self {
             Self::GetLiquidationHealthFactor(value)
+        }
+    }
+    impl ::core::convert::From<GetLiquidationHealthFactorWithAccountCall>
+    for ReaderCalls {
+        fn from(value: GetLiquidationHealthFactorWithAccountCall) -> Self {
+            Self::GetLiquidationHealthFactorWithAccount(value)
         }
     }
     impl ::core::convert::From<GetLiquidityAndDebtCall> for ReaderCalls {
@@ -2074,6 +2148,20 @@ pub mod reader {
         Hash
     )]
     pub struct GetDexPoolSwapConstantFeeReturn(pub ::ethers::core::types::U256);
+    ///Container type for all return fields from the `getLiquidationHealthFactor` function with signature `getLiquidationHealthFactor(address)` and selector `0x4d4de17d`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetLiquidationHealthFactorReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getLiquidationHealthFactor` function with signature `getLiquidationHealthFactor(address,address)` and selector `0x6d7c4892`
     #[derive(
         Clone,
@@ -2087,7 +2175,9 @@ pub mod reader {
         Eq,
         Hash
     )]
-    pub struct GetLiquidationHealthFactorReturn(pub GetLiquidationHealthFactor);
+    pub struct GetLiquidationHealthFactorWithAccountReturn(
+        pub GetLiquidationHealthFactor,
+    );
     ///Container type for all return fields from the `getLiquidityAndDebt` function with signature `getLiquidityAndDebt(address,address,address)` and selector `0xe578f18a`
     #[derive(
         Clone,

@@ -240,7 +240,7 @@ pub mod pool_factory {
             underlying_asset: ::ethers::core::types::Address,
             interest_rate_strategy: ::ethers::core::types::Address,
             configuration: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, PoolProps> {
+        ) -> ::ethers::contract::builders::ContractCall<M, Props> {
             self.0
                 .method_hash(
                     [81, 129, 15, 181],
@@ -540,7 +540,7 @@ pub mod pool_factory {
         serde::Serialize,
         serde::Deserialize,
     )]
-    pub struct CreatePoolReturn(pub PoolProps);
+    pub struct CreatePoolReturn(pub Props);
     ///Container type for all return fields from the `dataStore` function with signature `dataStore()` and selector `0x660d0d67`
     #[derive(
         Clone,
