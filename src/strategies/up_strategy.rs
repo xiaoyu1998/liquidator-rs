@@ -819,8 +819,8 @@ fn ray_div(a: U256, b: U256) -> U256 {
     return (a*_precision + b/U256::from(2))/b;
 }
 
-fn adjustPrecision(a: U256, decimals: u8) -> U256 {
+fn adjustPrecision(a: U256, decimals: U256) -> U256 {
     let _precision: U512 = U512::from("1000000000000000000000000000");
     let a512 : U512 = U512::from(a);
-    return U256::from(a512*_precision/U512::from(10).pow(U512::from(decimals)))
+    return U256::from_dec_str(&(a512*_precision/U512::from(10).pow(U512::from(decimals))).to_string()).unwrap();
 }
