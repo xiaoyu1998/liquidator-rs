@@ -26,7 +26,7 @@ use clap::{Parser, ValueEnum};
 use ethers::{
     contract::builders::ContractCall,
     providers::Middleware,
-    types::{transaction::eip2718::TypedTransaction, Address, ValueOrArray, H160, I256, U256, U64},
+    types::{transaction::eip2718::TypedTransaction, Address, ValueOrArray, H160, I256, U256, U64, U512},
 };
 // use ethers_contract::Multicall;
 use serde::{Deserialize, Serialize};
@@ -47,8 +47,7 @@ struct DeploymentConfig {
     event_emitter: Address,
     exchange_router: Address,
     liquidation_handler: Address,
-    weth: Address,
-    multicall: Address,
+    eth: Address,
     creation_block: u64,
 }
 
@@ -65,13 +64,12 @@ pub const MULTICALL_CHUNK_SIZE: usize = 100;
 fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
     match deployment {
         Deployment::TESTNET => DeploymentConfig {
-            data_store: Address::from_str("0x4B962Bc43951528A2bA7713E836B9EEB0528B791").unwrap(),
-            reader: Address::from_str("0x1D380146EB9216751fE453854ed23544Af04baE2").unwrap(),
-            event_emitter: Address::from_str("0x7C9d309C2D87d7Af8b1D5060D78A9e000e0aD4b4").unwrap(),
-            exchange_router: Address::from_str("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5").unwrap(),
+            data_store: Address::from_str("0x82ce67E0112D36D2BD267Ed95ABdF64D54D41Fa4").unwrap(),
+            reader: Address::from_str("0xa18c6b99E19e2e652ACda1887daB1eafEdeB96Cc").unwrap(),
+            event_emitter: Address::from_str("0x4d41D725B242C58dC7d9EB276d1652D9E51f08C4").unwrap(),
+            exchange_router: Address::from_str("0xA2860D1fB556e514B8C20Ea2424A07a3f31F0606").unwrap(),
             liquidation_handler: Address::from_str("0x95401dc811bb5740090279Ba06cfA8fcF6113778").unwrap(),
-            weth: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
-            multicall: Address::from_str("0x2Cc0Fc26eD4563A5ce5e8bdcfe1A2878676Ae156").unwrap(),
+            eth: Address::from_str("0xDc4bB629755d4D3a940039F3d0898069dDC83904").unwrap(),
             creation_block: 1,
         }
     }
@@ -103,6 +101,7 @@ pub struct Pool {
     underlying_asset: Address,
     symbol: String,
     price: U256,
+    decimals: U256,
 }
 
 #[derive(Debug)]
@@ -680,6 +679,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                     underlying_asset: pool.underlying_asset,
                     symbol: pool.symbol,
                     price: pool.price,
+                    decimals: pool.decimals,
                 },
             );           
         }
@@ -746,8 +746,9 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 let mut user_total_debt_usd = U256::from(0);
                 for (_, position) in &borrower.positions {
                     let price = self.pools.get(&position.pool).unwrap().price;
-                    user_total_collateral_usd += ray_mul(price, position.collateral);
-                    user_total_debt_usd += ray_mul(price, position.debt_scaled);
+                    let decimals = self.pools.get(&position.pool).unwrap().decimals;
+                    user_total_collateral_usd += ray_mul(price, adjustPrecision(position.collateral, decimals));
+                    user_total_debt_usd += ray_mul(price, adjustPrecision(position.debt_scaled, decimals));
                 }               
 
                 let health_factor = if user_total_debt_usd == U256::zero() {
@@ -760,6 +761,8 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             }).collect();
 
             for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
+                info!("account {:?} {} {} {}", borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd);
+
                 if health_factor < self.liquidation_threshold {
                     info!(
                         "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
@@ -783,7 +786,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         user_total_debt_usd: &U256,
     ) -> Result<LiquidationOpportunity> {
 
-        let eth_price = self.pools.get(&self.config.weth).unwrap().price;
+        let eth_price = self.pools.get(&self.config.eth).unwrap().price;
 
         let mut op = LiquidationOpportunity {
             borrower: borrower.address,
@@ -805,13 +808,19 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 // static HALF_PRECISION: U256 = U256::from(5)*U256::from(10).pow(U256::from(26));
 
 fn ray_mul(a: U256, b: U256) -> U256 {
-    let _PRECISION: U256 = U256::from("1000000000000000000000000000");
-    let _HALF_PRECISION: U256 = U256::from("500000000000000000000000000");
-    return (a*b + _HALF_PRECISION)/_PRECISION; 
+    let _precision: U256 = U256::from("1000000000000000000000000000");
+    let _half_precision: U256 = U256::from("500000000000000000000000000");
+    return (a*b + _half_precision)/_precision; 
 }
 
 fn ray_div(a: U256, b: U256) -> U256 {
-    let _PRECISION: U256 = U256::from("1000000000000000000000000000");
-    let _HALF_PRECISION: U256 = U256::from("500000000000000000000000000");
-    return (a*_PRECISION + b/U256::from(2))/b;
+    let _precision: U256 = U256::from("1000000000000000000000000000");
+    let _half_precision: U256 = U256::from("500000000000000000000000000");
+    return (a*_precision + b/U256::from(2))/b;
+}
+
+fn adjustPrecision(a: U256, decimals: u8) -> U256 {
+    let _precision: U512 = U512::from("1000000000000000000000000000");
+    let a512 : U512 = U512::from(a);
+    return U256::from(a512*_precision/U512::from(10).pow(U512::from(decimals)))
 }
