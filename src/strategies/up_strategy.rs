@@ -765,7 +765,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             }).collect();
 
             for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
-                info!("account {:?} {}", borrower.address, health_factor);
+                //info!("account {:?} {}", borrower.address, health_factor);
                 if health_factor < self.liquidation_threshold {
                     info!(
                         "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
