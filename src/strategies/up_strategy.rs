@@ -64,12 +64,12 @@ pub const MULTICALL_CHUNK_SIZE: usize = 100;
 fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
     match deployment {
         Deployment::TESTNET => DeploymentConfig {
-            data_store: Address::from_str("0x82ce67E0112D36D2BD267Ed95ABdF64D54D41Fa4").unwrap(),
-            reader: Address::from_str("0xa18c6b99E19e2e652ACda1887daB1eafEdeB96Cc").unwrap(),
-            event_emitter: Address::from_str("0x4d41D725B242C58dC7d9EB276d1652D9E51f08C4").unwrap(),
-            exchange_router: Address::from_str("0xA2860D1fB556e514B8C20Ea2424A07a3f31F0606").unwrap(),
-            liquidation_handler: Address::from_str("0x95401dc811bb5740090279Ba06cfA8fcF6113778").unwrap(),
-            eth: Address::from_str("0xDc4bB629755d4D3a940039F3d0898069dDC83904").unwrap(),
+            data_store: Address::from_str("0x89E2A7E3bD394F33735FaD569c7666855C06C54F").unwrap(),
+            reader: Address::from_str("0xC5a7271DB7cDfc2B53b760eB37e352Dfc8FfEb01").unwrap(),
+            event_emitter: Address::from_str("0x8428b51FC4B3869A41eE95ff16a31adf493Ec657").unwrap(),
+            exchange_router: Address::from_str("0xAc2617870795fF4aa6a4D02ffB3d258a7bfe6339").unwrap(),
+            liquidation_handler: Address::from_str("0x3b1FdB1F7F67E80983d7AaBC4F549D142DaE4a90").unwrap(),
+            eth: Address::from_str("0xcFE8C5A18ba50f822c33B29Bef05d7708CcF3a9B").unwrap(),
             creation_block: 1,
         }
     }
@@ -749,6 +749,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                     let decimals = self.pools.get(&position.pool).unwrap().decimals;
                     user_total_collateral_usd += ray_mul(price, adjustPrecision(position.collateral, decimals));
                     user_total_debt_usd += ray_mul(price, adjustPrecision(position.debt_scaled, decimals));
+                    //info!("{} {}", user_total_collateral_usd, user_total_debt_usd);
                 }               
 
                 let health_factor = if user_total_debt_usd == U256::zero() {
@@ -756,11 +757,13 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 } else {
                     ray_div(user_total_collateral_usd, user_total_debt_usd) 
                 };
+                //info!("{}", health_factor);
 
                 (health_factor, user_total_collateral_usd, user_total_debt_usd) 
             }).collect();
 
             for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
+                //info!("account {:?}", borrower);
                 info!("account {:?} {} {} {}", borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd);
 
                 if health_factor < self.liquidation_threshold {
@@ -808,19 +811,28 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 // static HALF_PRECISION: U256 = U256::from(5)*U256::from(10).pow(U256::from(26));
 
 fn ray_mul(a: U256, b: U256) -> U256 {
-    let _precision: U256 = U256::from("1000000000000000000000000000");
-    let _half_precision: U256 = U256::from("500000000000000000000000000");
-    return (a*b + _half_precision)/_precision; 
+    let precision: U512 = U512::from(10).pow(U512::from(27));
+    let half_precision: U512 = U512::from(5)*U512::from(10).pow(U512::from(26));
+    let a512 : U512 = U512::from(a);
+    let b512 : U512 = U512::from(b);
+    return U256::from_dec_str(&((a512*b512 + half_precision)/precision).to_string()).unwrap(); 
 }
 
 fn ray_div(a: U256, b: U256) -> U256 {
-    let _precision: U256 = U256::from("1000000000000000000000000000");
-    let _half_precision: U256 = U256::from("500000000000000000000000000");
-    return (a*_precision + b/U256::from(2))/b;
+    //let _precision: U256 = U256::from("1000000000000000000000000000");
+    let precision: U512 = U512::from(10).pow(U512::from(27));
+    let a512 : U512 = U512::from(a);
+    let b512 : U512 = U512::from(b);
+    let two : U512 = U512::from(2);
+
+    return U256::from_dec_str(&((a512*precision+ b512/two)/b512).to_string()).unwrap();
+
+    //return (a*_precision + b/U256::from(2))/b;
 }
 
 fn adjustPrecision(a: U256, decimals: U256) -> U256 {
-    let _precision: U512 = U512::from("1000000000000000000000000000");
+    //let precision: U512 = U512::from("1000000000000000000000000000");
+    let precision: U512 = U512::from(10).pow(U512::from(27));
     let a512 : U512 = U512::from(a);
-    return U256::from_dec_str(&(a512*_precision/U512::from(10).pow(U512::from(decimals))).to_string()).unwrap();
+    return U256::from_dec_str(&(a512*precision/U512::from(10).pow(U512::from(decimals))).to_string()).unwrap();
 }
