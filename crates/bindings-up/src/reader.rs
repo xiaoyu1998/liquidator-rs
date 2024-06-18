@@ -768,6 +768,7 @@ pub mod reader {
                                                     ::ethers::core::abi::ethabi::ParamType::String,
                                                     ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                                     ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                                    ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                                 ],
                                             ),
                                         ),
@@ -2489,7 +2490,7 @@ pub mod reader {
         pub price: ::ethers::core::types::U256,
         pub is_usd: bool,
     }
-    ///`GetPoolPrice(address,string,uint256,uint256)`
+    ///`GetPoolPrice(address,string,uint256,uint256,uint256)`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -2507,5 +2508,6 @@ pub mod reader {
         pub symbol: ::std::string::String,
         pub price: ::ethers::core::types::U256,
         pub decimals: ::ethers::core::types::U256,
+        pub borrow_index: ::ethers::core::types::U256,
     }
 }
