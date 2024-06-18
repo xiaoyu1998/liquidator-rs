@@ -21,6 +21,7 @@ use bindings_up::{
         CloseFilter
     },
     shared_types::LiquidationParams,
+    ierc20::IERC20,
 };
 use clap::{Parser, ValueEnum};
 use ethers::{
@@ -151,7 +152,7 @@ impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
         info!("syncing state");
 
         self.update_pools().await?;
-        // self.approve_tokens().await?;
+        self.approve_tokens().await?;
         self.load_cache()?;
         self.update_state().await?;
         self.update_liquidation_threshold().await?;
@@ -633,43 +634,44 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         Ok(res)
     }
 
-    // async fn approve_tokens(&mut self) -> Result<()> {
-    //     let mut nonce = self
-    //         .client
-    //         .get_transaction_count(
-    //             self.client
-    //                 .default_sender()
-    //                 .ok_or(anyhow!("No connected sender"))?,
-    //             None,
-    //         )
-    //         .await?;
-    //     for pool in self.pools.keys() {
-    //         let underlying_asset = IERC20::new(pool.underlying_asset.clone(), self.client.clone());
-    //         let allowance = underlying_asset
-    //             .allowance(self.liquidator, self.config.liquidation_handler)
-    //             .call()
-    //             .await?;
-    //         if allowance == U256::zero() {
-    //             underlying_asset
-    //                 .approve(self.config.liquidation_handler, U256::MAX()
-    //                 .nonce(nonce)
-    //                 .send()
-    //                 .await
-    //                 .map_err(|e| {
-    //                     error!("approve failed: {:?}", e);
-    //                     e
-    //                 })?;
-    //             nonce = nonce + 1;
-    //         }
-    //     }
+    async fn approve_tokens(&mut self) -> Result<()> {
+        info!("account {:?}", self.client.default_sender().ok_or(anyhow!("No connected sender"))?);
 
-    //     Ok(())
-    // }
+        let mut nonce = self
+            .client
+            .get_transaction_count(
+                self.client
+                    .default_sender()
+                    .ok_or(anyhow!("No connected sender"))?,
+                None,
+            )
+            .await?;
+        for (_, pool) in self.pools.clone() {
+            let underlying_asset = IERC20::new(pool.underlying_asset.clone(), self.client.clone());
+            let allowance = underlying_asset
+                .allowance(self.liquidator, self.config.liquidation_handler)
+                .call()
+                .await?;
+            if allowance == U256::zero() {
+                underlying_asset
+                    .approve(self.config.liquidation_handler, U256::max_value())
+                    .nonce(nonce)
+                    .send()
+                    .await
+                    .map_err(|e| {
+                        error!("approve failed: {:?}", e);
+                        e
+                    })?;
+                nonce = nonce + 1;
+            }
+        }
+
+        Ok(())
+    }
 
     async fn update_pools(&mut self) -> Result<()> {
         let reader = Reader::<M>::new(self.config.reader, self.client.clone());
         let all_pools = reader.get_pools_price(self.config.data_store).await?;
-        //info!("all_pools: {:?}", all_pools);
         for pool in all_pools {
             info!("pool {:?} {} {} ", pool.underlying_asset, pool.symbol, pool.price);
             self.pools.insert(
@@ -763,11 +765,11 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             }).collect();
 
             for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
-                info!("account {:?} {} {} {}", borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd);
+                info!("account {:?} {}", borrower.address, health_factor);
                 if health_factor < self.liquidation_threshold {
                     info!(
                         "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
-                        borrower, health_factor, user_total_collateral_usd, user_total_debt_usd
+                        borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd
                     );
                     underwater_borrowers.push((borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd));
                 }
