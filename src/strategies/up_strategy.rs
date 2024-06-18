@@ -102,6 +102,7 @@ pub struct Pool {
     symbol: String,
     price: U256,
     decimals: U256,
+    borrow_index: U256,
 }
 
 #[derive(Debug)]
@@ -680,6 +681,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                     symbol: pool.symbol,
                     price: pool.price,
                     decimals: pool.decimals,
+                    borrow_index: pool.borrow_index,
                 },
             );           
         }
@@ -747,9 +749,9 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 for (_, position) in &borrower.positions {
                     let price = self.pools.get(&position.pool).unwrap().price;
                     let decimals = self.pools.get(&position.pool).unwrap().decimals;
+                    let borrow_index = self.pools.get(&position.pool).unwrap().borrow_index;
                     user_total_collateral_usd += ray_mul(price, adjustPrecision(position.collateral, decimals));
-                    user_total_debt_usd += ray_mul(price, adjustPrecision(position.debt_scaled, decimals));
-                    //info!("{} {}", user_total_collateral_usd, user_total_debt_usd);
+                    user_total_debt_usd += ray_mul(price, adjustPrecision(ray_mul(position.debt_scaled, borrow_index), decimals));
                 }               
 
                 let health_factor = if user_total_debt_usd == U256::zero() {
@@ -757,13 +759,11 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 } else {
                     ray_div(user_total_collateral_usd, user_total_debt_usd) 
                 };
-                //info!("{}", health_factor);
 
                 (health_factor, user_total_collateral_usd, user_total_debt_usd) 
             }).collect();
 
             for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
-                //info!("account {:?}", borrower);
                 info!("account {:?} {} {} {}", borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd);
 
                 if health_factor < self.liquidation_threshold {
@@ -819,19 +819,15 @@ fn ray_mul(a: U256, b: U256) -> U256 {
 }
 
 fn ray_div(a: U256, b: U256) -> U256 {
-    //let _precision: U256 = U256::from("1000000000000000000000000000");
     let precision: U512 = U512::from(10).pow(U512::from(27));
     let a512 : U512 = U512::from(a);
     let b512 : U512 = U512::from(b);
     let two : U512 = U512::from(2);
 
     return U256::from_dec_str(&((a512*precision+ b512/two)/b512).to_string()).unwrap();
-
-    //return (a*_precision + b/U256::from(2))/b;
 }
 
 fn adjustPrecision(a: U256, decimals: U256) -> U256 {
-    //let precision: U512 = U512::from("1000000000000000000000000000");
     let precision: U512 = U512::from(10).pow(U512::from(27));
     let a512 : U512 = U512::from(a);
     return U256::from_dec_str(&(a512*precision/U512::from(10).pow(U512::from(decimals))).to_string()).unwrap();
