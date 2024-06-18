@@ -64,12 +64,12 @@ pub const MULTICALL_CHUNK_SIZE: usize = 100;
 fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
     match deployment {
         Deployment::TESTNET => DeploymentConfig {
-            data_store: Address::from_str("0x89E2A7E3bD394F33735FaD569c7666855C06C54F").unwrap(),
-            reader: Address::from_str("0xC5a7271DB7cDfc2B53b760eB37e352Dfc8FfEb01").unwrap(),
-            event_emitter: Address::from_str("0x8428b51FC4B3869A41eE95ff16a31adf493Ec657").unwrap(),
-            exchange_router: Address::from_str("0xAc2617870795fF4aa6a4D02ffB3d258a7bfe6339").unwrap(),
-            liquidation_handler: Address::from_str("0x3b1FdB1F7F67E80983d7AaBC4F549D142DaE4a90").unwrap(),
-            eth: Address::from_str("0xcFE8C5A18ba50f822c33B29Bef05d7708CcF3a9B").unwrap(),
+            data_store: Address::from_str("0xEbD1B13865bC16782EB75e4A710EEF0E067F2264").unwrap(),
+            reader: Address::from_str("0x8aa1D2C7968170AA558586Bc7185671dD0De711f").unwrap(),
+            event_emitter: Address::from_str("0xF4Ce2DB2469a1D3Ee9e6C26e30B63C607E56c113").unwrap(),
+            exchange_router: Address::from_str("0xb5Ce423FF7dCFaB9680d13f31021a21BA4422968").unwrap(),
+            liquidation_handler: Address::from_str("0x6C0913D019818A3579D3E3Eb5C6a62aaD6F59033").unwrap(),
+            eth: Address::from_str("0x91F8351C470C0bd83f823460c8caf24A54058920").unwrap(),
             creation_block: 1,
         }
     }
@@ -147,7 +147,6 @@ struct LiquidationOpportunity {
 
 #[async_trait]
 impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
-    // In order to sync this strategy, we need to get the current bid for all Sudo pools.
     async fn sync_state(&mut self) -> Result<()> {
         info!("syncing state");
 
@@ -161,7 +160,6 @@ impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
         Ok(())
     }
 
-    // Process incoming events, seeing if we can arb new orders, and updating the internal state on new blocks.
     async fn process_event(&mut self, event: Event) -> Vec<Action> {
         match event {
             Event::NewTick(block) => self
@@ -750,8 +748,9 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                     let price = self.pools.get(&position.pool).unwrap().price;
                     let decimals = self.pools.get(&position.pool).unwrap().decimals;
                     let borrow_index = self.pools.get(&position.pool).unwrap().borrow_index;
+                    let debt = ray_mul(position.debt_scaled, borrow_index);
                     user_total_collateral_usd += ray_mul(price, adjustPrecision(position.collateral, decimals));
-                    user_total_debt_usd += ray_mul(price, adjustPrecision(ray_mul(position.debt_scaled, borrow_index), decimals));
+                    user_total_debt_usd += ray_mul(price, adjustPrecision(debt, decimals));
                 }               
 
                 let health_factor = if user_total_debt_usd == U256::zero() {
@@ -765,7 +764,6 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
             for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
                 info!("account {:?} {} {} {}", borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd);
-
                 if health_factor < self.liquidation_threshold {
                     info!(
                         "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
