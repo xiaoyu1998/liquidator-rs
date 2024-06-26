@@ -4,5 +4,7 @@ This is an [paradigmxyz/artemis](https://github.com/paradigmxyz/artemis) bot tha
 # Usage
 
 ```
-cargo run -- --rpc <RPC url> --private-key <private key> --bid-percentage <percent of profit to share as gas>
+1.update contracts address in get_delopment_config/strategies/up_strategy.rs
+2.cargo run -- --rpc http://192.168.2.106:8545 --private-key "private-key " --deployment testnet --bid-percentage 10 --liquidator-address 0x5aa3B6d49e2AAC9AD7c687C79A899AA6Db2e3cbf
+
 ```
