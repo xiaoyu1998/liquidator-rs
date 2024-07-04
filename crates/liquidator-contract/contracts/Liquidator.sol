@@ -47,7 +47,10 @@ contract Liquidator is Ownable, IUniswapV3SwapCallback {
         LiquidationParams calldata params
     ) external onlyOwner returns (int256) {
 
-        uint256 usdBalanceBeforeLiquidate = IERC20(params.usdToken).balanceOf(address(this));
+        uint256 usdBalanceBeforeLiquidation = IERC20(params.usdToken).balanceOf(address(this));
+        GetLiquidationHealthFactor memory factor = IReader(reader).getLiquidationHealthFactor(dataStore, params.account);
+        require(factor.isHealthFactorHigherThanLiquidationThreshold < 0, "Liquidator: The health factor is higher than the liquidation threshold");
+        require(factor.userTotalDebtUsd < usdBalanceBeforeLiquidation, "Liquidator: The total debt is higher than the liquidator balance");
 
         //buy debts
         for (uint256 i = 0; i < params.debts.length; i ++) {
@@ -89,8 +92,8 @@ contract Liquidator is Ownable, IUniswapV3SwapCallback {
             );
         }
 
-        uint256 usdBalanceAfterLiquidate = IERC20(params.usdToken).balanceOf(address(this));
-        int256 usdGain = int256(usdBalanceAfterLiquidate) - int256(usdBalanceBeforeLiquidate) - int256(params.gasFeeUsd) ;
+        uint256 usdBalanceAfterLiquidation = IERC20(params.usdToken).balanceOf(address(this));
+        int256 usdGain = int256(usdBalanceAfterLiquidation) - int256(usdBalanceBeforeLiquidation) - int256(params.gasFeeUsd) ;
 
 
         require(usdGain > 0, "Liquidator: there is no profit of this liquidation action");

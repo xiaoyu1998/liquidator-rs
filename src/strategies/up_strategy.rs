@@ -141,9 +141,20 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct Asset {
+    token: Address,
+    amount: U256,
+}
+
+#[derive(Clone, Debug)]
 struct LiquidationOpportunity {
     borrower: Address,
     profit: I256,
+    collaterals: Vec(Asset),
+    debts: Vec(Asset),
+    uniswap_fee: U256,
+    gas_fee_usd: U256,
 }
 
 #[async_trait]

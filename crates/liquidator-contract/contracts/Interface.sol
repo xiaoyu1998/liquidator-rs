@@ -19,6 +19,14 @@ struct Asset {
     uint256 amount;
 }
 
+struct GetLiquidationHealthFactor {
+    uint256 healthFactor;
+    uint256 healthFactorLiquidationThreshold;
+    bool isHealthFactorHigherThanLiquidationThreshold;
+    uint256 userTotalCollateralUsd;
+    uint256 userTotalDebtUsd;
+}
+
 interface IExchangeRouter {
     function executeLiquidation(
         ExecutionLiquidationParams calldata params
@@ -32,4 +40,9 @@ interface IReader {
         address pool,
         address account
     ) external view returns (uint256);  
+
+    function getLiquidationHealthFactor(
+        address dataStore, 
+        address account
+    ) external view returns (GetLiquidationHealthFactor memory);
 }
