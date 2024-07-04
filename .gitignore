@@ -2,3 +2,8 @@
 out/
 borrowers.json
 ._.*
+crates/liquidator-contract/node_modules
+crates/liquidator-contract/cache
+crates/liquidator-contract/artifacts
+crates/liquidator-contract/typechain
+crates/liquidator-contract/typechain-types
