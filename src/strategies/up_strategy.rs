@@ -141,20 +141,20 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Asset {
     token: Address,
     amount: U256,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct LiquidationOpportunity {
     borrower: Address,
     profit: I256,
-    collaterals: Vec(Asset),
-    debts: Vec(Asset),
-    uniswap_fee: U256,
-    gas_fee_usd: U256,
+    // collaterals: Vec(Asset),
+    // debts: Vec(Asset),
+    // uniswap_fee: U256,
+    // gas_fee_usd: U256,
 }
 
 #[async_trait]
@@ -448,7 +448,8 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         };
         self.last_block_number = latest_block.as_u64();
         let mut file = File::create(STATE_CACHE_FILE)?;
-        file.write_all(serde_json::to_string(&cache)?.as_bytes())?;
+        //file.write_all(serde_json::to_string(&cache)?.as_bytes())?;
+        serde_json::to_writer_pretty(file, &cache)?;
 
         Ok(())
     }
