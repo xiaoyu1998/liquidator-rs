@@ -7,3 +7,4 @@ crates/liquidator-contract/cache
 crates/liquidator-contract/artifacts
 crates/liquidator-contract/typechain
 crates/liquidator-contract/typechain-types
+crates/liquidator-contract/out
