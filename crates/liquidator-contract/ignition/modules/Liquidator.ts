@@ -7,7 +7,7 @@ export const liquidatorModule = buildModule("Liquidator", (m) => {
     const exchangeRouter = getContractAddress("ExchangeRouter");
     const reader = getContractAddress("Reader");
     const liquidator = m.contract("Liquidator", [factory, dataStore, exchangeRouter, exchangeRouter] );
-    setContractAddress("Liquidator#Liquidator", liquidator.target);
+    setContractAddress("Liquidator", liquidator.target);
 
     return { liquidator };
 });

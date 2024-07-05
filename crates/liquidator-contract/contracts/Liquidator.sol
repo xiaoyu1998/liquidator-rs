@@ -43,62 +43,78 @@ contract Liquidator is Ownable, IUniswapV3SwapCallback {
         return IUniswapV3Pool(PoolAddress.computeAddress(factoryUniswapV3, PoolAddress.getPoolKey(tokenA, tokenB, fee)));
     }
 
+    struct LiquidateVars {
+        uint256 usdBalanceBeforeLiquidation;
+        uint256 usdBalanceAfterLiquidation;
+        GetLiquidationHealthFactor factor;
+        uint256 i;
+        Asset debt;
+        Asset collateral;
+        IUniswapV3Pool pool;
+        bool zeroForOne;
+        uint256 debtAmount;
+        ExecutionLiquidationParams executionLiquidationParams;
+        int256 usdGain;
+    } 
+
     function liquidate(
         LiquidationParams calldata params
     ) external onlyOwner returns (int256) {
+        LiquidateVars memory vars;
 
-        uint256 usdBalanceBeforeLiquidation = IERC20(params.usdToken).balanceOf(address(this));
-        GetLiquidationHealthFactor memory factor = IReader(reader).getLiquidationHealthFactor(dataStore, params.account);
-        require(factor.isHealthFactorHigherThanLiquidationThreshold < 0, "Liquidator: The health factor is higher than the liquidation threshold");
-        require(factor.userTotalDebtUsd < usdBalanceBeforeLiquidation, "Liquidator: The total debt is higher than the liquidator balance");
+        vars.usdBalanceBeforeLiquidation = IERC20(params.usdToken).balanceOf(address(this));
+        vars.factor = IReader(reader).getLiquidationHealthFactor(dataStore, params.account);
+        require(!vars.factor.isHealthFactorHigherThanLiquidationThreshold, 
+            "Liquidator: The health factor is higher than the liquidation threshold");
+        require(vars.factor.userTotalDebtUsd < vars.usdBalanceBeforeLiquidation, 
+            "Liquidator: The total debt is higher than the liquidator balance");
 
         //buy debts
-        for (uint256 i = 0; i < params.debts.length; i ++) {
-            Asset memory debt = params.debts[i];
-            IUniswapV3Pool pool = getPool(params.usdToken, debt.token, params.uniswapFee);
-            bool zeroForOne = params.usdToken < debt.token;
-            uint256 debtAmount = IReader(reader).getDebt(dataStore, debt.token, params.account);
+        for (vars.i = 0; vars.i < params.debts.length; vars.i ++) {
+            vars.debt = params.debts[vars.i];
+            vars.pool = getPool(params.usdToken, vars.debt.token, params.uniswapFee);
+            vars.zeroForOne = params.usdToken < vars.debt.token;
+            vars.debtAmount = IReader(reader).getDebt(dataStore, vars.debt.token, params.account);
 
             //should check debtAmount is in a range of debt.amount;
             //require(debtAmount <= debt.amount*(1 + 0.1%), "Liquidator: debtAmount is too larger than expectation");
 
-            pool.swap(
+            vars.pool.swap(
                 address(this),
-                zeroForOne,
-                -int256(debtAmount),
-                zeroForOne ? MIN_SQRT_RATIO + 1 : MAX_SQRT_RATIO - 1,
-                abi.encode(params.usdToken, debt.token, params.uniswapFee)
+                vars.zeroForOne,
+                -int256(vars.debtAmount),
+                vars.zeroForOne ? MIN_SQRT_RATIO + 1 : MAX_SQRT_RATIO - 1,
+                abi.encode(params.usdToken, vars.debt.token, params.uniswapFee)
             );
         }
 
-        ExecutionLiquidationParams memory executionLiquidationParams = ExecutionLiquidationParams(
+        vars.executionLiquidationParams = ExecutionLiquidationParams(
            params.account
         );
 
-        IExchangeRouter(exchangeRouter).executeLiquidation(executionLiquidationParams);
+        IExchangeRouter(exchangeRouter).executeLiquidation(vars.executionLiquidationParams);
 
         //sell collaterals
-        for (uint256 i = 0; i < params.collaterals.length; i ++) {
-            Asset memory collateral = params.collaterals[i];
-            IUniswapV3Pool pool = getPool(params.usdToken, collateral.token, params.uniswapFee);
+        for (vars.i = 0; vars.i < params.collaterals.length; vars.i ++) {
+            vars.collateral = params.collaterals[vars.i];
+            vars.pool = getPool(params.usdToken, vars.collateral.token, params.uniswapFee);
             //uint256 collateralAmount = IReader(reader).getCollateral(dataStore, debt.token, params.account);
-            bool zeroForOne = collateral.token < params.usdToken;
-            pool.swap(
+            vars.zeroForOne = vars.collateral.token < params.usdToken;
+            vars.pool.swap(
                 address(this),
-                zeroForOne,
-                int256(collateral.amount),
-                zeroForOne ? MIN_SQRT_RATIO + 1 : MAX_SQRT_RATIO - 1,
-                abi.encode(params.usdToken, collateral.token, params.uniswapFee)
+                vars.zeroForOne,
+                int256(vars.collateral.amount),
+                vars.zeroForOne ? MIN_SQRT_RATIO + 1 : MAX_SQRT_RATIO - 1,
+                abi.encode(params.usdToken, vars.collateral.token, params.uniswapFee)
             );
         }
 
-        uint256 usdBalanceAfterLiquidation = IERC20(params.usdToken).balanceOf(address(this));
-        int256 usdGain = int256(usdBalanceAfterLiquidation) - int256(usdBalanceBeforeLiquidation) - int256(params.gasFeeUsd) ;
+        vars.usdBalanceAfterLiquidation = IERC20(params.usdToken).balanceOf(address(this));
+        vars.usdGain = int256(vars.usdBalanceAfterLiquidation) - int256(vars.usdBalanceBeforeLiquidation) - int256(params.gasFeeUsd) ;
 
 
-        require(usdGain > 0, "Liquidator: there is no profit of this liquidation action");
-        return usdGain;
-
+        require(vars.usdGain > 0, "Liquidator: there is no profit of this liquidation action");
+        return vars.usdGain;
     }
 
     function uniswapV3SwapCallback(
