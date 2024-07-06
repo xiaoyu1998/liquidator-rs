@@ -45,5 +45,6 @@
   "WithdrawHandler#WithdrawHandler": "0xB92d62B098080b656981E3abBb4F9128fd1128f2",
   "CloseHandler#CloseHandler": "0x96f5eF6D4181b989522C48946d24D441B4371E3B",
   "ExchangeRouter#ExchangeRouter": "0xC4b579D449eB9f7F897098510681c38cefaf479F",
-  "UniswapV3Factory#UniswapV3Factory": "0xD4E3c50c5cE1E8F6D64946a672860E8604B21556"
+  "UniswapV3Factory#UniswapV3Factory": "0xD4E3c50c5cE1E8F6D64946a672860E8604B21556",
+  "Liquidator#Liquidator": "0xF8779060697b10E621D16f3ce7d0d82C3ed68127"
 }
