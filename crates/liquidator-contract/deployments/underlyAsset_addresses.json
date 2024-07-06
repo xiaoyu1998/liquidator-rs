@@ -1,0 +1,20 @@
+{
+  "USDT": {
+    "address": "0x98aF0F1121B6C8a202EA9129Ed380E4CB4393337",
+    "decimals": 6,
+    "oracle": "0x349d3D21d5Fc982e4472E162B506666b80757c8E",
+    "oracleDecimals": 24
+  },
+  "UNI": {
+    "address": "0x9A8711198D0E55B1A3fE17c79f6a2aDE24F6cb1d",
+    "decimals": 18,
+    "oracle": "0xB65751E79a1fc2470A438Fe3CF8DD4FAA163D4d4",
+    "oracleDecimals": 12
+  },
+  "ETH": {
+    "address": "0xd2d1e223783cFb5A5a964eDa806Bb79b439148A7",
+    "decimals": 18,
+    "oracle": "0x135E1d715fE4b77210B8Ca061699A529aB79fe04",
+    "oracleDecimals": 12
+  }
+}

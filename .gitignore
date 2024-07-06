@@ -8,5 +8,6 @@ crates/liquidator-contract/artifacts
 crates/liquidator-contract/typechain
 crates/liquidator-contract/typechain-types
 crates/liquidator-contract/out
+crates/liquidator-contract/ignition
 .DS_Store
 ._.DS_Store
