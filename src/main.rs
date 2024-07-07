@@ -23,7 +23,7 @@ pub mod collectors;
 pub mod executors;
 pub mod strategies;
 
-static POLL_INTERVAL_SECS: u64 = 2 * 5;
+static POLL_INTERVAL_SECS: u64 = 10 * 60;
 pub const CHAIN_ID: u64 = 1998;
 
 /// CLI Options.
@@ -73,6 +73,7 @@ async fn main() -> Result<()> {
         .unwrap()
         .with_chain_id(CHAIN_ID);
     let address = wallet.address();
+    info!("address {:?}", address);
 
     let provider = Arc::new(provider.nonce_manager(address).with_signer(wallet.clone()));
 

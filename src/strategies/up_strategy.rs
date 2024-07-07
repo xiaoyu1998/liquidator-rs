@@ -7,8 +7,6 @@ use async_trait::async_trait;
 use bindings_up::{
     reader::Reader,
     exchange_router::ExchangeRouter,
-    // liquidation_handler::LiquidationHandler,
-    // ierc20::IERC20,
     event_emitter::{
         EventEmitter, 
         DepositFilter, 
@@ -25,16 +23,12 @@ use bindings_up::{
 };
 use clap::{Parser, ValueEnum};
 use ethers::{
-    contract::builders::ContractCall,
     providers::Middleware,
-    types::{transaction::eip2718::TypedTransaction, Address, ValueOrArray, H160, I256, U256, U64, U512},
+    types::{transaction::eip2718::TypedTransaction, Address, ValueOrArray, I256, U256, U64, U512},
 };
-// use ethers_contract::Multicall;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap};
 use std::fs::File;
-use std::io::Read;
-use std::io::Write;
 use std::iter::zip;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -67,7 +61,7 @@ pub const MULTICALL_CHUNK_SIZE: usize = 100;
 
 fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
 
-    let mut file = File::open(DEPLOYED_ADDRESSES).unwrap();
+    let file = File::open(DEPLOYED_ADDRESSES).unwrap();
     let up_contracts: HashMap<String, Address> = serde_json::from_reader(file).unwrap();
     let file = File::open(UNDERLYASSET_ADDRESSES).unwrap();
     let underly_assets: HashMap<String, UnderlyAsset> = serde_json::from_reader(file).unwrap();
@@ -185,15 +179,17 @@ struct LiquidationOpportunity {
 impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
     async fn sync_state(&mut self) -> Result<()> {
         info!("syncing state");
-
+        info!("self.config.data_store {:?}", self.config.data_store);
+        info!("self.config.reader {:?}", self.config.reader);
+        info!("self.config.event_emitter {:?}", self.config.event_emitter);
+        info!("self.config.exchange_router {:?}", self.config.exchange_router);
+        info!("self.config.liquidation_handler {:?}", self.config.liquidation_handler);
+        info!("self.config.eth {:?}", self.config.eth);
+                
         self.update_pools().await?;
-        info!("syncing state");
-        self.approve_tokens().await?;
-        info!("syncing state2");
+        //self.approve_tokens().await?;
         self.load_cache()?;
-        info!("syncing state3");
         self.update_state().await?;
-        info!("syncing state4");
         self.update_liquidation_threshold().await?;
 
         info!("done syncing state");
@@ -253,7 +249,6 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                     .ok()?,
             }),
         }));
-        return None;
     }
 
     // load borrower state cache from file if exists
@@ -475,7 +470,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             pools: self.pools.clone(),
         };
         self.last_block_number = latest_block.as_u64();
-        let mut file = File::create(STATE_CACHE_FILE)?;
+        let file = File::create(STATE_CACHE_FILE)?;
         //file.write_all(serde_json::to_string(&cache)?.as_bytes())?;
         serde_json::to_writer_pretty(file, &cache)?;
 
@@ -491,7 +486,8 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             (from_block.as_u64()..to_block.as_u64()).step_by(LOG_BLOCK_RANGE as usize)
         {
             let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block.as_u64());
-            event_emitter.deposit_filter()
+            info!("get_deposit_logs start_block {} end_block {}", start_block, end_block );
+            event_emitter.deposit_filter()  
                 .from_block(start_block)
                 .to_block(end_block)
                 .address(ValueOrArray::Value(self.config.event_emitter))
@@ -773,8 +769,6 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
     // for all known borrowers, return a sorted set of those with health factor < liquidation_threshold
     async fn get_underwater_borrowers(&mut self) -> Result<Vec<(Address, U256, U256, U256)>> {
-        let reader = Reader::<M>::new(self.config.reader, self.client.clone());
-
         let mut underwater_borrowers = Vec::new();
 
         let borrowers: Vec<&Borrower> = self
@@ -832,7 +826,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
         let eth_price = self.pools.get(&self.config.eth).unwrap().price;
 
-        let mut op = LiquidationOpportunity {
+        let op = LiquidationOpportunity {
             borrower: borrower.address,
             profit: I256::from_dec_str(&ray_div( user_total_collateral_usd - user_total_debt_usd, eth_price).to_string())?,
         };
