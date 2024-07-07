@@ -26,13 +26,13 @@ pub mod percentage_math {
         __abi,
     );
     #[rustfmt::skip]
-    const __BYTECODE: &[u8] = b"`V`7`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`*WcNH{q`\xE0\x1B`\0R`\0`\x04R`$`\0\xFD[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2dipfsX\"\x12 \xA8\xCEBy\x85%\xF9\xE8\xF6P\xDC\xEEB\x11\x8F\xB0\x19\xFEa}\x03\x85\x0E$\x92\xD9\xB1\xD1y25\xD4dsolcC\0\x08\x1A\x003";
+    const __BYTECODE: &[u8] = b"`V`7`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`*WcNH{q`\xE0\x1B`\0R`\0`\x04R`$`\0\xFD[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2dipfsX\"\x12 \x8E\x82\x7F\xD2B\xB9\"+\x9A\x9A\xF3\x89\xD7\xE6,|i\xE4;\xA41\xBB\x1D\x94!\xC6\x08PI\x1BT\x1EdsolcC\0\x08\x1A\x003";
     /// The bytecode of the contract.
     pub static PERCENTAGEMATH_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __BYTECODE,
     );
     #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2dipfsX\"\x12 \xA8\xCEBy\x85%\xF9\xE8\xF6P\xDC\xEEB\x11\x8F\xB0\x19\xFEa}\x03\x85\x0E$\x92\xD9\xB1\xD1y25\xD4dsolcC\0\x08\x1A\x003";
+    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2dipfsX\"\x12 \x8E\x82\x7F\xD2B\xB9\"+\x9A\x9A\xF3\x89\xD7\xE6,|i\xE4;\xA41\xBB\x1D\x94!\xC6\x08PI\x1BT\x1EdsolcC\0\x08\x1A\x003";
     /// The deployed bytecode of the contract.
     pub static PERCENTAGEMATH_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __DEPLOYED_BYTECODE,

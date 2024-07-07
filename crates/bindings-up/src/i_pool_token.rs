@@ -38,7 +38,17 @@ pub mod i_pool_token {
                                     ),
                                 },
                             ],
-                            outputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
                             constant: ::core::option::Option::None,
                             state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
                         },
@@ -350,7 +360,17 @@ pub mod i_pool_token {
                                     ),
                                 },
                             ],
-                            outputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
                             constant: ::core::option::Option::None,
                             state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
                         },
@@ -570,7 +590,7 @@ pub mod i_pool_token {
             &self,
             account: ::ethers::core::types::Address,
             amount: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
             self.0
                 .method_hash([109, 117, 185, 238], (account, amount))
                 .expect("method not found (this should never happen)")
@@ -662,7 +682,7 @@ pub mod i_pool_token {
             &self,
             account: ::ethers::core::types::Address,
             amount: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
             self.0
                 .method_hash([135, 100, 103, 248], (account, amount))
                 .expect("method not found (this should never happen)")
@@ -1320,6 +1340,20 @@ pub mod i_pool_token {
             Self::UnderlyingAsset(value)
         }
     }
+    ///Container type for all return fields from the `addCollateral` function with signature `addCollateral(address,uint256)` and selector `0x6d75b9ee`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct AddCollateralReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `approveLiquidity` function with signature `approveLiquidity(address,uint256)` and selector `0x26b38041`
     #[derive(
         Clone,
@@ -1404,6 +1438,20 @@ pub mod i_pool_token {
         Hash
     )]
     pub struct RecordTransferOutReturn(pub ::ethers::core::types::U256);
+    ///Container type for all return fields from the `removeCollateral` function with signature `removeCollateral(address,uint256)` and selector `0x876467f8`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct RemoveCollateralReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `scaledBalanceOf` function with signature `scaledBalanceOf(address)` and selector `0x1da24f3e`
     #[derive(
         Clone,

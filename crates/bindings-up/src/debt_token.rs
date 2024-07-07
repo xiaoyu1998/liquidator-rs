@@ -178,6 +178,13 @@ pub mod debt_token {
                             outputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Bool,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("bool"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Uint(
                                         256usize,
                                     ),
@@ -991,7 +998,10 @@ pub mod debt_token {
             from: ::ethers::core::types::Address,
             amount: ::ethers::core::types::U256,
             index: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            (bool, ::ethers::core::types::U256),
+        > {
             self.0
                 .method_hash([245, 41, 138, 202], (from, amount, index))
                 .expect("method not found (this should never happen)")
@@ -2340,7 +2350,7 @@ pub mod debt_token {
         Eq,
         Hash
     )]
-    pub struct BurnReturn(pub ::ethers::core::types::U256);
+    pub struct BurnReturn(pub bool, pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `burnAll` function with signature `burnAll(address)` and selector `0x7e9d2ac1`
     #[derive(
         Clone,

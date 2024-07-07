@@ -33,6 +33,7 @@ use ethers::{
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap};
 use std::fs::File;
+use std::io::Read;
 use std::io::Write;
 use std::iter::zip;
 use std::str::FromStr;
@@ -54,26 +55,49 @@ struct DeploymentConfig {
 
 #[derive(Debug, Clone, Parser, ValueEnum)]
 pub enum Deployment {
-    TESTNET
+    LOCALNET
 }
 
 // admin stuff
+pub const DEPLOYED_ADDRESSES: &str = "deployments/deployed_addresses.json";
+pub const UNDERLYASSET_ADDRESSES: &str = "deployments/underlyAsset_addresses.json";
 pub const STATE_CACHE_FILE: &str = "borrowers.json";
 pub const LOG_BLOCK_RANGE: u64 = 1024;
 pub const MULTICALL_CHUNK_SIZE: usize = 100;
 
 fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
+
+    let mut file = File::open(DEPLOYED_ADDRESSES).unwrap();
+    let up_contracts: HashMap<String, Address> = serde_json::from_reader(file).unwrap();
+    let file = File::open(UNDERLYASSET_ADDRESSES).unwrap();
+    let underly_assets: HashMap<String, UnderlyAsset> = serde_json::from_reader(file).unwrap();
+
     match deployment {
-        Deployment::TESTNET => DeploymentConfig {
-            data_store: Address::from_str("0xEbD1B13865bC16782EB75e4A710EEF0E067F2264").unwrap(),
-            reader: Address::from_str("0x8aa1D2C7968170AA558586Bc7185671dD0De711f").unwrap(),
-            event_emitter: Address::from_str("0xF4Ce2DB2469a1D3Ee9e6C26e30B63C607E56c113").unwrap(),
-            exchange_router: Address::from_str("0xb5Ce423FF7dCFaB9680d13f31021a21BA4422968").unwrap(),
-            liquidation_handler: Address::from_str("0x6C0913D019818A3579D3E3Eb5C6a62aaD6F59033").unwrap(),
-            eth: Address::from_str("0x91F8351C470C0bd83f823460c8caf24A54058920").unwrap(),
+        Deployment::LOCALNET => DeploymentConfig {
+            data_store: *up_contracts.get("DataStore#DataStore").unwrap(),
+            reader: *up_contracts.get("Reader#Reader").unwrap(),
+            event_emitter: *up_contracts.get("EventEmitter#EventEmitter").unwrap(),
+            exchange_router: *up_contracts.get("ExchangeRouter#ExchangeRouter").unwrap(),
+            liquidation_handler: *up_contracts.get("LiquidationHandler#LiquidationHandler").unwrap(),
+            eth: underly_assets.get("ETH").unwrap().address,
             creation_block: 1,
         }
     }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct UnderlyAsset {
+    #[serde(rename = "address")]
+    address: Address,
+
+    #[serde(rename = "decimals")]
+    decimals: u64,
+
+    #[serde(rename = "oracle")]
+    oracle: Address,
+
+    #[serde(rename = "oracleDecimals")]
+    oracle_decimals: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -163,9 +187,13 @@ impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
         info!("syncing state");
 
         self.update_pools().await?;
+        info!("syncing state");
         self.approve_tokens().await?;
+        info!("syncing state2");
         self.load_cache()?;
+        info!("syncing state3");
         self.update_state().await?;
+        info!("syncing state4");
         self.update_liquidation_threshold().await?;
 
         info!("done syncing state");
@@ -682,6 +710,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     }
 
     async fn update_pools(&mut self) -> Result<()> {
+        info!("self.config.reader {:?}", self.config.reader);
         let reader = Reader::<M>::new(self.config.reader, self.client.clone());
         let all_pools = reader.get_pools_price(self.config.data_store).await?;
         for pool in all_pools {

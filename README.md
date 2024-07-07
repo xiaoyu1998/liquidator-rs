@@ -9,18 +9,18 @@ git clone git@github.com:xiaoyu1998/up-liquidator-rs.git --recursive
 ```
 #### copy addresses from up-contracts
 ```
-cp deployed_addresses.json up-liquidator-rs/crates/liquidator-contract/deployments
-cp underlyAsset_addresses.json up-liquidator-rs/deployments
+cp deployed_addresses.json /path/to/up-liquidator-rs/crates/liquidator-contract/deployments
+cp underlyAsset_addresses.json /path/to/up-liquidator-rs/deployments
 
 ```
 #### deploy liquidator
 ```shell
 cd crates/liquidator-contract
-npx hardhat ignition deploy ignition/modules/liquidator.ts --network localnet
+npx hardhat run scripts/deployLiquidator.ts --network localnet
 ```
 #### copy addresses from crates/liquidator-contract
 ```
-cp deployed_addresses.json up-liquidator-rs/deployments
+cp deployed_addresses.json /path/to/up-liquidator-rs/deployments
 
 ```
 

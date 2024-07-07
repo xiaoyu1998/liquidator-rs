@@ -14,6 +14,7 @@ async function main() {
     //dex havs add role controller
     const liquidator = await deployContract("Liquidator", [factory, dataStore, exchangeRouter, exchangeRouter] );
     setContractAddress("Liquidator", liquidator.target);
+    console.log("Liquidator", liquidator.target);
 
 }
 

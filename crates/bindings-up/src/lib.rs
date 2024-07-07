@@ -22,7 +22,6 @@ pub mod close_event_utils;
 pub mod close_handler;
 pub mod close_utils;
 pub mod config;
-pub mod config_store_utils;
 pub mod context;
 pub mod data_store;
 pub mod debt_token;
