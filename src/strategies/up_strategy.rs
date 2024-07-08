@@ -18,8 +18,11 @@ use bindings_up::{
         ClosePositionFilter, 
         CloseFilter
     },
-    shared_types::LiquidationParams,
+    //shared_types::LiquidationParams,
     ierc20::IERC20,
+};
+use bindings_liquidator::{
+    liquidator::{Liquidator, LiquidationParams, Asset},
 };
 use clap::{Parser, ValueEnum};
 use ethers::{
@@ -44,6 +47,7 @@ struct DeploymentConfig {
     exchange_router: Address,
     liquidation_handler: Address,
     eth: Address,
+    usd: Address,
     creation_block: u64,
 }
 
@@ -74,6 +78,7 @@ fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
             exchange_router: *up_contracts.get("ExchangeRouter#ExchangeRouter").unwrap(),
             liquidation_handler: *up_contracts.get("LiquidationHandler#LiquidationHandler").unwrap(),
             eth: underly_assets.get("ETH").unwrap().address,
+            usd: underly_assets.get("USDT").unwrap().address,
             creation_block: 1,
         }
     }
@@ -159,20 +164,20 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Asset {
-    token: Address,
-    amount: U256,
-}
+// #[derive(Clone, Debug, Serialize, Deserialize)]
+// pub struct Asset {
+//     token: Address,
+//     amount: U256,
+// }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct LiquidationOpportunity {
     borrower: Address,
     profit: I256,
-    // collaterals: Vec(Asset),
-    // debts: Vec(Asset),
-    // uniswap_fee: U256,
-    // gas_fee_usd: U256,
+    collaterals: Vec<Asset>,
+    debts: Vec<Asset>,
+    uniswap_fee: u32,
+    gas_fee_usd: U256,
 }
 
 #[async_trait]
@@ -185,12 +190,12 @@ impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
         info!("self.config.exchange_router {:?}", self.config.exchange_router);
         info!("self.config.liquidation_handler {:?}", self.config.liquidation_handler);
         info!("self.config.eth {:?}", self.config.eth);
+        info!("self.config.usd {:?}", self.config.usd);
                 
         self.update_pools().await?;
         //self.approve_tokens().await?;
         self.load_cache()?;
         self.update_state().await?;
-        self.update_liquidation_threshold().await?;
 
         info!("done syncing state");
         Ok(())
@@ -282,6 +287,8 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             "Updating state from block {} to {}",
             start_block, latest_block
         );
+
+        self.update_liquidation_threshold().await?;
 
     
         self.get_deposit_logs(start_block.into(), latest_block)
@@ -800,7 +807,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             }).collect();
 
             for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
-                //info!("account {:?} {}", borrower.address, health_factor);
+                info!("account {:?} {} {}", borrower.address, health_factor, self.liquidation_threshold);
                 if health_factor < self.liquidation_threshold {
                     info!(
                         "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
@@ -825,18 +832,49 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     ) -> Result<LiquidationOpportunity> {
 
         let eth_price = self.pools.get(&self.config.eth).unwrap().price;
-
-        let op = LiquidationOpportunity {
+        let mut op = LiquidationOpportunity {
             borrower: borrower.address,
             profit: I256::from_dec_str(&ray_div( user_total_collateral_usd - user_total_debt_usd, eth_price).to_string())?,
+            collaterals: Vec::new(),
+            debts: Vec::new(),
+            uniswap_fee: 3000,
+            gas_fee_usd: U256::zero() 
         };
+        for (_, position) in &borrower.positions {
+            if position.collateral > U256::zero() {
+                op.collaterals.push(Asset{
+                    token: position.pool.clone(), 
+                    amount: position.collateral, 
+                });
+            }
+            if position.debt_scaled > U256::zero() {
+                op.debts.push(Asset{
+                    token: position.pool.clone(), 
+                    amount: position.debt_scaled, 
+                });
+            }
+        }
 
         Ok(op)
     }
 
+    // async fn build_liquidation_tx(&self, op: &LiquidationOpportunity) -> Result<TypedTransaction> {
+    //     let exchange_router = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
+    //     let mut call = exchange_router.execute_liquidation(LiquidationParams{account: op.borrower});
+    //     Ok(call.tx.set_chain_id(self.chain_id).clone())
+    // }
+
     async fn build_liquidation_tx(&self, op: &LiquidationOpportunity) -> Result<TypedTransaction> {
-        let exchange_router = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
-        let mut call = exchange_router.execute_liquidation(LiquidationParams{account: op.borrower});
+        let liquidator = Liquidator::new(self.liquidator, self.client.clone());
+        let mut call = liquidator.liquidate(LiquidationParams{
+            account: op.borrower,
+            usd_token: op.borrower,
+            collaterals: op.collaterals.clone(),
+            debts: op.debts.clone(),
+            uniswap_fee: 3000,
+            gas_fee_usd: U256::zero()
+
+        });
         Ok(call.tx.set_chain_id(self.chain_id).clone())
     }
 

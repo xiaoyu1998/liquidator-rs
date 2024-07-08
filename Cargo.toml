@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 bindings-up = { path = "./crates/bindings-up" }
+bindings-liquidator = { path = "./crates/bindings-liquidator" }
 
 artemis-core = { git = "https://github.com/paradigmxyz/artemis"}
 ethers = { version = "2", features = ["ws", "rustls"]}

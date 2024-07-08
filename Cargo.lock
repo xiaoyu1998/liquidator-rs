@@ -354,6 +354,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bindings-liquidator"
+version = "0.1.0"
+dependencies = [
+ "ethers",
+ "serde",
+]
+
+[[package]]
 name = "bindings-up"
 version = "0.1.0"
 dependencies = [
@@ -4615,6 +4623,7 @@ dependencies = [
  "artemis-core",
  "async-stream",
  "async-trait",
+ "bindings-liquidator",
  "bindings-up",
  "clap",
  "crossbeam",
