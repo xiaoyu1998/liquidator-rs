@@ -6,13 +6,15 @@ async function main() {
     const dataStore = getContractAddress("DataStore");
     const exchangeRouter = getContractAddress("ExchangeRouter");
     const reader = getContractAddress("Reader");
+    const liquidationHandler = getContractAddress("LiquidationHandler");
     console.log("UniswapV3Factory", factory);
     console.log("DataStore", dataStore);
     console.log("ExchangeRouter", exchangeRouter);
     console.log("Reader", reader);
+    console.log("LiquidationHandler", liquidationHandler);
 
     //dex havs add role controller
-    const liquidator = await deployContract("Liquidator", [factory, dataStore, exchangeRouter, exchangeRouter] );
+    const liquidator = await deployContract("Liquidator", [factory, dataStore, exchangeRouter, reader, liquidationHandler] );
     setContractAddress("Liquidator", liquidator.target);
     console.log("Liquidator", liquidator.target);
 

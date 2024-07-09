@@ -2,6 +2,21 @@ import fs from 'fs';
 import path from 'path';
 import parse from 'csv-parse';
 
+export async function sendTxn(txnPromise, label) {
+    const txn = await txnPromise
+    await txn.wait(1)
+    console.info(`Sent! ${label} ${txn.hash}`)
+    return txn
+}
+
+export async function contractAt(name, address, provider) {
+    let contractFactory = await ethers.getContractFactory(name);
+    if (provider) {
+        contractFactory = contractFactory.connect(provider);
+    }
+    return await contractFactory.attach(address);
+}
+
 export async function deployContract(name, args, contractOptions = {}) {
     let contractFactory = await ethers.getContractFactory(name, contractOptions);
     let contract = await contractFactory.deploy(...args);
@@ -11,10 +26,12 @@ export async function deployContract(name, args, contractOptions = {}) {
 
 export const deployAddresses = {
 	localnet : "deployments/deployed_addresses.json",
+    localhost : "deployments/deployed_addresses.json",
 };
 
 export const defaultRpcs = {
     localnet: "http://192.168.2.106:8545",
+    localhost : "http://localhost:8545",
 };
 
 export function getContractAddress(name){

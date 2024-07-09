@@ -854,6 +854,10 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 });
             }
         }
+        info!(
+            "op {:?} ", op
+        );
+
 
         Ok(op)
     }

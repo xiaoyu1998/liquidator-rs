@@ -37,8 +37,8 @@ interface IExchangeRouter {
 interface IReader {
     function getDebt(
         address dataStore, 
-        address pool,
-        address account
+        address account,
+        address pool
     ) external view returns (uint256);  
 
     function getLiquidationHealthFactor(
