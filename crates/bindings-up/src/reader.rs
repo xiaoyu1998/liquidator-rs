@@ -17,6 +17,50 @@ pub mod reader {
             constructor: ::core::option::Option::None,
             functions: ::core::convert::From::from([
                 (
+                    ::std::borrow::ToOwned::to_owned("getDebt"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("getDebt"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("dataStore"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("account"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("underlyingAsset"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("getDexPool"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -1104,6 +1148,17 @@ pub mod reader {
                 ),
             )
         }
+        ///Calls the contract's `getDebt` (0x1de39703) function
+        pub fn get_debt(
+            &self,
+            data_store: ::ethers::core::types::Address,
+            account: ::ethers::core::types::Address,
+            underlying_asset: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
+            self.0
+                .method_hash([29, 227, 151, 3], (data_store, account, underlying_asset))
+                .expect("method not found (this should never happen)")
+        }
         ///Calls the contract's `getDexPool` (0xfb59fa82) function
         pub fn get_dex_pool(
             &self,
@@ -1362,6 +1417,25 @@ pub mod reader {
     #[etherror(name = "PoolNotFound", abi = "PoolNotFound(address)")]
     pub struct PoolNotFound {
         pub key: ::ethers::core::types::Address,
+    }
+    ///Container type for all input parameters for the `getDebt` function with signature `getDebt(address,address,address)` and selector `0x1de39703`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "getDebt", abi = "getDebt(address,address,address)")]
+    pub struct GetDebtCall {
+        pub data_store: ::ethers::core::types::Address,
+        pub account: ::ethers::core::types::Address,
+        pub underlying_asset: ::ethers::core::types::Address,
     }
     ///Container type for all input parameters for the `getDexPool` function with signature `getDexPool(address,address,address)` and selector `0xfb59fa82`
     #[derive(
@@ -1770,6 +1844,7 @@ pub mod reader {
         Hash
     )]
     pub enum ReaderCalls {
+        GetDebt(GetDebtCall),
         GetDexPool(GetDexPoolCall),
         GetDexPoolFeeAmount(GetDexPoolFeeAmountCall),
         GetDexPoolSwapConstantFee(GetDexPoolSwapConstantFeeCall),
@@ -1796,6 +1871,11 @@ pub mod reader {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
+            if let Ok(decoded) = <GetDebtCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::GetDebt(decoded));
+            }
             if let Ok(decoded) = <GetDexPoolCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
@@ -1902,6 +1982,7 @@ pub mod reader {
     impl ::ethers::core::abi::AbiEncode for ReaderCalls {
         fn encode(self) -> Vec<u8> {
             match self {
+                Self::GetDebt(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::GetDexPool(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -1966,6 +2047,7 @@ pub mod reader {
     impl ::core::fmt::Display for ReaderCalls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
+                Self::GetDebt(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetDexPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetDexPoolFeeAmount(element) => {
                     ::core::fmt::Display::fmt(element, f)
@@ -2005,6 +2087,11 @@ pub mod reader {
                 Self::GetPositionsInfo(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPrice(element) => ::core::fmt::Display::fmt(element, f),
             }
+        }
+    }
+    impl ::core::convert::From<GetDebtCall> for ReaderCalls {
+        fn from(value: GetDebtCall) -> Self {
+            Self::GetDebt(value)
         }
     }
     impl ::core::convert::From<GetDexPoolCall> for ReaderCalls {
@@ -2108,6 +2195,20 @@ pub mod reader {
             Self::GetPrice(value)
         }
     }
+    ///Container type for all return fields from the `getDebt` function with signature `getDebt(address,address,address)` and selector `0x1de39703`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetDebtReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `getDexPool` function with signature `getDexPool(address,address,address)` and selector `0xfb59fa82`
     #[derive(
         Clone,

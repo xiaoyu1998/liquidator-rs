@@ -29,14 +29,14 @@ pub mod i_reader {
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("pool"),
+                                    name: ::std::borrow::ToOwned::to_owned("account"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Address,
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("address"),
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("account"),
+                                    name: ::std::borrow::ToOwned::to_owned("pool"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Address,
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("address"),
@@ -158,11 +158,11 @@ pub mod i_reader {
         pub fn get_debt(
             &self,
             data_store: ::ethers::core::types::Address,
-            pool: ::ethers::core::types::Address,
             account: ::ethers::core::types::Address,
+            pool: ::ethers::core::types::Address,
         ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
             self.0
-                .method_hash([29, 227, 151, 3], (data_store, pool, account))
+                .method_hash([29, 227, 151, 3], (data_store, account, pool))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `getLiquidationHealthFactor` (0x6d7c4892) function
@@ -198,8 +198,8 @@ pub mod i_reader {
     #[ethcall(name = "getDebt", abi = "getDebt(address,address,address)")]
     pub struct GetDebtCall {
         pub data_store: ::ethers::core::types::Address,
-        pub pool: ::ethers::core::types::Address,
         pub account: ::ethers::core::types::Address,
+        pub pool: ::ethers::core::types::Address,
     }
     ///Container type for all input parameters for the `getLiquidationHealthFactor` function with signature `getLiquidationHealthFactor(address,address)` and selector `0x6d7c4892`
     #[derive(

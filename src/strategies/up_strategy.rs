@@ -713,7 +713,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     }
 
     async fn update_pools(&mut self) -> Result<()> {
-        info!("self.config.reader {:?}", self.config.reader);
+        //info!("self.config.reader {:?}", self.config.reader);
         let reader = Reader::<M>::new(self.config.reader, self.client.clone());
         let all_pools = reader.get_pools_price(self.config.data_store).await?;
         for pool in all_pools {
@@ -807,7 +807,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             }).collect();
 
             for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
-                info!("account {:?} {} {}", borrower.address, health_factor, self.liquidation_threshold);
+                //info!("account {:?} {} {}", borrower.address, health_factor, self.liquidation_threshold);
                 if health_factor < self.liquidation_threshold {
                     info!(
                         "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
@@ -872,7 +872,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         let liquidator = Liquidator::new(self.liquidator, self.client.clone());
         let mut call = liquidator.liquidate(LiquidationParams{
             account: op.borrower,
-            usd_token: op.borrower,
+            usd_token: self.config.usd,
             collaterals: op.collaterals.clone(),
             debts: op.debts.clone(),
             uniswap_fee: 3000,
