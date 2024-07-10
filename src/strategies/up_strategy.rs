@@ -6,7 +6,7 @@ use artemis_core::types::Strategy;
 use async_trait::async_trait;
 use bindings_up::{
     reader::Reader,
-    exchange_router::ExchangeRouter,
+    //exchange_router::ExchangeRouter,
     event_emitter::{
         EventEmitter, 
         DepositFilter, 
@@ -19,7 +19,7 @@ use bindings_up::{
         CloseFilter
     },
     //shared_types::LiquidationParams,
-    ierc20::IERC20,
+    //ierc20::IERC20,
 };
 use bindings_liquidator::{
     liquidator::{Liquidator, LiquidationParams, Asset},
@@ -36,6 +36,7 @@ use std::iter::zip;
 use std::str::FromStr;
 use std::sync::Arc;
 use tracing::{error, info};
+use chrono::{DateTime, Duration, Utc};
 
 use super::types::{Action, Event};
 
@@ -62,6 +63,7 @@ pub const UNDERLYASSET_ADDRESSES: &str = "deployments/underlyAsset_addresses.jso
 pub const STATE_CACHE_FILE: &str = "borrowers.json";
 pub const LOG_BLOCK_RANGE: u64 = 1024;
 pub const MULTICALL_CHUNK_SIZE: usize = 100;
+pub const RETRY_DURATION_IN_SECOND: i64 = 60;
 
 fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
 
@@ -104,6 +106,7 @@ pub struct StateCache {
     last_block_number: u64,
     borrowers: HashMap<Address, Borrower>,
     pools: HashMap<Address, Pool>,
+    sents: HashMap<Address, DateTime<Utc>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -137,6 +140,7 @@ pub struct UpStrategy<M> {
     last_block_number: u64,
     borrowers: HashMap<Address, Borrower>,
     pools: HashMap<Address, Pool>,
+    sents: HashMap<Address, DateTime<Utc>>,
     chain_id: u64,
     config: DeploymentConfig,
     liquidator: Address,
@@ -156,6 +160,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             last_block_number: 0,
             borrowers: HashMap::new(),
             pools: HashMap::new(),
+            sents: HashMap::new(),
             chain_id: config.chain_id,
             config: get_deployment_config(deployment),
             liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
@@ -241,6 +246,25 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             return None;
         }
 
+        //prevent resend tx
+        // let now: DateTime<Utc> = Utc::now();
+        // match self.sents.get(&op.borrower) {
+        //     Some(&sent_time) => {
+        //         let duration: Duration = now - sent_time;
+        //         if duration.num_seconds() < RETRY_DURATION_IN_SECOND {
+        //             return None;
+        //         }
+        //         self.sents.insert(op.borrower, now);
+        //     },
+        //     None => {
+        //         self.sents.insert(op.borrower, now);
+        //     }
+        // }
+
+        let now: DateTime<Utc> = Utc::now();
+        self.sents.insert(op.borrower, now);
+
+        //sent tx
         return Some(Action::SubmitTx(SubmitTxToMempool {
             tx: self
                 .build_liquidation_tx(&op)
@@ -265,6 +289,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 self.last_block_number = cache.last_block_number;
                 self.borrowers = cache.borrowers;
                 self.pools = cache.pools;
+                self.sents = cache.sents;
             }
             Err(_) => {
                 info!("no state cache file found, creating new one");
@@ -435,7 +460,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("liquidation {}", log.account);
+                info!("liquidation {:?}", log.account);
                 let user = log.account;
                 self.borrowers.remove(&user);
                 return;
@@ -475,6 +500,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             last_block_number: latest_block.as_u64(),
             borrowers: self.borrowers.clone(),
             pools: self.pools.clone(),
+            sents: self.sents.clone(),
         };
         self.last_block_number = latest_block.as_u64();
         let file = File::create(STATE_CACHE_FILE)?;
@@ -493,7 +519,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             (from_block.as_u64()..to_block.as_u64()).step_by(LOG_BLOCK_RANGE as usize)
         {
             let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block.as_u64());
-            info!("get_deposit_logs start_block {} end_block {}", start_block, end_block );
+            //info!("get_deposit_logs start_block {} end_block {}", start_block, end_block );
             event_emitter.deposit_filter()  
                 .from_block(start_block)
                 .to_block(end_block)
@@ -677,40 +703,40 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         Ok(res)
     }
 
-    async fn approve_tokens(&mut self) -> Result<()> {
-        info!("account {:?}", self.client.default_sender().ok_or(anyhow!("No connected sender"))?);
+    // async fn approve_tokens(&mut self) -> Result<()> {
+    //     info!("account {:?}", self.client.default_sender().ok_or(anyhow!("No connected sender"))?);
 
-        let mut nonce = self
-            .client
-            .get_transaction_count(
-                self.client
-                    .default_sender()
-                    .ok_or(anyhow!("No connected sender"))?,
-                None,
-            )
-            .await?;
-        for (_, pool) in self.pools.clone() {
-            let underlying_asset = IERC20::new(pool.underlying_asset.clone(), self.client.clone());
-            let allowance = underlying_asset
-                .allowance(self.liquidator, self.config.liquidation_handler)
-                .call()
-                .await?;
-            if allowance == U256::zero() {
-                underlying_asset
-                    .approve(self.config.liquidation_handler, U256::max_value())
-                    .nonce(nonce)
-                    .send()
-                    .await
-                    .map_err(|e| {
-                        error!("approve failed: {:?}", e);
-                        e
-                    })?;
-                nonce = nonce + 1;
-            }
-        }
+    //     let mut nonce = self
+    //         .client
+    //         .get_transaction_count(
+    //             self.client
+    //                 .default_sender()
+    //                 .ok_or(anyhow!("No connected sender"))?,
+    //             None,
+    //         )
+    //         .await?;
+    //     for (_, pool) in self.pools.clone() {
+    //         let underlying_asset = IERC20::new(pool.underlying_asset.clone(), self.client.clone());
+    //         let allowance = underlying_asset
+    //             .allowance(self.liquidator, self.config.liquidation_handler)
+    //             .call()
+    //             .await?;
+    //         if allowance == U256::zero() {
+    //             underlying_asset
+    //                 .approve(self.config.liquidation_handler, U256::max_value())
+    //                 .nonce(nonce)
+    //                 .send()
+    //                 .await
+    //                 .map_err(|e| {
+    //                     error!("approve failed: {:?}", e);
+    //                     e
+    //                 })?;
+    //             nonce = nonce + 1;
+    //         }
+    //     }
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
 
     async fn update_pools(&mut self) -> Result<()> {
         //info!("self.config.reader {:?}", self.config.reader);
@@ -750,13 +776,13 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         let mut best_bonus: I256 = I256::MIN;
         let mut best_op: Option<LiquidationOpportunity> = None;
 
-        for (borrower, health_factor, user_total_collateral_usd, user_total_debt_usd) in underwaters {
+        for (borrower, _health_factor, user_total_collateral_usd, user_total_debt_usd) in underwaters {
             if let Some(op) = self
                 .get_liquidation_profit(
                     self.borrowers
                         .get(&borrower)
                         .ok_or(anyhow!("Borrower not found"))?,
-                    &health_factor,
+                    //&health_factor,
                     &user_total_collateral_usd,
                     &user_total_debt_usd,
                 )
@@ -793,8 +819,8 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                     let decimals = self.pools.get(&position.pool).unwrap().decimals;
                     let borrow_index = self.pools.get(&position.pool).unwrap().borrow_index;
                     let debt = ray_mul(position.debt_scaled, borrow_index);
-                    user_total_collateral_usd += ray_mul(price, adjustPrecision(position.collateral, decimals));
-                    user_total_debt_usd += ray_mul(price, adjustPrecision(debt, decimals));
+                    user_total_collateral_usd += ray_mul(price, adjust_precision(position.collateral, decimals));
+                    user_total_debt_usd += ray_mul(price, adjust_precision(debt, decimals));
                 }               
 
                 let health_factor = if user_total_debt_usd == U256::zero() {
@@ -809,6 +835,18 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
                 //info!("account {:?} {} {}", borrower.address, health_factor, self.liquidation_threshold);
                 if health_factor < self.liquidation_threshold {
+                    //prevent resend tx
+                    let now: DateTime<Utc> = Utc::now();
+                    match self.sents.get(&borrower.address) {
+                        Some(&sent_time) => {
+                            let duration: Duration = now - sent_time;
+                            if duration.num_seconds() < RETRY_DURATION_IN_SECOND {
+                                continue;
+                            }
+                        },
+                        None => {}
+                    }
+
                     info!(
                         "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
                         borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd
@@ -826,7 +864,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     async fn get_liquidation_profit(
         &self,
         borrower: &Borrower,
-        health_factor: &U256,
+//        health_factor: &U256,
         user_total_collateral_usd: &U256,
         user_total_debt_usd: &U256,
     ) -> Result<LiquidationOpportunity> {
@@ -904,7 +942,7 @@ fn ray_div(a: U256, b: U256) -> U256 {
     return U256::from_dec_str(&((a512*precision+ b512/two)/b512).to_string()).unwrap();
 }
 
-fn adjustPrecision(a: U256, decimals: U256) -> U256 {
+fn adjust_precision(a: U256, decimals: U256) -> U256 {
     let precision: U512 = U512::from(10).pow(U512::from(27));
     let a512 : U512 = U512::from(a);
     return U256::from_dec_str(&(a512*precision/U512::from(10).pow(U512::from(decimals))).to_string()).unwrap();
