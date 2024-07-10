@@ -13,19 +13,23 @@ cp deployed_addresses.json /path/to/up-liquidator-rs/crates/liquidator-contract/
 cp underlyAsset_addresses.json /path/to/up-liquidator-rs/deployments
 
 ```
-#### deploy liquidator
+#### deploy liquidator contract
 ```shell
 cd crates/liquidator-contract
 npx hardhat run scripts/deployLiquidator.ts --network localnet
+```
+#### transfer usdt to liquidator contract
+```
+usdt.transfer("liquidator contract address", amount);
+
 ```
 #### copy addresses from crates/liquidator-contract
 ```
 cp deployed_addresses.json /path/to/up-liquidator-rs/deployments
 
 ```
-
-#### run liquidator
+#### add liquidator address to command line and run liquidator
 ```
-cargo run -- --rpc http://192.168.2.106:8545 --private-key "private-key " --deployment localnet --bid-percentage 10 --liquidator-address 0x5aa3B6d49e2AAC9AD7c687C79A899AA6Db2e3cbf
+cargo run -- --rpc http://192.168.2.106:8545 --private-key "private-key " --deployment localnet --bid-percentage 10 --liquidator-address 0xa58FEa4CAD0e8D14294d861c54cCa3606820A871
 
 ```
