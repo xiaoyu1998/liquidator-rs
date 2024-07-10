@@ -63,7 +63,7 @@ pub const UNDERLYASSET_ADDRESSES: &str = "deployments/underlyAsset_addresses.jso
 pub const STATE_CACHE_FILE: &str = "borrowers.json";
 pub const LOG_BLOCK_RANGE: u64 = 1024;
 pub const MULTICALL_CHUNK_SIZE: usize = 100;
-pub const RETRY_DURATION_IN_SECOND: i64 = 60;
+pub const RETRY_DURATION_IN_SECS: i64 = 60;
 
 fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
 
@@ -840,7 +840,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                     match self.sents.get(&borrower.address) {
                         Some(&sent_time) => {
                             let duration: Duration = now - sent_time;
-                            if duration.num_seconds() < RETRY_DURATION_IN_SECOND {
+                            if duration.num_seconds() < RETRY_DURATION_IN_SECS {
                                 continue;
                             }
                         },
