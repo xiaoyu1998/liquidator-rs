@@ -76,7 +76,7 @@ contract Multiswap is Ownable, IUniswapV3SwapCallback, IUniswapV3MintCallback, P
 
     function mint(
         mintParams calldata params
-    ) external {
+    ) external onlyOwner{
         IUniswapV3Pool pool = getPool(params.tokenA, params.tokenB, params.uniswapFee);
         pool.mint(
             params.to, 
@@ -89,7 +89,7 @@ contract Multiswap is Ownable, IUniswapV3SwapCallback, IUniswapV3MintCallback, P
 
     function burn(
         burnParams calldata params
-    ) external {
+    ) external onlyOwner{
         IUniswapV3Pool pool = getPool(params.tokenA, params.tokenB, params.uniswapFee);
         pool.burn(
             params.tickLower, 
