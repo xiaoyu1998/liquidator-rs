@@ -19,8 +19,8 @@ struct swapParams {
 }
 
 struct mintParams {
-    address tokenIn;
-    address tokenOut;
+    address tokenA;
+    address tokenB;
     address to;
     uint24 uniswapFee;
     int24 tickLower;
@@ -29,8 +29,8 @@ struct mintParams {
 }
 
 struct burnParams {
-    address tokenIn;
-    address tokenOut;
+    address tokenA;
+    address tokenB;
     uint24 uniswapFee;
     int24 tickLower;
     int24 tickUpper;
@@ -77,20 +77,20 @@ contract Multiswap is Ownable, IUniswapV3SwapCallback, IUniswapV3MintCallback, P
     function mint(
         mintParams calldata params
     ) external {
-        IUniswapV3Pool pool = getPool(params.tokenIn, params.tokenOut, params.uniswapFee);
+        IUniswapV3Pool pool = getPool(params.tokenA, params.tokenB, params.uniswapFee);
         pool.mint(
             params.to, 
             params.tickLower, 
             params.tickUpper, 
             params.amount, 
-            abi.encode(params.tokenIn, params.tokenOut, params.uniswapFee)
+            abi.encode(params.tokenA, params.tokenB, params.uniswapFee)
         );
     }  
 
     function burn(
         burnParams calldata params
     ) external {
-        IUniswapV3Pool pool = getPool(params.tokenIn, params.tokenOut, params.uniswapFee);
+        IUniswapV3Pool pool = getPool(params.tokenA, params.tokenB, params.uniswapFee);
         pool.burn(
             params.tickLower, 
             params.tickUpper, 
