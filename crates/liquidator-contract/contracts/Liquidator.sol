@@ -19,11 +19,11 @@ contract Liquidator is Ownable, IUniswapV3SwapCallback {
     /// @dev The maximum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MAX_TICK)
     uint160 internal constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
 
-    address factoryUniswapV3;
-    address exchangeRouter;
-    address reader;
-    address dataStore;
-    address liquidationHandler;
+    address internal immutable factoryUniswapV3;
+    address internal immutable exchangeRouter;
+    address internal immutable reader;
+    address internal immutable dataStore;
+    address internal immutable liquidationHandler;
 
     function toString(bytes memory data) internal pure returns(string memory) {
         bytes memory alphabet = "0123456789abcdef";
