@@ -52,6 +52,9 @@ pub struct Args {
 
     #[arg(long)]
     pub last_block_number: u64,
+
+    #[arg(long)]
+    pub pool_interval_secs: u64,
 }
 
 #[tokio::main]
@@ -70,7 +73,6 @@ async fn main() -> Result<()> {
     println!("{:?}", args);
 
     let chain_id: u64 = args.chain_id;
-    info!("chain_id {:?}", chain_id);
 
     // Set up ethers provider.
     let rpc = Http::from_str(&args.rpc)?;
@@ -90,7 +92,8 @@ async fn main() -> Result<()> {
     let mut engine: Engine<Event, Action> = Engine::default();
 
     // Set up time collector.
-    let time_collector = Box::new(TimeCollector::new(POLL_INTERVAL_SECS));
+    //let time_collector = Box::new(TimeCollector::new(POLL_INTERVAL_SECS));
+    let time_collector = Box::new(TimeCollector::new(args.pool_interval_secs));
     let time_collector = CollectorMap::new(time_collector, Event::NewTick);
     engine.add_collector(Box::new(time_collector));
 

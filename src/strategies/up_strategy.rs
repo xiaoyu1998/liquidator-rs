@@ -49,7 +49,7 @@ struct DeploymentConfig {
     liquidation_handler: Address,
     eth: Address,
     usd: Address,
-    creation_block: u64,
+    last_block_number: u64,
 }
 
 #[derive(Debug, Clone, Parser, ValueEnum)]
@@ -865,12 +865,6 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
         Ok(op)
     }
-
-    // async fn build_liquidation_tx(&self, op: &LiquidationOpportunity) -> Result<TypedTransaction> {
-    //     let exchange_router = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
-    //     let mut call = exchange_router.execute_liquidation(LiquidationParams{account: op.borrower});
-    //     Ok(call.tx.set_chain_id(self.chain_id).clone())
-    // }
 
     async fn build_liquidation_tx(&self, op: &LiquidationOpportunity) -> Result<TypedTransaction> {
         let liquidator = Liquidator::new(self.liquidator, self.client.clone());
