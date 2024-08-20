@@ -68,6 +68,7 @@ pub mod i_close_handler {
                                         ::std::vec![
                                             ::ethers::core::abi::ethabi::ParamType::Address,
                                             ::ethers::core::abi::ethabi::ParamType::Address,
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                         ],
                                     ),
                                     internal_type: ::core::option::Option::Some(
@@ -143,14 +144,14 @@ pub mod i_close_handler {
                 .method_hash([174, 191, 23, 157], (account, params))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `executeClosePosition` (0xa2b1f373) function
+        ///Calls the contract's `executeClosePosition` (0x626ecb93) function
         pub fn execute_close_position(
             &self,
             account: ::ethers::core::types::Address,
             params: ClosePositionParams,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([162, 177, 243, 115], (account, params))
+                .method_hash([98, 110, 203, 147], (account, params))
                 .expect("method not found (this should never happen)")
         }
     }
@@ -178,7 +179,7 @@ pub mod i_close_handler {
         pub account: ::ethers::core::types::Address,
         pub params: CloseParams,
     }
-    ///Container type for all input parameters for the `executeClosePosition` function with signature `executeClosePosition(address,(address,address))` and selector `0xa2b1f373`
+    ///Container type for all input parameters for the `executeClosePosition` function with signature `executeClosePosition(address,(address,address,uint256))` and selector `0x626ecb93`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -193,7 +194,7 @@ pub mod i_close_handler {
     )]
     #[ethcall(
         name = "executeClosePosition",
-        abi = "executeClosePosition(address,(address,address))"
+        abi = "executeClosePosition(address,(address,address,uint256))"
     )]
     pub struct ExecuteClosePositionCall {
         pub account: ::ethers::core::types::Address,

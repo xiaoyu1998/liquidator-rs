@@ -48,11 +48,11 @@ pub mod errors {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("CollateralBalanceIsZero"),
+                    ::std::borrow::ToOwned::to_owned("ClosePercentageExceeding"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
                             name: ::std::borrow::ToOwned::to_owned(
-                                "CollateralBalanceIsZero",
+                                "ClosePercentageExceeding",
                             ),
                             inputs: ::std::vec![],
                         },
@@ -176,15 +176,6 @@ pub mod errors {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("DexEmpty"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("DexEmpty"),
-                            inputs: ::std::vec![],
-                        },
-                    ],
-                ),
-                (
                     ::std::borrow::ToOwned::to_owned("EmptyAccount"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
@@ -212,12 +203,30 @@ pub mod errors {
                     ],
                 ),
                 (
+                    ::std::borrow::ToOwned::to_owned("EmptyCollateral"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyCollateral"),
+                            inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("EmptyDepositAmounts"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
                             name: ::std::borrow::ToOwned::to_owned(
                                 "EmptyDepositAmounts",
                             ),
+                            inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("EmptyDex"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyDex"),
                             inputs: ::std::vec![],
                         },
                     ],
@@ -247,6 +256,32 @@ pub mod errors {
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
                             name: ::std::borrow::ToOwned::to_owned("EmptyOracle"),
+                            inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("key"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("EmptyPoolOracle"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyPoolOracle"),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("underlyingAsset"),
@@ -346,6 +381,43 @@ pub mod errors {
                                     ),
                                 },
                             ],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("EmptyTreasury"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyTreasury"),
+                            inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("EmptyUnclaimedFee"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyUnclaimedFee"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("poool"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("EmptyUnderlyingAsset"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "EmptyUnderlyingAsset",
+                            ),
+                            inputs: ::std::vec![],
                         },
                     ],
                 ),
@@ -938,15 +1010,6 @@ pub mod errors {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("OracleEmpty"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("OracleEmpty"),
-                            inputs: ::std::vec![],
-                        },
-                    ],
-                ),
-                (
                     ::std::borrow::ToOwned::to_owned("PoolAlreadyExists"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
@@ -1022,10 +1085,10 @@ pub mod errors {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("PoolIsPaused"),
+                    ::std::borrow::ToOwned::to_owned("PoolIsNotUsd"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("PoolIsPaused"),
+                            name: ::std::borrow::ToOwned::to_owned("PoolIsNotUsd"),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("pool"),
@@ -1039,13 +1102,13 @@ pub mod errors {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("PoolNotFound"),
+                    ::std::borrow::ToOwned::to_owned("PoolIsPaused"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("PoolNotFound"),
+                            name: ::std::borrow::ToOwned::to_owned("PoolIsPaused"),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("key"),
+                                    name: ::std::borrow::ToOwned::to_owned("pool"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Address,
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("address"),
@@ -1288,15 +1351,6 @@ pub mod errors {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("UnderlyAssetEmpty"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("UnderlyAssetEmpty"),
-                            inputs: ::std::vec![],
-                        },
-                    ],
-                ),
-                (
                     ::std::borrow::ToOwned::to_owned("UsdCollateralCanNotCoverDebt"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
@@ -1404,13 +1458,13 @@ pub mod errors {
         __abi,
     );
     #[rustfmt::skip]
-    const __BYTECODE: &[u8] = b"`V`7`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`*WcNH{q`\xE0\x1B`\0R`\0`\x04R`$`\0\xFD[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2dipfsX\"\x12 \xE7L\xB2\xC7\x18\x9505\xA8p\xEAN\x16\xD8\x97\xAE\xCE\xC4\x9A\x0BO5&\x12\x0CLM\xD6\xEC\0\xE7edsolcC\0\x08\x1A\x003";
+    const __BYTECODE: &[u8] = b"`V`7`\x0B\x82\x82\x829\x80Q`\0\x1A`s\x14`*WcNH{q`\xE0\x1B`\0R`\0`\x04R`$`\0\xFD[0`\0R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2dipfsX\"\x12 \x92]\x8E\xC4\xAD\xE6\xC5\xA7\x1Ef\x92VG;\xD9\x19>?{O\x81\xBFB\x9FO7=X\x8E\x17H\x1EdsolcC\0\x08\x1A\x003";
     /// The bytecode of the contract.
     pub static ERRORS_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __BYTECODE,
     );
     #[rustfmt::skip]
-    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2dipfsX\"\x12 \xE7L\xB2\xC7\x18\x9505\xA8p\xEAN\x16\xD8\x97\xAE\xCE\xC4\x9A\x0BO5&\x12\x0CLM\xD6\xEC\0\xE7edsolcC\0\x08\x1A\x003";
+    const __DEPLOYED_BYTECODE: &[u8] = b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\0\x80\xFD\xFE\xA2dipfsX\"\x12 \x92]\x8E\xC4\xAD\xE6\xC5\xA7\x1Ef\x92VG;\xD9\x19>?{O\x81\xBFB\x9FO7=X\x8E\x17H\x1EdsolcC\0\x08\x1A\x003";
     /// The deployed bytecode of the contract.
     pub static ERRORS_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
         __DEPLOYED_BYTECODE,
@@ -1519,7 +1573,7 @@ pub mod errors {
         pub total_debt: ::ethers::core::types::U256,
         pub borrow_capacity: ::ethers::core::types::U256,
     }
-    ///Custom Error type `CollateralBalanceIsZero` with signature `CollateralBalanceIsZero()` and selector `0xe43ec917`
+    ///Custom Error type `ClosePercentageExceeding` with signature `ClosePercentageExceeding()` and selector `0x553af544`
     #[derive(
         Clone,
         ::ethers::contract::EthError,
@@ -1532,8 +1586,8 @@ pub mod errors {
         Eq,
         Hash
     )]
-    #[etherror(name = "CollateralBalanceIsZero", abi = "CollateralBalanceIsZero()")]
-    pub struct CollateralBalanceIsZero;
+    #[etherror(name = "ClosePercentageExceeding", abi = "ClosePercentageExceeding()")]
+    pub struct ClosePercentageExceeding;
     ///Custom Error type `CollateralCanNotCoverDebt` with signature `CollateralCanNotCoverDebt(uint256,uint256)` and selector `0xac3fb11d`
     #[derive(
         Clone,
@@ -1617,21 +1671,6 @@ pub mod errors {
         abi = "DebtTokenOperationNotSupported()"
     )]
     pub struct DebtTokenOperationNotSupported;
-    ///Custom Error type `DexEmpty` with signature `DexEmpty()` and selector `0x9f424ee8`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(name = "DexEmpty", abi = "DexEmpty()")]
-    pub struct DexEmpty;
     ///Custom Error type `EmptyAccount` with signature `EmptyAccount()` and selector `0xdd7016a2`
     #[derive(
         Clone,
@@ -1677,6 +1716,21 @@ pub mod errors {
     )]
     #[etherror(name = "EmptyBurnAmounts", abi = "EmptyBurnAmounts()")]
     pub struct EmptyBurnAmounts;
+    ///Custom Error type `EmptyCollateral` with signature `EmptyCollateral()` and selector `0x6c53056d`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyCollateral", abi = "EmptyCollateral()")]
+    pub struct EmptyCollateral;
     ///Custom Error type `EmptyDepositAmounts` with signature `EmptyDepositAmounts()` and selector `0x01af8c24`
     #[derive(
         Clone,
@@ -1692,6 +1746,21 @@ pub mod errors {
     )]
     #[etherror(name = "EmptyDepositAmounts", abi = "EmptyDepositAmounts()")]
     pub struct EmptyDepositAmounts;
+    ///Custom Error type `EmptyDex` with signature `EmptyDex()` and selector `0x25889199`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyDex", abi = "EmptyDex()")]
+    pub struct EmptyDex;
     ///Custom Error type `EmptyHoldingAddress` with signature `EmptyHoldingAddress()` and selector `0xe9b78bd4`
     #[derive(
         Clone,
@@ -1722,7 +1791,7 @@ pub mod errors {
     )]
     #[etherror(name = "EmptyMintAmounts", abi = "EmptyMintAmounts()")]
     pub struct EmptyMintAmounts;
-    ///Custom Error type `EmptyOracle` with signature `EmptyOracle(address)` and selector `0xadb29466`
+    ///Custom Error type `EmptyOracle` with signature `EmptyOracle()` and selector `0xe09a17e2`
     #[derive(
         Clone,
         ::ethers::contract::EthError,
@@ -1735,8 +1804,40 @@ pub mod errors {
         Eq,
         Hash
     )]
-    #[etherror(name = "EmptyOracle", abi = "EmptyOracle(address)")]
-    pub struct EmptyOracle {
+    #[etherror(name = "EmptyOracle", abi = "EmptyOracle()")]
+    pub struct EmptyOracle;
+    ///Custom Error type `EmptyPool` with signature `EmptyPool(address)` and selector `0x00ee0bb5`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyPool", abi = "EmptyPool(address)")]
+    pub struct EmptyPool {
+        pub key: ::ethers::core::types::Address,
+    }
+    ///Custom Error type `EmptyPoolOracle` with signature `EmptyPoolOracle(address)` and selector `0xf499b686`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyPoolOracle", abi = "EmptyPoolOracle(address)")]
+    pub struct EmptyPoolOracle {
         pub underlying_asset: ::ethers::core::types::Address,
     }
     ///Custom Error type `EmptyPosition` with signature `EmptyPosition()` and selector `0x4dfbbff3`
@@ -1866,6 +1967,53 @@ pub mod errors {
     pub struct EmptyTokenTranferGasLimit {
         pub token: ::ethers::core::types::Address,
     }
+    ///Custom Error type `EmptyTreasury` with signature `EmptyTreasury()` and selector `0xcdcb50b4`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyTreasury", abi = "EmptyTreasury()")]
+    pub struct EmptyTreasury;
+    ///Custom Error type `EmptyUnclaimedFee` with signature `EmptyUnclaimedFee(address)` and selector `0xb48f6a0f`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyUnclaimedFee", abi = "EmptyUnclaimedFee(address)")]
+    pub struct EmptyUnclaimedFee {
+        pub poool: ::ethers::core::types::Address,
+    }
+    ///Custom Error type `EmptyUnderlyingAsset` with signature `EmptyUnderlyingAsset()` and selector `0x30aaec23`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyUnderlyingAsset", abi = "EmptyUnderlyingAsset()")]
+    pub struct EmptyUnderlyingAsset;
     ///Custom Error type `EmptyWithdrawAmounts` with signature `EmptyWithdrawAmounts()` and selector `0xfd9e68c4`
     #[derive(
         Clone,
@@ -2283,21 +2431,6 @@ pub mod errors {
         pub supply_capacity: ::ethers::core::types::U256,
         pub max_valid_supply_capacity: ::ethers::core::types::U256,
     }
-    ///Custom Error type `OracleEmpty` with signature `OracleEmpty()` and selector `0xd3637d35`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(name = "OracleEmpty", abi = "OracleEmpty()")]
-    pub struct OracleEmpty;
     ///Custom Error type `PoolAlreadyExists` with signature `PoolAlreadyExists(address,address)` and selector `0x791ffc82`
     #[derive(
         Clone,
@@ -2367,6 +2500,23 @@ pub mod errors {
     pub struct PoolIsNotBorrowing {
         pub pool: ::ethers::core::types::Address,
     }
+    ///Custom Error type `PoolIsNotUsd` with signature `PoolIsNotUsd(address)` and selector `0x72d66964`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "PoolIsNotUsd", abi = "PoolIsNotUsd(address)")]
+    pub struct PoolIsNotUsd {
+        pub pool: ::ethers::core::types::Address,
+    }
     ///Custom Error type `PoolIsPaused` with signature `PoolIsPaused(address)` and selector `0xdca37e03`
     #[derive(
         Clone,
@@ -2383,23 +2533,6 @@ pub mod errors {
     #[etherror(name = "PoolIsPaused", abi = "PoolIsPaused(address)")]
     pub struct PoolIsPaused {
         pub pool: ::ethers::core::types::Address,
-    }
-    ///Custom Error type `PoolNotFound` with signature `PoolNotFound(address)` and selector `0x6a34f98c`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(name = "PoolNotFound", abi = "PoolNotFound(address)")]
-    pub struct PoolNotFound {
-        pub key: ::ethers::core::types::Address,
     }
     ///Custom Error type `PositionNotFound` with signature `PositionNotFound(bytes32)` and selector `0x426cfff0`
     #[derive(
@@ -2596,21 +2729,6 @@ pub mod errors {
         pub msg_sender: ::ethers::core::types::Address,
         pub role: ::std::string::String,
     }
-    ///Custom Error type `UnderlyAssetEmpty` with signature `UnderlyAssetEmpty()` and selector `0x08689653`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(name = "UnderlyAssetEmpty", abi = "UnderlyAssetEmpty()")]
-    pub struct UnderlyAssetEmpty;
     ///Custom Error type `UsdCollateralCanNotCoverDebt` with signature `UsdCollateralCanNotCoverDebt(uint256,uint256,uint256,address)` and selector `0xb2a4b254`
     #[derive(
         Clone,
@@ -2698,19 +2816,22 @@ pub mod errors {
     )]
     pub enum ErrorsErrors {
         BorrowCapacityExceeded(BorrowCapacityExceeded),
-        CollateralBalanceIsZero(CollateralBalanceIsZero),
+        ClosePercentageExceeding(ClosePercentageExceeding),
         CollateralCanNotCoverDebt(CollateralCanNotCoverDebt),
         CompactedArrayOutOfBounds(CompactedArrayOutOfBounds),
         CouldNotSendNativeToken(CouldNotSendNativeToken),
         DebtTokenOperationNotSupported(DebtTokenOperationNotSupported),
-        DexEmpty(DexEmpty),
         EmptyAccount(EmptyAccount),
         EmptyBorrowAmounts(EmptyBorrowAmounts),
         EmptyBurnAmounts(EmptyBurnAmounts),
+        EmptyCollateral(EmptyCollateral),
         EmptyDepositAmounts(EmptyDepositAmounts),
+        EmptyDex(EmptyDex),
         EmptyHoldingAddress(EmptyHoldingAddress),
         EmptyMintAmounts(EmptyMintAmounts),
         EmptyOracle(EmptyOracle),
+        EmptyPool(EmptyPool),
+        EmptyPoolOracle(EmptyPoolOracle),
         EmptyPosition(EmptyPosition),
         EmptyPositions(EmptyPositions),
         EmptyReceiver(EmptyReceiver),
@@ -2719,6 +2840,9 @@ pub mod errors {
         EmptySupplyAmounts(EmptySupplyAmounts),
         EmptySwapAmount(EmptySwapAmount),
         EmptyTokenTranferGasLimit(EmptyTokenTranferGasLimit),
+        EmptyTreasury(EmptyTreasury),
+        EmptyUnclaimedFee(EmptyUnclaimedFee),
+        EmptyUnderlyingAsset(EmptyUnderlyingAsset),
         EmptyWithdrawAmounts(EmptyWithdrawAmounts),
         ErrorStep(ErrorStep),
         HealthFactorHigherThanLiquidationThreshold(
@@ -2746,13 +2870,12 @@ pub mod errors {
         InvalidOraclePrice(InvalidOraclePrice),
         InvalidPoolIndex(InvalidPoolIndex),
         InvalidSupplyCapacity(InvalidSupplyCapacity),
-        OracleEmpty(OracleEmpty),
         PoolAlreadyExists(PoolAlreadyExists),
         PoolIsFrozen(PoolIsFrozen),
         PoolIsInactive(PoolIsInactive),
         PoolIsNotBorrowing(PoolIsNotBorrowing),
+        PoolIsNotUsd(PoolIsNotUsd),
         PoolIsPaused(PoolIsPaused),
-        PoolNotFound(PoolNotFound),
         PositionNotFound(PositionNotFound),
         SelfTransferNotSupported(SelfTransferNotSupported),
         SupplyCapacityExceeded(SupplyCapacityExceeded),
@@ -2763,7 +2886,6 @@ pub mod errors {
         TokenNotMatch(TokenNotMatch),
         TokenTransferError(TokenTransferError),
         Unauthorized(Unauthorized),
-        UnderlyAssetEmpty(UnderlyAssetEmpty),
         UsdCollateralCanNotCoverDebt(UsdCollateralCanNotCoverDebt),
         UsdNotHaveLongOperation(UsdNotHaveLongOperation),
         UsdNotHaveShortOperation(UsdNotHaveShortOperation),
@@ -2787,10 +2909,10 @@ pub mod errors {
             ) {
                 return Ok(Self::BorrowCapacityExceeded(decoded));
             }
-            if let Ok(decoded) = <CollateralBalanceIsZero as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) = <ClosePercentageExceeding as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
-                return Ok(Self::CollateralBalanceIsZero(decoded));
+                return Ok(Self::ClosePercentageExceeding(decoded));
             }
             if let Ok(decoded) = <CollateralCanNotCoverDebt as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -2812,11 +2934,6 @@ pub mod errors {
             ) {
                 return Ok(Self::DebtTokenOperationNotSupported(decoded));
             }
-            if let Ok(decoded) = <DexEmpty as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::DexEmpty(decoded));
-            }
             if let Ok(decoded) = <EmptyAccount as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
@@ -2832,10 +2949,20 @@ pub mod errors {
             ) {
                 return Ok(Self::EmptyBurnAmounts(decoded));
             }
+            if let Ok(decoded) = <EmptyCollateral as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyCollateral(decoded));
+            }
             if let Ok(decoded) = <EmptyDepositAmounts as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
                 return Ok(Self::EmptyDepositAmounts(decoded));
+            }
+            if let Ok(decoded) = <EmptyDex as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyDex(decoded));
             }
             if let Ok(decoded) = <EmptyHoldingAddress as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -2851,6 +2978,16 @@ pub mod errors {
                 data,
             ) {
                 return Ok(Self::EmptyOracle(decoded));
+            }
+            if let Ok(decoded) = <EmptyPool as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyPool(decoded));
+            }
+            if let Ok(decoded) = <EmptyPoolOracle as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyPoolOracle(decoded));
             }
             if let Ok(decoded) = <EmptyPosition as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -2891,6 +3028,21 @@ pub mod errors {
                 data,
             ) {
                 return Ok(Self::EmptyTokenTranferGasLimit(decoded));
+            }
+            if let Ok(decoded) = <EmptyTreasury as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyTreasury(decoded));
+            }
+            if let Ok(decoded) = <EmptyUnclaimedFee as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyUnclaimedFee(decoded));
+            }
+            if let Ok(decoded) = <EmptyUnderlyingAsset as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyUnderlyingAsset(decoded));
             }
             if let Ok(decoded) = <EmptyWithdrawAmounts as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -2997,11 +3149,6 @@ pub mod errors {
             ) {
                 return Ok(Self::InvalidSupplyCapacity(decoded));
             }
-            if let Ok(decoded) = <OracleEmpty as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::OracleEmpty(decoded));
-            }
             if let Ok(decoded) = <PoolAlreadyExists as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
@@ -3022,15 +3169,15 @@ pub mod errors {
             ) {
                 return Ok(Self::PoolIsNotBorrowing(decoded));
             }
+            if let Ok(decoded) = <PoolIsNotUsd as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::PoolIsNotUsd(decoded));
+            }
             if let Ok(decoded) = <PoolIsPaused as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
                 return Ok(Self::PoolIsPaused(decoded));
-            }
-            if let Ok(decoded) = <PoolNotFound as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::PoolNotFound(decoded));
             }
             if let Ok(decoded) = <PositionNotFound as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -3082,11 +3229,6 @@ pub mod errors {
             ) {
                 return Ok(Self::Unauthorized(decoded));
             }
-            if let Ok(decoded) = <UnderlyAssetEmpty as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::UnderlyAssetEmpty(decoded));
-            }
             if let Ok(decoded) = <UsdCollateralCanNotCoverDebt as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
@@ -3116,7 +3258,7 @@ pub mod errors {
                 Self::BorrowCapacityExceeded(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::CollateralBalanceIsZero(element) => {
+                Self::ClosePercentageExceeding(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::CollateralCanNotCoverDebt(element) => {
@@ -3131,9 +3273,6 @@ pub mod errors {
                 Self::DebtTokenOperationNotSupported(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::DexEmpty(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::EmptyAccount(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -3143,7 +3282,13 @@ pub mod errors {
                 Self::EmptyBurnAmounts(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+                Self::EmptyCollateral(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::EmptyDepositAmounts(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::EmptyDex(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::EmptyHoldingAddress(element) => {
@@ -3153,6 +3298,12 @@ pub mod errors {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::EmptyOracle(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::EmptyPool(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::EmptyPoolOracle(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::EmptyPosition(element) => {
@@ -3177,6 +3328,15 @@ pub mod errors {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::EmptyTokenTranferGasLimit(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::EmptyTreasury(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::EmptyUnclaimedFee(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::EmptyUnderlyingAsset(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::EmptyWithdrawAmounts(element) => {
@@ -3242,9 +3402,6 @@ pub mod errors {
                 Self::InvalidSupplyCapacity(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::OracleEmpty(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::PoolAlreadyExists(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -3257,10 +3414,10 @@ pub mod errors {
                 Self::PoolIsNotBorrowing(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::PoolIsPaused(element) => {
+                Self::PoolIsNotUsd(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::PoolNotFound(element) => {
+                Self::PoolIsPaused(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::PositionNotFound(element) => {
@@ -3293,9 +3450,6 @@ pub mod errors {
                 Self::Unauthorized(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::UnderlyAssetEmpty(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::UsdCollateralCanNotCoverDebt(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -3321,7 +3475,7 @@ pub mod errors {
                     true
                 }
                 _ if selector
-                    == <CollateralBalanceIsZero as ::ethers::contract::EthError>::selector() => {
+                    == <ClosePercentageExceeding as ::ethers::contract::EthError>::selector() => {
                     true
                 }
                 _ if selector
@@ -3341,8 +3495,6 @@ pub mod errors {
                     true
                 }
                 _ if selector
-                    == <DexEmpty as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
                     == <EmptyAccount as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
                     == <EmptyBorrowAmounts as ::ethers::contract::EthError>::selector() => {
@@ -3353,9 +3505,15 @@ pub mod errors {
                     true
                 }
                 _ if selector
+                    == <EmptyCollateral as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
                     == <EmptyDepositAmounts as ::ethers::contract::EthError>::selector() => {
                     true
                 }
+                _ if selector
+                    == <EmptyDex as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
                     == <EmptyHoldingAddress as ::ethers::contract::EthError>::selector() => {
                     true
@@ -3366,6 +3524,12 @@ pub mod errors {
                 }
                 _ if selector
                     == <EmptyOracle as ::ethers::contract::EthError>::selector() => true,
+                _ if selector
+                    == <EmptyPool as ::ethers::contract::EthError>::selector() => true,
+                _ if selector
+                    == <EmptyPoolOracle as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
                 _ if selector
                     == <EmptyPosition as ::ethers::contract::EthError>::selector() => {
                     true
@@ -3396,6 +3560,18 @@ pub mod errors {
                 }
                 _ if selector
                     == <EmptyTokenTranferGasLimit as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <EmptyTreasury as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <EmptyUnclaimedFee as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <EmptyUnderlyingAsset as ::ethers::contract::EthError>::selector() => {
                     true
                 }
                 _ if selector
@@ -3481,8 +3657,6 @@ pub mod errors {
                     true
                 }
                 _ if selector
-                    == <OracleEmpty as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
                     == <PoolAlreadyExists as ::ethers::contract::EthError>::selector() => {
                     true
                 }
@@ -3497,9 +3671,9 @@ pub mod errors {
                     true
                 }
                 _ if selector
-                    == <PoolIsPaused as ::ethers::contract::EthError>::selector() => true,
+                    == <PoolIsNotUsd as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
-                    == <PoolNotFound as ::ethers::contract::EthError>::selector() => true,
+                    == <PoolIsPaused as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
                     == <PositionNotFound as ::ethers::contract::EthError>::selector() => {
                     true
@@ -3539,10 +3713,6 @@ pub mod errors {
                 _ if selector
                     == <Unauthorized as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
-                    == <UnderlyAssetEmpty as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
                     == <UsdCollateralCanNotCoverDebt as ::ethers::contract::EthError>::selector() => {
                     true
                 }
@@ -3568,7 +3738,7 @@ pub mod errors {
                 Self::BorrowCapacityExceeded(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::CollateralBalanceIsZero(element) => {
+                Self::ClosePercentageExceeding(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::CollateralCanNotCoverDebt(element) => {
@@ -3583,20 +3753,23 @@ pub mod errors {
                 Self::DebtTokenOperationNotSupported(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::DexEmpty(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyAccount(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyBorrowAmounts(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::EmptyBurnAmounts(element) => ::core::fmt::Display::fmt(element, f),
+                Self::EmptyCollateral(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyDepositAmounts(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
+                Self::EmptyDex(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyHoldingAddress(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::EmptyMintAmounts(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyOracle(element) => ::core::fmt::Display::fmt(element, f),
+                Self::EmptyPool(element) => ::core::fmt::Display::fmt(element, f),
+                Self::EmptyPoolOracle(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyPosition(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyPositions(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyReceiver(element) => ::core::fmt::Display::fmt(element, f),
@@ -3607,6 +3780,11 @@ pub mod errors {
                 }
                 Self::EmptySwapAmount(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyTokenTranferGasLimit(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::EmptyTreasury(element) => ::core::fmt::Display::fmt(element, f),
+                Self::EmptyUnclaimedFee(element) => ::core::fmt::Display::fmt(element, f),
+                Self::EmptyUnderlyingAsset(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::EmptyWithdrawAmounts(element) => {
@@ -3664,15 +3842,14 @@ pub mod errors {
                 Self::InvalidSupplyCapacity(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::OracleEmpty(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PoolAlreadyExists(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PoolIsFrozen(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PoolIsInactive(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PoolIsNotBorrowing(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
+                Self::PoolIsNotUsd(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PoolIsPaused(element) => ::core::fmt::Display::fmt(element, f),
-                Self::PoolNotFound(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PositionNotFound(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SelfTransferNotSupported(element) => {
                     ::core::fmt::Display::fmt(element, f)
@@ -3695,7 +3872,6 @@ pub mod errors {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::Unauthorized(element) => ::core::fmt::Display::fmt(element, f),
-                Self::UnderlyAssetEmpty(element) => ::core::fmt::Display::fmt(element, f),
                 Self::UsdCollateralCanNotCoverDebt(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -3722,9 +3898,9 @@ pub mod errors {
             Self::BorrowCapacityExceeded(value)
         }
     }
-    impl ::core::convert::From<CollateralBalanceIsZero> for ErrorsErrors {
-        fn from(value: CollateralBalanceIsZero) -> Self {
-            Self::CollateralBalanceIsZero(value)
+    impl ::core::convert::From<ClosePercentageExceeding> for ErrorsErrors {
+        fn from(value: ClosePercentageExceeding) -> Self {
+            Self::ClosePercentageExceeding(value)
         }
     }
     impl ::core::convert::From<CollateralCanNotCoverDebt> for ErrorsErrors {
@@ -3747,11 +3923,6 @@ pub mod errors {
             Self::DebtTokenOperationNotSupported(value)
         }
     }
-    impl ::core::convert::From<DexEmpty> for ErrorsErrors {
-        fn from(value: DexEmpty) -> Self {
-            Self::DexEmpty(value)
-        }
-    }
     impl ::core::convert::From<EmptyAccount> for ErrorsErrors {
         fn from(value: EmptyAccount) -> Self {
             Self::EmptyAccount(value)
@@ -3767,9 +3938,19 @@ pub mod errors {
             Self::EmptyBurnAmounts(value)
         }
     }
+    impl ::core::convert::From<EmptyCollateral> for ErrorsErrors {
+        fn from(value: EmptyCollateral) -> Self {
+            Self::EmptyCollateral(value)
+        }
+    }
     impl ::core::convert::From<EmptyDepositAmounts> for ErrorsErrors {
         fn from(value: EmptyDepositAmounts) -> Self {
             Self::EmptyDepositAmounts(value)
+        }
+    }
+    impl ::core::convert::From<EmptyDex> for ErrorsErrors {
+        fn from(value: EmptyDex) -> Self {
+            Self::EmptyDex(value)
         }
     }
     impl ::core::convert::From<EmptyHoldingAddress> for ErrorsErrors {
@@ -3785,6 +3966,16 @@ pub mod errors {
     impl ::core::convert::From<EmptyOracle> for ErrorsErrors {
         fn from(value: EmptyOracle) -> Self {
             Self::EmptyOracle(value)
+        }
+    }
+    impl ::core::convert::From<EmptyPool> for ErrorsErrors {
+        fn from(value: EmptyPool) -> Self {
+            Self::EmptyPool(value)
+        }
+    }
+    impl ::core::convert::From<EmptyPoolOracle> for ErrorsErrors {
+        fn from(value: EmptyPoolOracle) -> Self {
+            Self::EmptyPoolOracle(value)
         }
     }
     impl ::core::convert::From<EmptyPosition> for ErrorsErrors {
@@ -3825,6 +4016,21 @@ pub mod errors {
     impl ::core::convert::From<EmptyTokenTranferGasLimit> for ErrorsErrors {
         fn from(value: EmptyTokenTranferGasLimit) -> Self {
             Self::EmptyTokenTranferGasLimit(value)
+        }
+    }
+    impl ::core::convert::From<EmptyTreasury> for ErrorsErrors {
+        fn from(value: EmptyTreasury) -> Self {
+            Self::EmptyTreasury(value)
+        }
+    }
+    impl ::core::convert::From<EmptyUnclaimedFee> for ErrorsErrors {
+        fn from(value: EmptyUnclaimedFee) -> Self {
+            Self::EmptyUnclaimedFee(value)
+        }
+    }
+    impl ::core::convert::From<EmptyUnderlyingAsset> for ErrorsErrors {
+        fn from(value: EmptyUnderlyingAsset) -> Self {
+            Self::EmptyUnderlyingAsset(value)
         }
     }
     impl ::core::convert::From<EmptyWithdrawAmounts> for ErrorsErrors {
@@ -3935,11 +4141,6 @@ pub mod errors {
             Self::InvalidSupplyCapacity(value)
         }
     }
-    impl ::core::convert::From<OracleEmpty> for ErrorsErrors {
-        fn from(value: OracleEmpty) -> Self {
-            Self::OracleEmpty(value)
-        }
-    }
     impl ::core::convert::From<PoolAlreadyExists> for ErrorsErrors {
         fn from(value: PoolAlreadyExists) -> Self {
             Self::PoolAlreadyExists(value)
@@ -3960,14 +4161,14 @@ pub mod errors {
             Self::PoolIsNotBorrowing(value)
         }
     }
+    impl ::core::convert::From<PoolIsNotUsd> for ErrorsErrors {
+        fn from(value: PoolIsNotUsd) -> Self {
+            Self::PoolIsNotUsd(value)
+        }
+    }
     impl ::core::convert::From<PoolIsPaused> for ErrorsErrors {
         fn from(value: PoolIsPaused) -> Self {
             Self::PoolIsPaused(value)
-        }
-    }
-    impl ::core::convert::From<PoolNotFound> for ErrorsErrors {
-        fn from(value: PoolNotFound) -> Self {
-            Self::PoolNotFound(value)
         }
     }
     impl ::core::convert::From<PositionNotFound> for ErrorsErrors {
@@ -4018,11 +4219,6 @@ pub mod errors {
     impl ::core::convert::From<Unauthorized> for ErrorsErrors {
         fn from(value: Unauthorized) -> Self {
             Self::Unauthorized(value)
-        }
-    }
-    impl ::core::convert::From<UnderlyAssetEmpty> for ErrorsErrors {
-        fn from(value: UnderlyAssetEmpty) -> Self {
-            Self::UnderlyAssetEmpty(value)
         }
     }
     impl ::core::convert::From<UsdCollateralCanNotCoverDebt> for ErrorsErrors {

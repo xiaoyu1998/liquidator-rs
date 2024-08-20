@@ -48,22 +48,37 @@ pub mod borrow_utils {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("CollateralBalanceIsZero"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "CollateralBalanceIsZero",
-                            ),
-                            inputs: ::std::vec![],
-                        },
-                    ],
-                ),
-                (
                     ::std::borrow::ToOwned::to_owned("EmptyBorrowAmounts"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
                             name: ::std::borrow::ToOwned::to_owned("EmptyBorrowAmounts"),
                             inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("EmptyCollateral"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyCollateral"),
+                            inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("key"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
                         },
                     ],
                 ),
@@ -201,23 +216,6 @@ pub mod borrow_utils {
                         },
                     ],
                 ),
-                (
-                    ::std::borrow::ToOwned::to_owned("PoolNotFound"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("PoolNotFound"),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("key"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("address"),
-                                    ),
-                                },
-                            ],
-                        },
-                    ],
-                ),
             ]),
             receive: false,
             fallback: false,
@@ -294,21 +292,6 @@ pub mod borrow_utils {
         pub total_debt: ::ethers::core::types::U256,
         pub borrow_capacity: ::ethers::core::types::U256,
     }
-    ///Custom Error type `CollateralBalanceIsZero` with signature `CollateralBalanceIsZero()` and selector `0xe43ec917`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(name = "CollateralBalanceIsZero", abi = "CollateralBalanceIsZero()")]
-    pub struct CollateralBalanceIsZero;
     ///Custom Error type `EmptyBorrowAmounts` with signature `EmptyBorrowAmounts()` and selector `0x79646aaf`
     #[derive(
         Clone,
@@ -324,6 +307,38 @@ pub mod borrow_utils {
     )]
     #[etherror(name = "EmptyBorrowAmounts", abi = "EmptyBorrowAmounts()")]
     pub struct EmptyBorrowAmounts;
+    ///Custom Error type `EmptyCollateral` with signature `EmptyCollateral()` and selector `0x6c53056d`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyCollateral", abi = "EmptyCollateral()")]
+    pub struct EmptyCollateral;
+    ///Custom Error type `EmptyPool` with signature `EmptyPool(address)` and selector `0x00ee0bb5`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyPool", abi = "EmptyPool(address)")]
+    pub struct EmptyPool {
+        pub key: ::ethers::core::types::Address,
+    }
     ///Custom Error type `HealthFactorLowerThanLiquidationThreshold` with signature `HealthFactorLowerThanLiquidationThreshold(uint256,uint256)` and selector `0x9c240105`
     #[derive(
         Clone,
@@ -434,23 +449,6 @@ pub mod borrow_utils {
     pub struct PoolIsPaused {
         pub pool: ::ethers::core::types::Address,
     }
-    ///Custom Error type `PoolNotFound` with signature `PoolNotFound(address)` and selector `0x6a34f98c`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(name = "PoolNotFound", abi = "PoolNotFound(address)")]
-    pub struct PoolNotFound {
-        pub key: ::ethers::core::types::Address,
-    }
     ///Container type for all of the contract's custom errors
     #[derive(
         Clone,
@@ -464,8 +462,9 @@ pub mod borrow_utils {
     )]
     pub enum BorrowUtilsErrors {
         BorrowCapacityExceeded(BorrowCapacityExceeded),
-        CollateralBalanceIsZero(CollateralBalanceIsZero),
         EmptyBorrowAmounts(EmptyBorrowAmounts),
+        EmptyCollateral(EmptyCollateral),
+        EmptyPool(EmptyPool),
         HealthFactorLowerThanLiquidationThreshold(
             HealthFactorLowerThanLiquidationThreshold,
         ),
@@ -474,7 +473,6 @@ pub mod borrow_utils {
         PoolIsInactive(PoolIsInactive),
         PoolIsNotBorrowing(PoolIsNotBorrowing),
         PoolIsPaused(PoolIsPaused),
-        PoolNotFound(PoolNotFound),
         /// The standard solidity revert string, with selector
         /// Error(string) -- 0x08c379a0
         RevertString(::std::string::String),
@@ -494,15 +492,20 @@ pub mod borrow_utils {
             ) {
                 return Ok(Self::BorrowCapacityExceeded(decoded));
             }
-            if let Ok(decoded) = <CollateralBalanceIsZero as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::CollateralBalanceIsZero(decoded));
-            }
             if let Ok(decoded) = <EmptyBorrowAmounts as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
                 return Ok(Self::EmptyBorrowAmounts(decoded));
+            }
+            if let Ok(decoded) = <EmptyCollateral as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyCollateral(decoded));
+            }
+            if let Ok(decoded) = <EmptyPool as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyPool(decoded));
             }
             if let Ok(decoded) = <HealthFactorLowerThanLiquidationThreshold as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -534,11 +537,6 @@ pub mod borrow_utils {
             ) {
                 return Ok(Self::PoolIsPaused(decoded));
             }
-            if let Ok(decoded) = <PoolNotFound as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::PoolNotFound(decoded));
-            }
             Err(::ethers::core::abi::Error::InvalidData.into())
         }
     }
@@ -548,10 +546,13 @@ pub mod borrow_utils {
                 Self::BorrowCapacityExceeded(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::CollateralBalanceIsZero(element) => {
+                Self::EmptyBorrowAmounts(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::EmptyBorrowAmounts(element) => {
+                Self::EmptyCollateral(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::EmptyPool(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::HealthFactorLowerThanLiquidationThreshold(element) => {
@@ -572,9 +573,6 @@ pub mod borrow_utils {
                 Self::PoolIsPaused(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::PoolNotFound(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
             }
         }
@@ -588,13 +586,15 @@ pub mod borrow_utils {
                     true
                 }
                 _ if selector
-                    == <CollateralBalanceIsZero as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
                     == <EmptyBorrowAmounts as ::ethers::contract::EthError>::selector() => {
                     true
                 }
+                _ if selector
+                    == <EmptyCollateral as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <EmptyPool as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
                     == <HealthFactorLowerThanLiquidationThreshold as ::ethers::contract::EthError>::selector() => {
                     true
@@ -615,8 +615,6 @@ pub mod borrow_utils {
                 }
                 _ if selector
                     == <PoolIsPaused as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <PoolNotFound as ::ethers::contract::EthError>::selector() => true,
                 _ => false,
             }
         }
@@ -627,12 +625,11 @@ pub mod borrow_utils {
                 Self::BorrowCapacityExceeded(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::CollateralBalanceIsZero(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
                 Self::EmptyBorrowAmounts(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
+                Self::EmptyCollateral(element) => ::core::fmt::Display::fmt(element, f),
+                Self::EmptyPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::HealthFactorLowerThanLiquidationThreshold(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -645,7 +642,6 @@ pub mod borrow_utils {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::PoolIsPaused(element) => ::core::fmt::Display::fmt(element, f),
-                Self::PoolNotFound(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RevertString(s) => ::core::fmt::Display::fmt(s, f),
             }
         }
@@ -660,14 +656,19 @@ pub mod borrow_utils {
             Self::BorrowCapacityExceeded(value)
         }
     }
-    impl ::core::convert::From<CollateralBalanceIsZero> for BorrowUtilsErrors {
-        fn from(value: CollateralBalanceIsZero) -> Self {
-            Self::CollateralBalanceIsZero(value)
-        }
-    }
     impl ::core::convert::From<EmptyBorrowAmounts> for BorrowUtilsErrors {
         fn from(value: EmptyBorrowAmounts) -> Self {
             Self::EmptyBorrowAmounts(value)
+        }
+    }
+    impl ::core::convert::From<EmptyCollateral> for BorrowUtilsErrors {
+        fn from(value: EmptyCollateral) -> Self {
+            Self::EmptyCollateral(value)
+        }
+    }
+    impl ::core::convert::From<EmptyPool> for BorrowUtilsErrors {
+        fn from(value: EmptyPool) -> Self {
+            Self::EmptyPool(value)
         }
     }
     impl ::core::convert::From<HealthFactorLowerThanLiquidationThreshold>
@@ -699,11 +700,6 @@ pub mod borrow_utils {
     impl ::core::convert::From<PoolIsPaused> for BorrowUtilsErrors {
         fn from(value: PoolIsPaused) -> Self {
             Self::PoolIsPaused(value)
-        }
-    }
-    impl ::core::convert::From<PoolNotFound> for BorrowUtilsErrors {
-        fn from(value: PoolNotFound) -> Self {
-            Self::PoolNotFound(value)
         }
     }
 }

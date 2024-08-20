@@ -65,7 +65,7 @@ pub const LOG_BLOCK_RANGE: u64 = 1024;
 pub const MULTICALL_CHUNK_SIZE: usize = 100;
 pub const RETRY_DURATION_IN_SECS: i64 = 60;
 
-fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
+fn get_deployment_config(deployment: Deployment, last_block_number: u64) -> DeploymentConfig {
 
     let file = File::open(DEPLOYED_ADDRESSES).unwrap();
     let up_contracts: HashMap<String, Address> = serde_json::from_reader(file).unwrap();
@@ -81,7 +81,7 @@ fn get_deployment_config(deployment: Deployment) -> DeploymentConfig {
             liquidation_handler: *up_contracts.get("LiquidationHandler#LiquidationHandler").unwrap(),
             eth: underly_assets.get("ETH").unwrap().address,
             usd: underly_assets.get("USDT").unwrap().address,
-            creation_block: 1,
+            last_block_number: last_block_number,
         }
     }
 }
@@ -153,16 +153,17 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         config: Config,
         deployment: Deployment,
         liquidator_address: String,
+        last_block_number: u64,
     ) -> Self {
         Self {
             client,
             bid_percentage: config.bid_percentage,
-            last_block_number: 0,
+            last_block_number: last_block_number,
             borrowers: HashMap::new(),
             pools: HashMap::new(),
             sents: HashMap::new(),
             chain_id: config.chain_id,
-            config: get_deployment_config(deployment),
+            config: get_deployment_config(deployment, last_block_number),
             liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
             liquidation_threshold: U256::zero()
         }
@@ -293,7 +294,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             }
             Err(_) => {
                 info!("no state cache file found, creating new one");
-                self.last_block_number = self.config.creation_block;
+                self.last_block_number = self.config.last_block_number;
             }
         };
 
@@ -702,41 +703,6 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
         Ok(res)
     }
-
-    // async fn approve_tokens(&mut self) -> Result<()> {
-    //     info!("account {:?}", self.client.default_sender().ok_or(anyhow!("No connected sender"))?);
-
-    //     let mut nonce = self
-    //         .client
-    //         .get_transaction_count(
-    //             self.client
-    //                 .default_sender()
-    //                 .ok_or(anyhow!("No connected sender"))?,
-    //             None,
-    //         )
-    //         .await?;
-    //     for (_, pool) in self.pools.clone() {
-    //         let underlying_asset = IERC20::new(pool.underlying_asset.clone(), self.client.clone());
-    //         let allowance = underlying_asset
-    //             .allowance(self.liquidator, self.config.liquidation_handler)
-    //             .call()
-    //             .await?;
-    //         if allowance == U256::zero() {
-    //             underlying_asset
-    //                 .approve(self.config.liquidation_handler, U256::max_value())
-    //                 .nonce(nonce)
-    //                 .send()
-    //                 .await
-    //                 .map_err(|e| {
-    //                     error!("approve failed: {:?}", e);
-    //                     e
-    //                 })?;
-    //             nonce = nonce + 1;
-    //         }
-    //     }
-
-    //     Ok(())
-    // }
 
     async fn update_pools(&mut self) -> Result<()> {
         //info!("self.config.reader {:?}", self.config.reader);

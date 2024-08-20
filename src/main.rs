@@ -23,8 +23,8 @@ pub mod collectors;
 pub mod executors;
 pub mod strategies;
 
-static POLL_INTERVAL_SECS: u64 = 1 * 2;
-pub const CHAIN_ID: u64 = 1998;
+static POLL_INTERVAL_SECS: u64 = 1 * 10;
+//pub const CHAIN_ID: u64 = 31337;
 
 /// CLI Options.
 #[derive(Parser, Debug)]
@@ -46,6 +46,12 @@ pub struct Args {
 
     #[arg(long)]
     pub liquidator_address: String,
+
+    #[arg(long)]
+    pub chain_id: u64,
+
+    #[arg(long)]
+    pub last_block_number: u64,
 }
 
 #[tokio::main]
@@ -63,6 +69,9 @@ async fn main() -> Result<()> {
     let args = Args::parse();
     println!("{:?}", args);
 
+    let chain_id: u64 = args.chain_id;
+    info!("chain_id {:?}", chain_id);
+
     // Set up ethers provider.
     let rpc = Http::from_str(&args.rpc)?;
     let provider = Provider::new(rpc);
@@ -71,7 +80,7 @@ async fn main() -> Result<()> {
         .private_key
         .parse::<LocalWallet>()
         .unwrap()
-        .with_chain_id(CHAIN_ID);
+        .with_chain_id(chain_id);
     let address = wallet.address();
     info!("address {:?}", address);
 
@@ -87,7 +96,7 @@ async fn main() -> Result<()> {
 
     let config = Config {
         bid_percentage: args.bid_percentage,
-        chain_id: CHAIN_ID,
+        chain_id: chain_id,
     };
 
     let strategy = UpStrategy::new(
@@ -95,6 +104,7 @@ async fn main() -> Result<()> {
         config,
         args.deployment,
         args.liquidator_address,
+        args.last_block_number,
     );
     engine.add_strategy(Box::new(strategy));
 

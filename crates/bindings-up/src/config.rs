@@ -538,6 +538,26 @@ pub mod config {
                         },
                     ],
                 ),
+                (
+                    ::std::borrow::ToOwned::to_owned("setTreasury"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("setTreasury"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("treasury"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
+                ),
             ]),
             events: ::std::collections::BTreeMap::new(),
             errors: ::core::convert::From::from([
@@ -915,6 +935,15 @@ pub mod config {
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash([139, 159, 68, 133], (underlying_asset, usd))
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `setTreasury` (0xf0f44260) function
+        pub fn set_treasury(
+            &self,
+            treasury: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash([240, 244, 66, 96], treasury)
                 .expect("method not found (this should never happen)")
         }
     }
@@ -1507,6 +1536,23 @@ pub mod config {
         pub underlying_asset: ::ethers::core::types::Address,
         pub usd: bool,
     }
+    ///Container type for all input parameters for the `setTreasury` function with signature `setTreasury(address)` and selector `0xf0f44260`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "setTreasury", abi = "setTreasury(address)")]
+    pub struct SetTreasuryCall {
+        pub treasury: ::ethers::core::types::Address,
+    }
     ///Container type for all of the contract's call
     #[derive(
         Clone,
@@ -1539,6 +1585,7 @@ pub mod config {
         SetPoolPaused(SetPoolPausedCall),
         SetPoolSupplyCapacity(SetPoolSupplyCapacityCall),
         SetPoolUsd(SetPoolUsdCall),
+        SetTreasury(SetTreasuryCall),
     }
     impl ::ethers::core::abi::AbiDecode for ConfigCalls {
         fn decode(
@@ -1635,6 +1682,11 @@ pub mod config {
             ) {
                 return Ok(Self::SetPoolUsd(decoded));
             }
+            if let Ok(decoded) = <SetTreasuryCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::SetTreasury(decoded));
+            }
             Err(::ethers::core::abi::Error::InvalidData.into())
         }
     }
@@ -1693,6 +1745,9 @@ pub mod config {
                 Self::SetPoolUsd(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+                Self::SetTreasury(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
@@ -1729,6 +1784,7 @@ pub mod config {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::SetPoolUsd(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SetTreasury(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
@@ -1821,6 +1877,11 @@ pub mod config {
     impl ::core::convert::From<SetPoolUsdCall> for ConfigCalls {
         fn from(value: SetPoolUsdCall) -> Self {
             Self::SetPoolUsd(value)
+        }
+    }
+    impl ::core::convert::From<SetTreasuryCall> for ConfigCalls {
+        fn from(value: SetTreasuryCall) -> Self {
+            Self::SetTreasury(value)
         }
     }
     ///Container type for all return fields from the `dataStore` function with signature `dataStore()` and selector `0x660d0d67`

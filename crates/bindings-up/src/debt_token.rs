@@ -877,10 +877,10 @@ pub mod debt_token {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("PoolNotFound"),
+                    ::std::borrow::ToOwned::to_owned("EmptyPool"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("PoolNotFound"),
+                            name: ::std::borrow::ToOwned::to_owned("EmptyPool"),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("key"),
@@ -1268,7 +1268,7 @@ pub mod debt_token {
     )]
     #[etherror(name = "EmptyMintAmounts", abi = "EmptyMintAmounts()")]
     pub struct EmptyMintAmounts;
-    ///Custom Error type `PoolNotFound` with signature `PoolNotFound(address)` and selector `0x6a34f98c`
+    ///Custom Error type `EmptyPool` with signature `EmptyPool(address)` and selector `0x00ee0bb5`
     #[derive(
         Clone,
         ::ethers::contract::EthError,
@@ -1281,8 +1281,8 @@ pub mod debt_token {
         Eq,
         Hash
     )]
-    #[etherror(name = "PoolNotFound", abi = "PoolNotFound(address)")]
-    pub struct PoolNotFound {
+    #[etherror(name = "EmptyPool", abi = "EmptyPool(address)")]
+    pub struct EmptyPool {
         pub key: ::ethers::core::types::Address,
     }
     ///Custom Error type `Unauthorized` with signature `Unauthorized(address,string)` and selector `0xa35b150b`
@@ -1318,7 +1318,7 @@ pub mod debt_token {
         DebtTokenOperationNotSupported(DebtTokenOperationNotSupported),
         EmptyBurnAmounts(EmptyBurnAmounts),
         EmptyMintAmounts(EmptyMintAmounts),
-        PoolNotFound(PoolNotFound),
+        EmptyPool(EmptyPool),
         Unauthorized(Unauthorized),
         /// The standard solidity revert string, with selector
         /// Error(string) -- 0x08c379a0
@@ -1349,10 +1349,10 @@ pub mod debt_token {
             ) {
                 return Ok(Self::EmptyMintAmounts(decoded));
             }
-            if let Ok(decoded) = <PoolNotFound as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) = <EmptyPool as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
-                return Ok(Self::PoolNotFound(decoded));
+                return Ok(Self::EmptyPool(decoded));
             }
             if let Ok(decoded) = <Unauthorized as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -1374,7 +1374,7 @@ pub mod debt_token {
                 Self::EmptyMintAmounts(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::PoolNotFound(element) => {
+                Self::EmptyPool(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Unauthorized(element) => {
@@ -1401,7 +1401,7 @@ pub mod debt_token {
                     true
                 }
                 _ if selector
-                    == <PoolNotFound as ::ethers::contract::EthError>::selector() => true,
+                    == <EmptyPool as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
                     == <Unauthorized as ::ethers::contract::EthError>::selector() => true,
                 _ => false,
@@ -1416,7 +1416,7 @@ pub mod debt_token {
                 }
                 Self::EmptyBurnAmounts(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyMintAmounts(element) => ::core::fmt::Display::fmt(element, f),
-                Self::PoolNotFound(element) => ::core::fmt::Display::fmt(element, f),
+                Self::EmptyPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Unauthorized(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RevertString(s) => ::core::fmt::Display::fmt(s, f),
             }
@@ -1442,9 +1442,9 @@ pub mod debt_token {
             Self::EmptyMintAmounts(value)
         }
     }
-    impl ::core::convert::From<PoolNotFound> for DebtTokenErrors {
-        fn from(value: PoolNotFound) -> Self {
-            Self::PoolNotFound(value)
+    impl ::core::convert::From<EmptyPool> for DebtTokenErrors {
+        fn from(value: EmptyPool) -> Self {
+            Self::EmptyPool(value)
         }
     }
     impl ::core::convert::From<Unauthorized> for DebtTokenErrors {

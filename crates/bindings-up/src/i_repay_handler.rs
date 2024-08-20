@@ -50,6 +50,43 @@ pub mod i_repay_handler {
                         },
                     ],
                 ),
+                (
+                    ::std::borrow::ToOwned::to_owned("executeRepaySubstitute"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "executeRepaySubstitute",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("account"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("params"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
+                                        ::std::vec![
+                                            ::ethers::core::abi::ethabi::ParamType::Address,
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Address,
+                                        ],
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned(
+                                            "struct RepaySubstituteUtils.RepaySubstituteParams",
+                                        ),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
+                ),
             ]),
             events: ::std::collections::BTreeMap::new(),
             errors: ::std::collections::BTreeMap::new(),
@@ -110,6 +147,16 @@ pub mod i_repay_handler {
                 .method_hash([235, 104, 60, 77], (account, params))
                 .expect("method not found (this should never happen)")
         }
+        ///Calls the contract's `executeRepaySubstitute` (0x15c59a01) function
+        pub fn execute_repay_substitute(
+            &self,
+            account: ::ethers::core::types::Address,
+            params: RepaySubstituteParams,
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash([21, 197, 154, 1], (account, params))
+                .expect("method not found (this should never happen)")
+        }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
     for IRepayHandler<M> {
@@ -134,5 +181,91 @@ pub mod i_repay_handler {
     pub struct ExecuteRepayCall {
         pub account: ::ethers::core::types::Address,
         pub params: RepayParams,
+    }
+    ///Container type for all input parameters for the `executeRepaySubstitute` function with signature `executeRepaySubstitute(address,(address,uint256,address))` and selector `0x15c59a01`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(
+        name = "executeRepaySubstitute",
+        abi = "executeRepaySubstitute(address,(address,uint256,address))"
+    )]
+    pub struct ExecuteRepaySubstituteCall {
+        pub account: ::ethers::core::types::Address,
+        pub params: RepaySubstituteParams,
+    }
+    ///Container type for all of the contract's call
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        serde::Serialize,
+        serde::Deserialize,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub enum IRepayHandlerCalls {
+        ExecuteRepay(ExecuteRepayCall),
+        ExecuteRepaySubstitute(ExecuteRepaySubstituteCall),
+    }
+    impl ::ethers::core::abi::AbiDecode for IRepayHandlerCalls {
+        fn decode(
+            data: impl AsRef<[u8]>,
+        ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
+            let data = data.as_ref();
+            if let Ok(decoded) = <ExecuteRepayCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::ExecuteRepay(decoded));
+            }
+            if let Ok(decoded) = <ExecuteRepaySubstituteCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::ExecuteRepaySubstitute(decoded));
+            }
+            Err(::ethers::core::abi::Error::InvalidData.into())
+        }
+    }
+    impl ::ethers::core::abi::AbiEncode for IRepayHandlerCalls {
+        fn encode(self) -> Vec<u8> {
+            match self {
+                Self::ExecuteRepay(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::ExecuteRepaySubstitute(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+            }
+        }
+    }
+    impl ::core::fmt::Display for IRepayHandlerCalls {
+        fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+            match self {
+                Self::ExecuteRepay(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ExecuteRepaySubstitute(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+            }
+        }
+    }
+    impl ::core::convert::From<ExecuteRepayCall> for IRepayHandlerCalls {
+        fn from(value: ExecuteRepayCall) -> Self {
+            Self::ExecuteRepay(value)
+        }
+    }
+    impl ::core::convert::From<ExecuteRepaySubstituteCall> for IRepayHandlerCalls {
+        fn from(value: ExecuteRepaySubstituteCall) -> Self {
+            Self::ExecuteRepaySubstitute(value)
+        }
     }
 }

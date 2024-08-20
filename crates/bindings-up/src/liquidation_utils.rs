@@ -18,6 +18,23 @@ pub mod liquidation_utils {
             events: ::std::collections::BTreeMap::new(),
             errors: ::core::convert::From::from([
                 (
+                    ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("key"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned(
                         "HealthFactorHigherThanLiquidationThreshold",
                     ),
@@ -119,23 +136,6 @@ pub mod liquidation_utils {
                         },
                     ],
                 ),
-                (
-                    ::std::borrow::ToOwned::to_owned("PoolNotFound"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("PoolNotFound"),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("key"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("address"),
-                                    ),
-                                },
-                            ],
-                        },
-                    ],
-                ),
             ]),
             receive: false,
             fallback: false,
@@ -190,6 +190,23 @@ pub mod liquidation_utils {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
+    }
+    ///Custom Error type `EmptyPool` with signature `EmptyPool(address)` and selector `0x00ee0bb5`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyPool", abi = "EmptyPool(address)")]
+    pub struct EmptyPool {
+        pub key: ::ethers::core::types::Address,
     }
     ///Custom Error type `HealthFactorHigherThanLiquidationThreshold` with signature `HealthFactorHigherThanLiquidationThreshold(uint256,uint256)` and selector `0xb7ae955e`
     #[derive(
@@ -280,23 +297,6 @@ pub mod liquidation_utils {
     pub struct PoolIsPaused {
         pub pool: ::ethers::core::types::Address,
     }
-    ///Custom Error type `PoolNotFound` with signature `PoolNotFound(address)` and selector `0x6a34f98c`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(name = "PoolNotFound", abi = "PoolNotFound(address)")]
-    pub struct PoolNotFound {
-        pub key: ::ethers::core::types::Address,
-    }
     ///Container type for all of the contract's custom errors
     #[derive(
         Clone,
@@ -309,6 +309,7 @@ pub mod liquidation_utils {
         Hash
     )]
     pub enum LiquidationUtilsErrors {
+        EmptyPool(EmptyPool),
         HealthFactorHigherThanLiquidationThreshold(
             HealthFactorHigherThanLiquidationThreshold,
         ),
@@ -316,7 +317,6 @@ pub mod liquidation_utils {
         PoolIsInactive(PoolIsInactive),
         PoolIsNotBorrowing(PoolIsNotBorrowing),
         PoolIsPaused(PoolIsPaused),
-        PoolNotFound(PoolNotFound),
         /// The standard solidity revert string, with selector
         /// Error(string) -- 0x08c379a0
         RevertString(::std::string::String),
@@ -330,6 +330,11 @@ pub mod liquidation_utils {
                 data,
             ) {
                 return Ok(Self::RevertString(decoded));
+            }
+            if let Ok(decoded) = <EmptyPool as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyPool(decoded));
             }
             if let Ok(decoded) = <HealthFactorHigherThanLiquidationThreshold as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -356,17 +361,15 @@ pub mod liquidation_utils {
             ) {
                 return Ok(Self::PoolIsPaused(decoded));
             }
-            if let Ok(decoded) = <PoolNotFound as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::PoolNotFound(decoded));
-            }
             Err(::ethers::core::abi::Error::InvalidData.into())
         }
     }
     impl ::ethers::core::abi::AbiEncode for LiquidationUtilsErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
+                Self::EmptyPool(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::HealthFactorHigherThanLiquidationThreshold(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -382,9 +385,6 @@ pub mod liquidation_utils {
                 Self::PoolIsPaused(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::PoolNotFound(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
             }
         }
@@ -393,6 +393,8 @@ pub mod liquidation_utils {
         fn valid_selector(selector: [u8; 4]) -> bool {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
+                _ if selector
+                    == <EmptyPool as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
                     == <HealthFactorHigherThanLiquidationThreshold as ::ethers::contract::EthError>::selector() => {
                     true
@@ -409,8 +411,6 @@ pub mod liquidation_utils {
                 }
                 _ if selector
                     == <PoolIsPaused as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <PoolNotFound as ::ethers::contract::EthError>::selector() => true,
                 _ => false,
             }
         }
@@ -418,6 +418,7 @@ pub mod liquidation_utils {
     impl ::core::fmt::Display for LiquidationUtilsErrors {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
+                Self::EmptyPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::HealthFactorHigherThanLiquidationThreshold(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -427,7 +428,6 @@ pub mod liquidation_utils {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::PoolIsPaused(element) => ::core::fmt::Display::fmt(element, f),
-                Self::PoolNotFound(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RevertString(s) => ::core::fmt::Display::fmt(s, f),
             }
         }
@@ -435,6 +435,11 @@ pub mod liquidation_utils {
     impl ::core::convert::From<::std::string::String> for LiquidationUtilsErrors {
         fn from(value: String) -> Self {
             Self::RevertString(value)
+        }
+    }
+    impl ::core::convert::From<EmptyPool> for LiquidationUtilsErrors {
+        fn from(value: EmptyPool) -> Self {
+            Self::EmptyPool(value)
         }
     }
     impl ::core::convert::From<HealthFactorHigherThanLiquidationThreshold>
@@ -461,11 +466,6 @@ pub mod liquidation_utils {
     impl ::core::convert::From<PoolIsPaused> for LiquidationUtilsErrors {
         fn from(value: PoolIsPaused) -> Self {
             Self::PoolIsPaused(value)
-        }
-    }
-    impl ::core::convert::From<PoolNotFound> for LiquidationUtilsErrors {
-        fn from(value: PoolNotFound) -> Self {
-            Self::PoolNotFound(value)
         }
     }
 }

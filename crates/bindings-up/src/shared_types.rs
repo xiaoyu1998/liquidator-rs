@@ -31,7 +31,7 @@ pub struct BorrowParams {
 pub struct CloseParams {
     pub underlying_asset_usd: ::ethers::core::types::Address,
 }
-///`ClosePositionParams(address,address)`
+///`ClosePositionParams(address,address,uint256)`
 #[derive(
     Clone,
     ::ethers::contract::EthAbiType,
@@ -47,6 +47,7 @@ pub struct CloseParams {
 pub struct ClosePositionParams {
     pub underlying_asset: ::ethers::core::types::Address,
     pub underlying_asset_usd: ::ethers::core::types::Address,
+    pub percentage: ::ethers::core::types::U256,
 }
 ///`DepositParams(address)`
 #[derive(
@@ -63,26 +64,6 @@ pub struct ClosePositionParams {
 )]
 pub struct DepositParams {
     pub underlying_asset: ::ethers::core::types::Address,
-}
-///`SwapParams2(address,address,uint24,uint256,uint160)`
-#[derive(
-    Clone,
-    ::ethers::contract::EthAbiType,
-    ::ethers::contract::EthAbiCodec,
-    serde::Serialize,
-    serde::Deserialize,
-    Default,
-    Debug,
-    PartialEq,
-    Eq,
-    Hash
-)]
-pub struct SwapParams2 {
-    pub token_in: ::ethers::core::types::Address,
-    pub token_out: ::ethers::core::types::Address,
-    pub fee: u32,
-    pub amount: ::ethers::core::types::U256,
-    pub sqrt_price_limit_x96: ::ethers::core::types::U256,
 }
 ///`CalculateInterestRatesParams(uint256,uint256,uint256,address,address)`
 #[derive(
@@ -209,6 +190,24 @@ pub struct RedeemParams {
     pub underlying_asset: ::ethers::core::types::Address,
     pub amount: ::ethers::core::types::U256,
     pub to: ::ethers::core::types::Address,
+}
+///`RepaySubstituteParams(address,uint256,address)`
+#[derive(
+    Clone,
+    ::ethers::contract::EthAbiType,
+    ::ethers::contract::EthAbiCodec,
+    serde::Serialize,
+    serde::Deserialize,
+    Default,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash
+)]
+pub struct RepaySubstituteParams {
+    pub underlying_asset: ::ethers::core::types::Address,
+    pub amount: ::ethers::core::types::U256,
+    pub substitute: ::ethers::core::types::Address,
 }
 ///`RepayParams(address,uint256)`
 #[derive(

@@ -10,12 +10,98 @@ pub use i_dex_2::*;
     non_camel_case_types,
 )]
 pub mod i_dex_2 {
-    pub use super::super::shared_types::*;
     #[allow(deprecated)]
     fn __abi() -> ::ethers::core::abi::Abi {
         ::ethers::core::abi::ethabi::Contract {
             constructor: ::core::option::Option::None,
             functions: ::core::convert::From::from([
+                (
+                    ::std::borrow::ToOwned::to_owned("getFeeAmount"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("getFeeAmount"),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(24usize),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint24"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("getPool"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("getPool"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("tokenA"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("tokenB"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("getSwapFee"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("getSwapFee"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+                ),
                 (
                     ::std::borrow::ToOwned::to_owned("swapExactIn"),
                     ::std::vec![
@@ -30,18 +116,35 @@ pub mod i_dex_2 {
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("params"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
-                                        ::std::vec![
-                                            ::ethers::core::abi::ethabi::ParamType::Address,
-                                            ::ethers::core::abi::ethabi::ParamType::Address,
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(24usize),
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(160usize),
-                                        ],
+                                    name: ::std::borrow::ToOwned::to_owned("tokenIn"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("tokenOut"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("amount"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
                                     ),
                                     internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("struct IDex2.SwapParams2"),
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("sqrtPriceLimitX96"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
@@ -72,18 +175,35 @@ pub mod i_dex_2 {
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("params"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
-                                        ::std::vec![
-                                            ::ethers::core::abi::ethabi::ParamType::Address,
-                                            ::ethers::core::abi::ethabi::ParamType::Address,
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(24usize),
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(160usize),
-                                        ],
+                                    name: ::std::borrow::ToOwned::to_owned("tokenIn"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("tokenOut"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("amount"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
                                     ),
                                     internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("struct IDex2.SwapParams2"),
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("sqrtPriceLimitX96"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
@@ -148,26 +268,68 @@ pub mod i_dex_2 {
                 ),
             )
         }
-        ///Calls the contract's `swapExactIn` (0xf6fc669e) function
+        ///Calls the contract's `getFeeAmount` (0xbf5c9822) function
+        pub fn get_fee_amount(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, u32> {
+            self.0
+                .method_hash([191, 92, 152, 34], ())
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `getPool` (0x531aa03e) function
+        pub fn get_pool(
+            &self,
+            token_a: ::ethers::core::types::Address,
+            token_b: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
+            self.0
+                .method_hash([83, 26, 160, 62], (token_a, token_b))
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `getSwapFee` (0x8e7d6935) function
+        pub fn get_swap_fee(
+            &self,
+            p0: ::ethers::core::types::U256,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
+            self.0
+                .method_hash([142, 125, 105, 53], p0)
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `swapExactIn` (0x2c67e257) function
         pub fn swap_exact_in(
             &self,
             from: ::ethers::core::types::Address,
-            params: SwapParams2,
+            token_in: ::ethers::core::types::Address,
+            token_out: ::ethers::core::types::Address,
+            amount: ::ethers::core::types::U256,
+            sqrt_price_limit_x96: ::ethers::core::types::U256,
             to: ::ethers::core::types::Address,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([246, 252, 102, 158], (from, params, to))
+                .method_hash(
+                    [44, 103, 226, 87],
+                    (from, token_in, token_out, amount, sqrt_price_limit_x96, to),
+                )
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `swapExactOut` (0x3cc8c0ef) function
+        ///Calls the contract's `swapExactOut` (0x9e3bb59d) function
         pub fn swap_exact_out(
             &self,
             from: ::ethers::core::types::Address,
-            params: SwapParams2,
+            token_in: ::ethers::core::types::Address,
+            token_out: ::ethers::core::types::Address,
+            amount: ::ethers::core::types::U256,
+            sqrt_price_limit_x96: ::ethers::core::types::U256,
             to: ::ethers::core::types::Address,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([60, 200, 192, 239], (from, params, to))
+                .method_hash(
+                    [158, 59, 181, 157],
+                    (from, token_in, token_out, amount, sqrt_price_limit_x96, to),
+                )
                 .expect("method not found (this should never happen)")
         }
     }
@@ -177,7 +339,55 @@ pub mod i_dex_2 {
             Self::new(contract.address(), contract.client())
         }
     }
-    ///Container type for all input parameters for the `swapExactIn` function with signature `swapExactIn(address,(address,address,uint24,uint256,uint160),address)` and selector `0xf6fc669e`
+    ///Container type for all input parameters for the `getFeeAmount` function with signature `getFeeAmount()` and selector `0xbf5c9822`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "getFeeAmount", abi = "getFeeAmount()")]
+    pub struct GetFeeAmountCall;
+    ///Container type for all input parameters for the `getPool` function with signature `getPool(address,address)` and selector `0x531aa03e`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "getPool", abi = "getPool(address,address)")]
+    pub struct GetPoolCall {
+        pub token_a: ::ethers::core::types::Address,
+        pub token_b: ::ethers::core::types::Address,
+    }
+    ///Container type for all input parameters for the `getSwapFee` function with signature `getSwapFee(uint256)` and selector `0x8e7d6935`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "getSwapFee", abi = "getSwapFee(uint256)")]
+    pub struct GetSwapFeeCall(pub ::ethers::core::types::U256);
+    ///Container type for all input parameters for the `swapExactIn` function with signature `swapExactIn(address,address,address,uint256,uint256,address)` and selector `0x2c67e257`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -192,14 +402,17 @@ pub mod i_dex_2 {
     )]
     #[ethcall(
         name = "swapExactIn",
-        abi = "swapExactIn(address,(address,address,uint24,uint256,uint160),address)"
+        abi = "swapExactIn(address,address,address,uint256,uint256,address)"
     )]
     pub struct SwapExactInCall {
         pub from: ::ethers::core::types::Address,
-        pub params: SwapParams2,
+        pub token_in: ::ethers::core::types::Address,
+        pub token_out: ::ethers::core::types::Address,
+        pub amount: ::ethers::core::types::U256,
+        pub sqrt_price_limit_x96: ::ethers::core::types::U256,
         pub to: ::ethers::core::types::Address,
     }
-    ///Container type for all input parameters for the `swapExactOut` function with signature `swapExactOut(address,(address,address,uint24,uint256,uint160),address)` and selector `0x3cc8c0ef`
+    ///Container type for all input parameters for the `swapExactOut` function with signature `swapExactOut(address,address,address,uint256,uint256,address)` and selector `0x9e3bb59d`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -214,11 +427,14 @@ pub mod i_dex_2 {
     )]
     #[ethcall(
         name = "swapExactOut",
-        abi = "swapExactOut(address,(address,address,uint24,uint256,uint160),address)"
+        abi = "swapExactOut(address,address,address,uint256,uint256,address)"
     )]
     pub struct SwapExactOutCall {
         pub from: ::ethers::core::types::Address,
-        pub params: SwapParams2,
+        pub token_in: ::ethers::core::types::Address,
+        pub token_out: ::ethers::core::types::Address,
+        pub amount: ::ethers::core::types::U256,
+        pub sqrt_price_limit_x96: ::ethers::core::types::U256,
         pub to: ::ethers::core::types::Address,
     }
     ///Container type for all of the contract's call
@@ -233,6 +449,9 @@ pub mod i_dex_2 {
         Hash
     )]
     pub enum IDex2Calls {
+        GetFeeAmount(GetFeeAmountCall),
+        GetPool(GetPoolCall),
+        GetSwapFee(GetSwapFeeCall),
         SwapExactIn(SwapExactInCall),
         SwapExactOut(SwapExactOutCall),
     }
@@ -241,6 +460,21 @@ pub mod i_dex_2 {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
+            if let Ok(decoded) = <GetFeeAmountCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::GetFeeAmount(decoded));
+            }
+            if let Ok(decoded) = <GetPoolCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::GetPool(decoded));
+            }
+            if let Ok(decoded) = <GetSwapFeeCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::GetSwapFee(decoded));
+            }
             if let Ok(decoded) = <SwapExactInCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
@@ -257,6 +491,13 @@ pub mod i_dex_2 {
     impl ::ethers::core::abi::AbiEncode for IDex2Calls {
         fn encode(self) -> Vec<u8> {
             match self {
+                Self::GetFeeAmount(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetPool(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::GetSwapFee(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::SwapExactIn(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -269,9 +510,27 @@ pub mod i_dex_2 {
     impl ::core::fmt::Display for IDex2Calls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
+                Self::GetFeeAmount(element) => ::core::fmt::Display::fmt(element, f),
+                Self::GetPool(element) => ::core::fmt::Display::fmt(element, f),
+                Self::GetSwapFee(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SwapExactIn(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SwapExactOut(element) => ::core::fmt::Display::fmt(element, f),
             }
+        }
+    }
+    impl ::core::convert::From<GetFeeAmountCall> for IDex2Calls {
+        fn from(value: GetFeeAmountCall) -> Self {
+            Self::GetFeeAmount(value)
+        }
+    }
+    impl ::core::convert::From<GetPoolCall> for IDex2Calls {
+        fn from(value: GetPoolCall) -> Self {
+            Self::GetPool(value)
+        }
+    }
+    impl ::core::convert::From<GetSwapFeeCall> for IDex2Calls {
+        fn from(value: GetSwapFeeCall) -> Self {
+            Self::GetSwapFee(value)
         }
     }
     impl ::core::convert::From<SwapExactInCall> for IDex2Calls {
@@ -284,4 +543,46 @@ pub mod i_dex_2 {
             Self::SwapExactOut(value)
         }
     }
+    ///Container type for all return fields from the `getFeeAmount` function with signature `getFeeAmount()` and selector `0xbf5c9822`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetFeeAmountReturn(pub u32);
+    ///Container type for all return fields from the `getPool` function with signature `getPool(address,address)` and selector `0x531aa03e`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetPoolReturn(pub ::ethers::core::types::Address);
+    ///Container type for all return fields from the `getSwapFee` function with signature `getSwapFee(uint256)` and selector `0x8e7d6935`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetSwapFeeReturn(pub ::ethers::core::types::U256);
 }

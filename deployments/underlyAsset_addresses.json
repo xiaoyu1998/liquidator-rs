@@ -1,20 +1,20 @@
 {
   "USDT": {
-    "address": "0x82ce67E0112D36D2BD267Ed95ABdF64D54D41Fa4",
+    "address": "0x5081a39b8A5f0E35a8D959395a630b68B74Dd30f",
     "decimals": 6,
-    "oracle": "0xF9560CbE4E31Cb001445fDde679920b32D34e400",
+    "oracle": "0x2E2Ed0Cfd3AD2f1d34481277b3204d807Ca2F8c2",
     "oracleDecimals": 24
   },
   "UNI": {
-    "address": "0x41c04f3310B569841D58AEdeDd9E38102c529b12",
+    "address": "0x1fA02b2d6A771842690194Cf62D91bdd92BfE28d",
     "decimals": 18,
-    "oracle": "0x4F23454567A53A504FCc1503615a6e9EB615537f",
+    "oracle": "0xD8a5a9b31c3C0232E196d518E89Fd8bF83AcAd43",
     "oracleDecimals": 12
   },
   "ETH": {
-    "address": "0x4d41D725B242C58dC7d9EB276d1652D9E51f08C4",
+    "address": "0xdbC43Ba45381e02825b14322cDdd15eC4B3164E6",
     "decimals": 18,
-    "oracle": "0xA017D26B5a1C54Ae9f08977152585aA9A8c4663C",
+    "oracle": "0xDC11f7E700A4c898AE5CAddB1082cFfa76512aDD",
     "oracleDecimals": 12
   }
 }

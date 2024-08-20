@@ -117,6 +117,44 @@ pub mod swap_handler {
                     ],
                 ),
                 (
+                    ::std::borrow::ToOwned::to_owned("executeSwapExactOut"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "executeSwapExactOut",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("account"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("swapParams"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
+                                        ::std::vec![
+                                            ::ethers::core::abi::ethabi::ParamType::Address,
+                                            ::ethers::core::abi::ethabi::ParamType::Address,
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                        ],
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned(
+                                            "struct SwapUtils.SwapParams",
+                                        ),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("roleStore"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -243,6 +281,16 @@ pub mod swap_handler {
                 .method_hash([109, 66, 247, 169], (account, swap_params))
                 .expect("method not found (this should never happen)")
         }
+        ///Calls the contract's `executeSwapExactOut` (0xd2e553ea) function
+        pub fn execute_swap_exact_out(
+            &self,
+            account: ::ethers::core::types::Address,
+            swap_params: SwapParams,
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash([210, 229, 83, 234], (account, swap_params))
+                .expect("method not found (this should never happen)")
+        }
         ///Calls the contract's `roleStore` (0x4a4a7b04) function
         pub fn role_store(
             &self,
@@ -330,6 +378,27 @@ pub mod swap_handler {
         pub account: ::ethers::core::types::Address,
         pub swap_params: SwapParams,
     }
+    ///Container type for all input parameters for the `executeSwapExactOut` function with signature `executeSwapExactOut(address,(address,address,uint256,uint256))` and selector `0xd2e553ea`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(
+        name = "executeSwapExactOut",
+        abi = "executeSwapExactOut(address,(address,address,uint256,uint256))"
+    )]
+    pub struct ExecuteSwapExactOutCall {
+        pub account: ::ethers::core::types::Address,
+        pub swap_params: SwapParams,
+    }
     ///Container type for all input parameters for the `roleStore` function with signature `roleStore()` and selector `0x4a4a7b04`
     #[derive(
         Clone,
@@ -360,6 +429,7 @@ pub mod swap_handler {
         DataStore(DataStoreCall),
         EventEmitter(EventEmitterCall),
         ExecuteSwap(ExecuteSwapCall),
+        ExecuteSwapExactOut(ExecuteSwapExactOutCall),
         RoleStore(RoleStoreCall),
     }
     impl ::ethers::core::abi::AbiDecode for SwapHandlerCalls {
@@ -382,6 +452,11 @@ pub mod swap_handler {
             ) {
                 return Ok(Self::ExecuteSwap(decoded));
             }
+            if let Ok(decoded) = <ExecuteSwapExactOutCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::ExecuteSwapExactOut(decoded));
+            }
             if let Ok(decoded) = <RoleStoreCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
@@ -402,6 +477,9 @@ pub mod swap_handler {
                 Self::ExecuteSwap(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+                Self::ExecuteSwapExactOut(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::RoleStore(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -414,6 +492,9 @@ pub mod swap_handler {
                 Self::DataStore(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EventEmitter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ExecuteSwap(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ExecuteSwapExactOut(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::RoleStore(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
@@ -431,6 +512,11 @@ pub mod swap_handler {
     impl ::core::convert::From<ExecuteSwapCall> for SwapHandlerCalls {
         fn from(value: ExecuteSwapCall) -> Self {
             Self::ExecuteSwap(value)
+        }
+    }
+    impl ::core::convert::From<ExecuteSwapExactOutCall> for SwapHandlerCalls {
+        fn from(value: ExecuteSwapExactOutCall) -> Self {
+            Self::ExecuteSwapExactOut(value)
         }
     }
     impl ::core::convert::From<RoleStoreCall> for SwapHandlerCalls {

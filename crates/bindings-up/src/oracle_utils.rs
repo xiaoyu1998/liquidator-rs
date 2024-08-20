@@ -122,10 +122,10 @@ pub mod oracle_utils {
             events: ::std::collections::BTreeMap::new(),
             errors: ::core::convert::From::from([
                 (
-                    ::std::borrow::ToOwned::to_owned("EmptyOracle"),
+                    ::std::borrow::ToOwned::to_owned("EmptyPoolOracle"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("EmptyOracle"),
+                            name: ::std::borrow::ToOwned::to_owned("EmptyPoolOracle"),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("underlyingAsset"),
@@ -243,7 +243,7 @@ pub mod oracle_utils {
             Self::new(contract.address(), contract.client())
         }
     }
-    ///Custom Error type `EmptyOracle` with signature `EmptyOracle(address)` and selector `0xadb29466`
+    ///Custom Error type `EmptyPoolOracle` with signature `EmptyPoolOracle(address)` and selector `0xf499b686`
     #[derive(
         Clone,
         ::ethers::contract::EthError,
@@ -256,8 +256,8 @@ pub mod oracle_utils {
         Eq,
         Hash
     )]
-    #[etherror(name = "EmptyOracle", abi = "EmptyOracle(address)")]
-    pub struct EmptyOracle {
+    #[etherror(name = "EmptyPoolOracle", abi = "EmptyPoolOracle(address)")]
+    pub struct EmptyPoolOracle {
         pub underlying_asset: ::ethers::core::types::Address,
     }
     ///Custom Error type `InvalidOraclePrice` with signature `InvalidOraclePrice(address,int256)` and selector `0xa0bdf75a`
@@ -290,7 +290,7 @@ pub mod oracle_utils {
         Hash
     )]
     pub enum OracleUtilsErrors {
-        EmptyOracle(EmptyOracle),
+        EmptyPoolOracle(EmptyPoolOracle),
         InvalidOraclePrice(InvalidOraclePrice),
         /// The standard solidity revert string, with selector
         /// Error(string) -- 0x08c379a0
@@ -306,10 +306,10 @@ pub mod oracle_utils {
             ) {
                 return Ok(Self::RevertString(decoded));
             }
-            if let Ok(decoded) = <EmptyOracle as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) = <EmptyPoolOracle as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
-                return Ok(Self::EmptyOracle(decoded));
+                return Ok(Self::EmptyPoolOracle(decoded));
             }
             if let Ok(decoded) = <InvalidOraclePrice as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -322,7 +322,7 @@ pub mod oracle_utils {
     impl ::ethers::core::abi::AbiEncode for OracleUtilsErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
-                Self::EmptyOracle(element) => {
+                Self::EmptyPoolOracle(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::InvalidOraclePrice(element) => {
@@ -337,7 +337,9 @@ pub mod oracle_utils {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
                 _ if selector
-                    == <EmptyOracle as ::ethers::contract::EthError>::selector() => true,
+                    == <EmptyPoolOracle as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
                 _ if selector
                     == <InvalidOraclePrice as ::ethers::contract::EthError>::selector() => {
                     true
@@ -349,7 +351,7 @@ pub mod oracle_utils {
     impl ::core::fmt::Display for OracleUtilsErrors {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::EmptyOracle(element) => ::core::fmt::Display::fmt(element, f),
+                Self::EmptyPoolOracle(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidOraclePrice(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -362,9 +364,9 @@ pub mod oracle_utils {
             Self::RevertString(value)
         }
     }
-    impl ::core::convert::From<EmptyOracle> for OracleUtilsErrors {
-        fn from(value: EmptyOracle) -> Self {
-            Self::EmptyOracle(value)
+    impl ::core::convert::From<EmptyPoolOracle> for OracleUtilsErrors {
+        fn from(value: EmptyPoolOracle) -> Self {
+            Self::EmptyPoolOracle(value)
         }
     }
     impl ::core::convert::From<InvalidOraclePrice> for OracleUtilsErrors {

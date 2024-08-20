@@ -18,6 +18,23 @@ pub mod withdraw_utils {
             events: ::std::collections::BTreeMap::new(),
             errors: ::core::convert::From::from([
                 (
+                    ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("key"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("EmptyWithdrawAmounts"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
@@ -25,68 +42,6 @@ pub mod withdraw_utils {
                                 "EmptyWithdrawAmounts",
                             ),
                             inputs: ::std::vec![],
-                        },
-                    ],
-                ),
-                (
-                    ::std::borrow::ToOwned::to_owned("InsufficientAvailableLiquidity"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "InsufficientAvailableLiquidity",
-                            ),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("amount"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned(
-                                        "availableLiquidity",
-                                    ),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                            ],
-                        },
-                    ],
-                ),
-                (
-                    ::std::borrow::ToOwned::to_owned("InsufficientUserBalance"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "InsufficientUserBalance",
-                            ),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("amount"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("userBalance"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                            ],
                         },
                     ],
                 ),
@@ -158,23 +113,6 @@ pub mod withdraw_utils {
                         },
                     ],
                 ),
-                (
-                    ::std::borrow::ToOwned::to_owned("PoolNotFound"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("PoolNotFound"),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("key"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("address"),
-                                    ),
-                                },
-                            ],
-                        },
-                    ],
-                ),
             ]),
             receive: false,
             fallback: false,
@@ -230,6 +168,23 @@ pub mod withdraw_utils {
             Self::new(contract.address(), contract.client())
         }
     }
+    ///Custom Error type `EmptyPool` with signature `EmptyPool(address)` and selector `0x00ee0bb5`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyPool", abi = "EmptyPool(address)")]
+    pub struct EmptyPool {
+        pub key: ::ethers::core::types::Address,
+    }
     ///Custom Error type `EmptyWithdrawAmounts` with signature `EmptyWithdrawAmounts()` and selector `0xfd9e68c4`
     #[derive(
         Clone,
@@ -245,48 +200,6 @@ pub mod withdraw_utils {
     )]
     #[etherror(name = "EmptyWithdrawAmounts", abi = "EmptyWithdrawAmounts()")]
     pub struct EmptyWithdrawAmounts;
-    ///Custom Error type `InsufficientAvailableLiquidity` with signature `InsufficientAvailableLiquidity(uint256,uint256)` and selector `0xaf9a97d4`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(
-        name = "InsufficientAvailableLiquidity",
-        abi = "InsufficientAvailableLiquidity(uint256,uint256)"
-    )]
-    pub struct InsufficientAvailableLiquidity {
-        pub amount: ::ethers::core::types::U256,
-        pub available_liquidity: ::ethers::core::types::U256,
-    }
-    ///Custom Error type `InsufficientUserBalance` with signature `InsufficientUserBalance(uint256,uint256)` and selector `0x5f504d20`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(
-        name = "InsufficientUserBalance",
-        abi = "InsufficientUserBalance(uint256,uint256)"
-    )]
-    pub struct InsufficientUserBalance {
-        pub amount: ::ethers::core::types::U256,
-        pub user_balance: ::ethers::core::types::U256,
-    }
     ///Custom Error type `PoolIsFrozen` with signature `PoolIsFrozen(address)` and selector `0x1f01e9db`
     #[derive(
         Clone,
@@ -355,23 +268,6 @@ pub mod withdraw_utils {
     pub struct PoolIsPaused {
         pub pool: ::ethers::core::types::Address,
     }
-    ///Custom Error type `PoolNotFound` with signature `PoolNotFound(address)` and selector `0x6a34f98c`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(name = "PoolNotFound", abi = "PoolNotFound(address)")]
-    pub struct PoolNotFound {
-        pub key: ::ethers::core::types::Address,
-    }
     ///Container type for all of the contract's custom errors
     #[derive(
         Clone,
@@ -384,14 +280,12 @@ pub mod withdraw_utils {
         Hash
     )]
     pub enum WithdrawUtilsErrors {
+        EmptyPool(EmptyPool),
         EmptyWithdrawAmounts(EmptyWithdrawAmounts),
-        InsufficientAvailableLiquidity(InsufficientAvailableLiquidity),
-        InsufficientUserBalance(InsufficientUserBalance),
         PoolIsFrozen(PoolIsFrozen),
         PoolIsInactive(PoolIsInactive),
         PoolIsNotBorrowing(PoolIsNotBorrowing),
         PoolIsPaused(PoolIsPaused),
-        PoolNotFound(PoolNotFound),
         /// The standard solidity revert string, with selector
         /// Error(string) -- 0x08c379a0
         RevertString(::std::string::String),
@@ -406,20 +300,15 @@ pub mod withdraw_utils {
             ) {
                 return Ok(Self::RevertString(decoded));
             }
+            if let Ok(decoded) = <EmptyPool as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyPool(decoded));
+            }
             if let Ok(decoded) = <EmptyWithdrawAmounts as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
                 return Ok(Self::EmptyWithdrawAmounts(decoded));
-            }
-            if let Ok(decoded) = <InsufficientAvailableLiquidity as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::InsufficientAvailableLiquidity(decoded));
-            }
-            if let Ok(decoded) = <InsufficientUserBalance as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::InsufficientUserBalance(decoded));
             }
             if let Ok(decoded) = <PoolIsFrozen as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -441,24 +330,16 @@ pub mod withdraw_utils {
             ) {
                 return Ok(Self::PoolIsPaused(decoded));
             }
-            if let Ok(decoded) = <PoolNotFound as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::PoolNotFound(decoded));
-            }
             Err(::ethers::core::abi::Error::InvalidData.into())
         }
     }
     impl ::ethers::core::abi::AbiEncode for WithdrawUtilsErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
+                Self::EmptyPool(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::EmptyWithdrawAmounts(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InsufficientAvailableLiquidity(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::InsufficientUserBalance(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::PoolIsFrozen(element) => {
@@ -473,9 +354,6 @@ pub mod withdraw_utils {
                 Self::PoolIsPaused(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::PoolNotFound(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
             }
         }
@@ -485,15 +363,9 @@ pub mod withdraw_utils {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
                 _ if selector
+                    == <EmptyPool as ::ethers::contract::EthError>::selector() => true,
+                _ if selector
                     == <EmptyWithdrawAmounts as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <InsufficientAvailableLiquidity as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
-                _ if selector
-                    == <InsufficientUserBalance as ::ethers::contract::EthError>::selector() => {
                     true
                 }
                 _ if selector
@@ -508,8 +380,6 @@ pub mod withdraw_utils {
                 }
                 _ if selector
                     == <PoolIsPaused as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <PoolNotFound as ::ethers::contract::EthError>::selector() => true,
                 _ => false,
             }
         }
@@ -517,13 +387,8 @@ pub mod withdraw_utils {
     impl ::core::fmt::Display for WithdrawUtilsErrors {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
+                Self::EmptyPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyWithdrawAmounts(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
-                Self::InsufficientAvailableLiquidity(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
-                Self::InsufficientUserBalance(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::PoolIsFrozen(element) => ::core::fmt::Display::fmt(element, f),
@@ -532,7 +397,6 @@ pub mod withdraw_utils {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::PoolIsPaused(element) => ::core::fmt::Display::fmt(element, f),
-                Self::PoolNotFound(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RevertString(s) => ::core::fmt::Display::fmt(s, f),
             }
         }
@@ -542,19 +406,14 @@ pub mod withdraw_utils {
             Self::RevertString(value)
         }
     }
+    impl ::core::convert::From<EmptyPool> for WithdrawUtilsErrors {
+        fn from(value: EmptyPool) -> Self {
+            Self::EmptyPool(value)
+        }
+    }
     impl ::core::convert::From<EmptyWithdrawAmounts> for WithdrawUtilsErrors {
         fn from(value: EmptyWithdrawAmounts) -> Self {
             Self::EmptyWithdrawAmounts(value)
-        }
-    }
-    impl ::core::convert::From<InsufficientAvailableLiquidity> for WithdrawUtilsErrors {
-        fn from(value: InsufficientAvailableLiquidity) -> Self {
-            Self::InsufficientAvailableLiquidity(value)
-        }
-    }
-    impl ::core::convert::From<InsufficientUserBalance> for WithdrawUtilsErrors {
-        fn from(value: InsufficientUserBalance) -> Self {
-            Self::InsufficientUserBalance(value)
         }
     }
     impl ::core::convert::From<PoolIsFrozen> for WithdrawUtilsErrors {
@@ -575,11 +434,6 @@ pub mod withdraw_utils {
     impl ::core::convert::From<PoolIsPaused> for WithdrawUtilsErrors {
         fn from(value: PoolIsPaused) -> Self {
             Self::PoolIsPaused(value)
-        }
-    }
-    impl ::core::convert::From<PoolNotFound> for WithdrawUtilsErrors {
-        fn from(value: PoolNotFound) -> Self {
-            Self::PoolNotFound(value)
         }
     }
 }

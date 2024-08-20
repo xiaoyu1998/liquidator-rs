@@ -96,17 +96,7 @@ pub mod i_pool_token {
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
                             name: ::std::borrow::ToOwned::to_owned("availableLiquidity"),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("unclaimedFee"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                            ],
+                            inputs: ::std::vec![],
                             outputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::string::String::new(),
@@ -223,15 +213,6 @@ pub mod i_pool_token {
                                         ::std::borrow::ToOwned::to_owned("uint256"),
                                     ),
                                 },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("unclaimedFee"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
                             ],
                             outputs: ::std::vec![],
                             constant: ::core::option::Option::None,
@@ -268,6 +249,44 @@ pub mod i_pool_token {
                                     ),
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("mintToTreasury"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("mintToTreasury"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("amount"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("index"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("treasury"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
                                     ),
                                 },
                             ],
@@ -605,13 +624,12 @@ pub mod i_pool_token {
                 .method_hash([38, 179, 128, 65], (spender, value))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `availableLiquidity` (0x9787739d) function
+        ///Calls the contract's `availableLiquidity` (0x74375359) function
         pub fn available_liquidity(
             &self,
-            unclaimed_fee: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::U256> {
             self.0
-                .method_hash([151, 135, 115, 157], unclaimed_fee)
+                .method_hash([116, 55, 83, 89], ())
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `balanceOf` (0x70a08231) function
@@ -632,20 +650,16 @@ pub mod i_pool_token {
                 .method_hash([176, 156, 152, 11], account)
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `burn` (0xb18d6afd) function
+        ///Calls the contract's `burn` (0xd7020d0a) function
         pub fn burn(
             &self,
             from: ::ethers::core::types::Address,
             to: ::ethers::core::types::Address,
             amount: ::ethers::core::types::U256,
             index: ::ethers::core::types::U256,
-            unclaimed_fee: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash(
-                    [177, 141, 106, 253],
-                    (from, to, amount, index, unclaimed_fee),
-                )
+                .method_hash([215, 2, 13, 10], (from, to, amount, index))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `mint` (0x156e29f6) function
@@ -657,6 +671,17 @@ pub mod i_pool_token {
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash([21, 110, 41, 246], (to, amount, index))
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `mintToTreasury` (0x1cbe9b52) function
+        pub fn mint_to_treasury(
+            &self,
+            amount: ::ethers::core::types::U256,
+            index: ::ethers::core::types::U256,
+            treasury: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash([28, 190, 155, 82], (amount, index, treasury))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `recordTransferIn` (0x352f9aed) function
@@ -792,7 +817,7 @@ pub mod i_pool_token {
         pub spender: ::ethers::core::types::Address,
         pub value: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `availableLiquidity` function with signature `availableLiquidity(uint256)` and selector `0x9787739d`
+    ///Container type for all input parameters for the `availableLiquidity` function with signature `availableLiquidity()` and selector `0x74375359`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -805,10 +830,8 @@ pub mod i_pool_token {
         Eq,
         Hash
     )]
-    #[ethcall(name = "availableLiquidity", abi = "availableLiquidity(uint256)")]
-    pub struct AvailableLiquidityCall {
-        pub unclaimed_fee: ::ethers::core::types::U256,
-    }
+    #[ethcall(name = "availableLiquidity", abi = "availableLiquidity()")]
+    pub struct AvailableLiquidityCall;
     ///Container type for all input parameters for the `balanceOf` function with signature `balanceOf(address)` and selector `0x70a08231`
     #[derive(
         Clone,
@@ -843,7 +866,7 @@ pub mod i_pool_token {
     pub struct BalanceOfCollateralCall {
         pub account: ::ethers::core::types::Address,
     }
-    ///Container type for all input parameters for the `burn` function with signature `burn(address,address,uint256,uint256,uint256)` and selector `0xb18d6afd`
+    ///Container type for all input parameters for the `burn` function with signature `burn(address,address,uint256,uint256)` and selector `0xd7020d0a`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -856,13 +879,12 @@ pub mod i_pool_token {
         Eq,
         Hash
     )]
-    #[ethcall(name = "burn", abi = "burn(address,address,uint256,uint256,uint256)")]
+    #[ethcall(name = "burn", abi = "burn(address,address,uint256,uint256)")]
     pub struct BurnCall {
         pub from: ::ethers::core::types::Address,
         pub to: ::ethers::core::types::Address,
         pub amount: ::ethers::core::types::U256,
         pub index: ::ethers::core::types::U256,
-        pub unclaimed_fee: ::ethers::core::types::U256,
     }
     ///Container type for all input parameters for the `mint` function with signature `mint(address,uint256,uint256)` and selector `0x156e29f6`
     #[derive(
@@ -882,6 +904,25 @@ pub mod i_pool_token {
         pub to: ::ethers::core::types::Address,
         pub amount: ::ethers::core::types::U256,
         pub index: ::ethers::core::types::U256,
+    }
+    ///Container type for all input parameters for the `mintToTreasury` function with signature `mintToTreasury(uint256,uint256,address)` and selector `0x1cbe9b52`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "mintToTreasury", abi = "mintToTreasury(uint256,uint256,address)")]
+    pub struct MintToTreasuryCall {
+        pub amount: ::ethers::core::types::U256,
+        pub index: ::ethers::core::types::U256,
+        pub treasury: ::ethers::core::types::Address,
     }
     ///Container type for all input parameters for the `recordTransferIn` function with signature `recordTransferIn(address)` and selector `0x352f9aed`
     #[derive(
@@ -1067,6 +1108,7 @@ pub mod i_pool_token {
         BalanceOfCollateral(BalanceOfCollateralCall),
         Burn(BurnCall),
         Mint(MintCall),
+        MintToTreasury(MintToTreasuryCall),
         RecordTransferIn(RecordTransferInCall),
         RecordTransferOut(RecordTransferOutCall),
         RemoveCollateral(RemoveCollateralCall),
@@ -1117,6 +1159,11 @@ pub mod i_pool_token {
                 data,
             ) {
                 return Ok(Self::Mint(decoded));
+            }
+            if let Ok(decoded) = <MintToTreasuryCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::MintToTreasury(decoded));
             }
             if let Ok(decoded) = <RecordTransferInCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -1191,6 +1238,9 @@ pub mod i_pool_token {
                 }
                 Self::Burn(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Mint(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::MintToTreasury(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::RecordTransferIn(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -1238,6 +1288,7 @@ pub mod i_pool_token {
                 }
                 Self::Burn(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Mint(element) => ::core::fmt::Display::fmt(element, f),
+                Self::MintToTreasury(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RecordTransferIn(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RecordTransferOut(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RemoveCollateral(element) => ::core::fmt::Display::fmt(element, f),
@@ -1288,6 +1339,11 @@ pub mod i_pool_token {
     impl ::core::convert::From<MintCall> for IPoolTokenCalls {
         fn from(value: MintCall) -> Self {
             Self::Mint(value)
+        }
+    }
+    impl ::core::convert::From<MintToTreasuryCall> for IPoolTokenCalls {
+        fn from(value: MintToTreasuryCall) -> Self {
+            Self::MintToTreasury(value)
         }
     }
     impl ::core::convert::From<RecordTransferInCall> for IPoolTokenCalls {
@@ -1368,7 +1424,7 @@ pub mod i_pool_token {
         Hash
     )]
     pub struct ApproveLiquidityReturn(pub bool);
-    ///Container type for all return fields from the `availableLiquidity` function with signature `availableLiquidity(uint256)` and selector `0x9787739d`
+    ///Container type for all return fields from the `availableLiquidity` function with signature `availableLiquidity()` and selector `0x74375359`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,

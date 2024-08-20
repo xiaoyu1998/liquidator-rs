@@ -668,6 +668,86 @@ pub mod reader {
                     ],
                 ),
                 (
+                    ::std::borrow::ToOwned::to_owned("getPoolPrice"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("getPoolPrice"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("dataStore"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("poolKey"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
+                                        ::std::vec![
+                                            ::ethers::core::abi::ethabi::ParamType::Address,
+                                            ::ethers::core::abi::ethabi::ParamType::String,
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                        ],
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned(
+                                            "struct ReaderUtils.GetPoolPrice",
+                                        ),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("getPoolToken"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("getPoolToken"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("dataStore"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("poolKey"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("getPools"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -1086,10 +1166,10 @@ pub mod reader {
             events: ::std::collections::BTreeMap::new(),
             errors: ::core::convert::From::from([
                 (
-                    ::std::borrow::ToOwned::to_owned("PoolNotFound"),
+                    ::std::borrow::ToOwned::to_owned("EmptyPool"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("PoolNotFound"),
+                            name: ::std::borrow::ToOwned::to_owned("EmptyPool"),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("key"),
@@ -1303,6 +1383,29 @@ pub mod reader {
                 .method_hash([72, 110, 81, 244], (data_store, pool_key))
                 .expect("method not found (this should never happen)")
         }
+        ///Calls the contract's `getPoolPrice` (0x03ed4a6d) function
+        pub fn get_pool_price(
+            &self,
+            data_store: ::ethers::core::types::Address,
+            pool_key: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, GetPoolPrice> {
+            self.0
+                .method_hash([3, 237, 74, 109], (data_store, pool_key))
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `getPoolToken` (0xfad51a9a) function
+        pub fn get_pool_token(
+            &self,
+            data_store: ::ethers::core::types::Address,
+            pool_key: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
+            self.0
+                .method_hash([250, 213, 26, 154], (data_store, pool_key))
+                .expect("method not found (this should never happen)")
+        }
         ///Calls the contract's `getPools` (0x5c39f467) function
         pub fn get_pools(
             &self,
@@ -1401,7 +1504,7 @@ pub mod reader {
             Self::new(contract.address(), contract.client())
         }
     }
-    ///Custom Error type `PoolNotFound` with signature `PoolNotFound(address)` and selector `0x6a34f98c`
+    ///Custom Error type `EmptyPool` with signature `EmptyPool(address)` and selector `0x00ee0bb5`
     #[derive(
         Clone,
         ::ethers::contract::EthError,
@@ -1414,8 +1517,8 @@ pub mod reader {
         Eq,
         Hash
     )]
-    #[etherror(name = "PoolNotFound", abi = "PoolNotFound(address)")]
-    pub struct PoolNotFound {
+    #[etherror(name = "EmptyPool", abi = "EmptyPool(address)")]
+    pub struct EmptyPool {
         pub key: ::ethers::core::types::Address,
     }
     ///Container type for all input parameters for the `getDebt` function with signature `getDebt(address,address,address)` and selector `0x1de39703`
@@ -1686,6 +1789,42 @@ pub mod reader {
         pub data_store: ::ethers::core::types::Address,
         pub pool_key: ::ethers::core::types::Address,
     }
+    ///Container type for all input parameters for the `getPoolPrice` function with signature `getPoolPrice(address,address)` and selector `0x03ed4a6d`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "getPoolPrice", abi = "getPoolPrice(address,address)")]
+    pub struct GetPoolPriceCall {
+        pub data_store: ::ethers::core::types::Address,
+        pub pool_key: ::ethers::core::types::Address,
+    }
+    ///Container type for all input parameters for the `getPoolToken` function with signature `getPoolToken(address,address)` and selector `0xfad51a9a`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "getPoolToken", abi = "getPoolToken(address,address)")]
+    pub struct GetPoolTokenCall {
+        pub data_store: ::ethers::core::types::Address,
+        pub pool_key: ::ethers::core::types::Address,
+    }
     ///Container type for all input parameters for the `getPools` function with signature `getPools(address)` and selector `0x5c39f467`
     #[derive(
         Clone,
@@ -1857,6 +1996,8 @@ pub mod reader {
         GetMaxAmountToRedeem(GetMaxAmountToRedeemCall),
         GetPool(GetPoolCall),
         GetPoolInfo(GetPoolInfoCall),
+        GetPoolPrice(GetPoolPriceCall),
+        GetPoolToken(GetPoolTokenCall),
         GetPools(GetPoolsCall),
         GetPoolsInfo(GetPoolsInfoCall),
         GetPoolsPrice(GetPoolsPriceCall),
@@ -1935,6 +2076,16 @@ pub mod reader {
                 data,
             ) {
                 return Ok(Self::GetPoolInfo(decoded));
+            }
+            if let Ok(decoded) = <GetPoolPriceCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::GetPoolPrice(decoded));
+            }
+            if let Ok(decoded) = <GetPoolTokenCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::GetPoolToken(decoded));
             }
             if let Ok(decoded) = <GetPoolsCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -2017,6 +2168,12 @@ pub mod reader {
                 Self::GetPoolInfo(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+                Self::GetPoolPrice(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::GetPoolToken(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::GetPools(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -2078,6 +2235,8 @@ pub mod reader {
                 }
                 Self::GetPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPoolInfo(element) => ::core::fmt::Display::fmt(element, f),
+                Self::GetPoolPrice(element) => ::core::fmt::Display::fmt(element, f),
+                Self::GetPoolToken(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPools(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPoolsInfo(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetPoolsPrice(element) => ::core::fmt::Display::fmt(element, f),
@@ -2153,6 +2312,16 @@ pub mod reader {
     impl ::core::convert::From<GetPoolInfoCall> for ReaderCalls {
         fn from(value: GetPoolInfoCall) -> Self {
             Self::GetPoolInfo(value)
+        }
+    }
+    impl ::core::convert::From<GetPoolPriceCall> for ReaderCalls {
+        fn from(value: GetPoolPriceCall) -> Self {
+            Self::GetPoolPrice(value)
+        }
+    }
+    impl ::core::convert::From<GetPoolTokenCall> for ReaderCalls {
+        fn from(value: GetPoolTokenCall) -> Self {
+            Self::GetPoolToken(value)
         }
     }
     impl ::core::convert::From<GetPoolsCall> for ReaderCalls {
@@ -2369,6 +2538,34 @@ pub mod reader {
         serde::Deserialize,
     )]
     pub struct GetPoolInfoReturn(pub GetPoolInfo);
+    ///Container type for all return fields from the `getPoolPrice` function with signature `getPoolPrice(address,address)` and selector `0x03ed4a6d`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetPoolPriceReturn(pub GetPoolPrice);
+    ///Container type for all return fields from the `getPoolToken` function with signature `getPoolToken(address,address)` and selector `0xfad51a9a`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetPoolTokenReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `getPools` function with signature `getPools(address)` and selector `0x5c39f467`
     #[derive(
         Clone,

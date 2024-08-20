@@ -81,6 +81,7 @@ pub mod i_exchange_router {
                                         ::std::vec![
                                             ::ethers::core::abi::ethabi::ParamType::Address,
                                             ::ethers::core::abi::ethabi::ParamType::Address,
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                         ],
                                     ),
                                     internal_type: ::core::option::Option::Some(
@@ -200,6 +201,36 @@ pub mod i_exchange_router {
                     ],
                 ),
                 (
+                    ::std::borrow::ToOwned::to_owned("executeRepaySubstitute"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "executeRepaySubstitute",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("params"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
+                                        ::std::vec![
+                                            ::ethers::core::abi::ethabi::ParamType::Address,
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Address,
+                                        ],
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned(
+                                            "struct RepaySubstituteUtils.RepaySubstituteParams",
+                                        ),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::Payable,
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("executeSupply"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -231,6 +262,37 @@ pub mod i_exchange_router {
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
                             name: ::std::borrow::ToOwned::to_owned("executeSwap"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("params"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
+                                        ::std::vec![
+                                            ::ethers::core::abi::ethabi::ParamType::Address,
+                                            ::ethers::core::abi::ethabi::ParamType::Address,
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                        ],
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned(
+                                            "struct SwapUtils.SwapParams",
+                                        ),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::Payable,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("executeSwapExactOut"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "executeSwapExactOut",
+                            ),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("params"),
@@ -351,13 +413,13 @@ pub mod i_exchange_router {
                 .method_hash([30, 204, 244, 111], (params,))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `executeClosePosition` (0x9091a6c0) function
+        ///Calls the contract's `executeClosePosition` (0x827eb78a) function
         pub fn execute_close_position(
             &self,
             params: ClosePositionParams,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([144, 145, 166, 192], (params,))
+                .method_hash([130, 126, 183, 138], (params,))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `executeDeposit` (0xef68ac96) function
@@ -396,6 +458,15 @@ pub mod i_exchange_router {
                 .method_hash([145, 82, 205, 30], (params,))
                 .expect("method not found (this should never happen)")
         }
+        ///Calls the contract's `executeRepaySubstitute` (0x2bf5e965) function
+        pub fn execute_repay_substitute(
+            &self,
+            params: RepaySubstituteParams,
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash([43, 245, 233, 101], (params,))
+                .expect("method not found (this should never happen)")
+        }
         ///Calls the contract's `executeSupply` (0x345bde74) function
         pub fn execute_supply(
             &self,
@@ -412,6 +483,15 @@ pub mod i_exchange_router {
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash([240, 228, 100, 107], (params,))
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `executeSwapExactOut` (0x8760de8b) function
+        pub fn execute_swap_exact_out(
+            &self,
+            params: SwapParams,
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash([135, 96, 222, 139], (params,))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `executeWithdraw` (0x92058b8f) function
@@ -464,7 +544,7 @@ pub mod i_exchange_router {
     pub struct ExecuteCloseCall {
         pub params: CloseParams,
     }
-    ///Container type for all input parameters for the `executeClosePosition` function with signature `executeClosePosition((address,address))` and selector `0x9091a6c0`
+    ///Container type for all input parameters for the `executeClosePosition` function with signature `executeClosePosition((address,address,uint256))` and selector `0x827eb78a`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -479,7 +559,7 @@ pub mod i_exchange_router {
     )]
     #[ethcall(
         name = "executeClosePosition",
-        abi = "executeClosePosition((address,address))"
+        abi = "executeClosePosition((address,address,uint256))"
     )]
     pub struct ExecuteClosePositionCall {
         pub params: ClosePositionParams,
@@ -552,6 +632,26 @@ pub mod i_exchange_router {
     pub struct ExecuteRepayCall {
         pub params: RepayParams,
     }
+    ///Container type for all input parameters for the `executeRepaySubstitute` function with signature `executeRepaySubstitute((address,uint256,address))` and selector `0x2bf5e965`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(
+        name = "executeRepaySubstitute",
+        abi = "executeRepaySubstitute((address,uint256,address))"
+    )]
+    pub struct ExecuteRepaySubstituteCall {
+        pub params: RepaySubstituteParams,
+    }
     ///Container type for all input parameters for the `executeSupply` function with signature `executeSupply((address,address))` and selector `0x345bde74`
     #[derive(
         Clone,
@@ -587,6 +687,26 @@ pub mod i_exchange_router {
         abi = "executeSwap((address,address,uint256,uint256))"
     )]
     pub struct ExecuteSwapCall {
+        pub params: SwapParams,
+    }
+    ///Container type for all input parameters for the `executeSwapExactOut` function with signature `executeSwapExactOut((address,address,uint256,uint256))` and selector `0x8760de8b`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(
+        name = "executeSwapExactOut",
+        abi = "executeSwapExactOut((address,address,uint256,uint256))"
+    )]
+    pub struct ExecuteSwapExactOutCall {
         pub params: SwapParams,
     }
     ///Container type for all input parameters for the `executeWithdraw` function with signature `executeWithdraw((address,uint256,address))` and selector `0x92058b8f`
@@ -628,8 +748,10 @@ pub mod i_exchange_router {
         ExecuteLiquidation(ExecuteLiquidationCall),
         ExecuteRedeem(ExecuteRedeemCall),
         ExecuteRepay(ExecuteRepayCall),
+        ExecuteRepaySubstitute(ExecuteRepaySubstituteCall),
         ExecuteSupply(ExecuteSupplyCall),
         ExecuteSwap(ExecuteSwapCall),
+        ExecuteSwapExactOut(ExecuteSwapExactOutCall),
         ExecuteWithdraw(ExecuteWithdrawCall),
     }
     impl ::ethers::core::abi::AbiDecode for IExchangeRouterCalls {
@@ -672,6 +794,11 @@ pub mod i_exchange_router {
             ) {
                 return Ok(Self::ExecuteRepay(decoded));
             }
+            if let Ok(decoded) = <ExecuteRepaySubstituteCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::ExecuteRepaySubstitute(decoded));
+            }
             if let Ok(decoded) = <ExecuteSupplyCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
@@ -681,6 +808,11 @@ pub mod i_exchange_router {
                 data,
             ) {
                 return Ok(Self::ExecuteSwap(decoded));
+            }
+            if let Ok(decoded) = <ExecuteSwapExactOutCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::ExecuteSwapExactOut(decoded));
             }
             if let Ok(decoded) = <ExecuteWithdrawCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -714,10 +846,16 @@ pub mod i_exchange_router {
                 Self::ExecuteRepay(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+                Self::ExecuteRepaySubstitute(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::ExecuteSupply(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::ExecuteSwap(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::ExecuteSwapExactOut(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::ExecuteWithdraw(element) => {
@@ -740,8 +878,14 @@ pub mod i_exchange_router {
                 }
                 Self::ExecuteRedeem(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ExecuteRepay(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ExecuteRepaySubstitute(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::ExecuteSupply(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ExecuteSwap(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ExecuteSwapExactOut(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::ExecuteWithdraw(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
@@ -781,6 +925,11 @@ pub mod i_exchange_router {
             Self::ExecuteRepay(value)
         }
     }
+    impl ::core::convert::From<ExecuteRepaySubstituteCall> for IExchangeRouterCalls {
+        fn from(value: ExecuteRepaySubstituteCall) -> Self {
+            Self::ExecuteRepaySubstitute(value)
+        }
+    }
     impl ::core::convert::From<ExecuteSupplyCall> for IExchangeRouterCalls {
         fn from(value: ExecuteSupplyCall) -> Self {
             Self::ExecuteSupply(value)
@@ -789,6 +938,11 @@ pub mod i_exchange_router {
     impl ::core::convert::From<ExecuteSwapCall> for IExchangeRouterCalls {
         fn from(value: ExecuteSwapCall) -> Self {
             Self::ExecuteSwap(value)
+        }
+    }
+    impl ::core::convert::From<ExecuteSwapExactOutCall> for IExchangeRouterCalls {
+        fn from(value: ExecuteSwapExactOutCall) -> Self {
+            Self::ExecuteSwapExactOut(value)
         }
     }
     impl ::core::convert::From<ExecuteWithdrawCall> for IExchangeRouterCalls {

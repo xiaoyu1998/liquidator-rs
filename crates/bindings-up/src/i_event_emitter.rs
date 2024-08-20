@@ -79,6 +79,55 @@ pub mod i_event_emitter {
                     ],
                 ),
                 (
+                    ::std::borrow::ToOwned::to_owned("emitClaimFees"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("emitClaimFees"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("underlyingAsset"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned(
+                                        "scaledUnclaimedFee",
+                                    ),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("liquidityIndex"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("unclaimedFee"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("emitClose"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -170,7 +219,9 @@ pub mod i_event_emitter {
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("collateralAmount"),
+                                    name: ::std::borrow::ToOwned::to_owned(
+                                        "collateralAmountToSell",
+                                    ),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Uint(
                                         256usize,
                                     ),
@@ -179,7 +230,16 @@ pub mod i_event_emitter {
                                     ),
                                 },
                                 ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("debtAmount"),
+                                    name: ::std::borrow::ToOwned::to_owned("debtAmountClosed"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("remainAmount"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Uint(
                                         256usize,
                                     ),
@@ -842,6 +902,26 @@ pub mod i_event_emitter {
                 )
                 .expect("method not found (this should never happen)")
         }
+        ///Calls the contract's `emitClaimFees` (0x9c845792) function
+        pub fn emit_claim_fees(
+            &self,
+            underlying_asset: ::ethers::core::types::Address,
+            scaled_unclaimed_fee: ::ethers::core::types::U256,
+            liquidity_index: ::ethers::core::types::U256,
+            unclaimed_fee: ::ethers::core::types::U256,
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash(
+                    [156, 132, 87, 146],
+                    (
+                        underlying_asset,
+                        scaled_unclaimed_fee,
+                        liquidity_index,
+                        unclaimed_fee,
+                    ),
+                )
+                .expect("method not found (this should never happen)")
+        }
         ///Calls the contract's `emitClose` (0x324ac765) function
         pub fn emit_close(
             &self,
@@ -864,27 +944,29 @@ pub mod i_event_emitter {
                 )
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `emitClosePosition` (0x87a454ec) function
+        ///Calls the contract's `emitClosePosition` (0x8705dcb3) function
         pub fn emit_close_position(
             &self,
             underlying_asset: ::ethers::core::types::Address,
             underlying_asset_usd: ::ethers::core::types::Address,
             account: ::ethers::core::types::Address,
-            collateral_amount: ::ethers::core::types::U256,
-            debt_amount: ::ethers::core::types::U256,
+            collateral_amount_to_sell: ::ethers::core::types::U256,
+            debt_amount_closed: ::ethers::core::types::U256,
+            remain_amount: ::ethers::core::types::U256,
             remain_amount_usd: ::ethers::core::types::U256,
             collateral_usd: ::ethers::core::types::U256,
             debt_scaled_usd: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash(
-                    [135, 164, 84, 236],
+                    [135, 5, 220, 179],
                     (
                         underlying_asset,
                         underlying_asset_usd,
                         account,
-                        collateral_amount,
-                        debt_amount,
+                        collateral_amount_to_sell,
+                        debt_amount_closed,
+                        remain_amount,
                         remain_amount_usd,
                         collateral_usd,
                         debt_scaled_usd,
@@ -1113,6 +1195,29 @@ pub mod i_event_emitter {
         pub collateral: ::ethers::core::types::U256,
         pub debt_scaled: ::ethers::core::types::U256,
     }
+    ///Container type for all input parameters for the `emitClaimFees` function with signature `emitClaimFees(address,uint256,uint256,uint256)` and selector `0x9c845792`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(
+        name = "emitClaimFees",
+        abi = "emitClaimFees(address,uint256,uint256,uint256)"
+    )]
+    pub struct EmitClaimFeesCall {
+        pub underlying_asset: ::ethers::core::types::Address,
+        pub scaled_unclaimed_fee: ::ethers::core::types::U256,
+        pub liquidity_index: ::ethers::core::types::U256,
+        pub unclaimed_fee: ::ethers::core::types::U256,
+    }
     ///Container type for all input parameters for the `emitClose` function with signature `emitClose(address,address,uint256,uint256,uint256)` and selector `0x324ac765`
     #[derive(
         Clone,
@@ -1137,7 +1242,7 @@ pub mod i_event_emitter {
         pub amount_usd_after_repay_and_sell_collateral: ::ethers::core::types::U256,
         pub amount_usd_after_buy_collateral_and_repay: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `emitClosePosition` function with signature `emitClosePosition(address,address,address,uint256,uint256,uint256,uint256,uint256)` and selector `0x87a454ec`
+    ///Container type for all input parameters for the `emitClosePosition` function with signature `emitClosePosition(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256)` and selector `0x8705dcb3`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -1152,14 +1257,15 @@ pub mod i_event_emitter {
     )]
     #[ethcall(
         name = "emitClosePosition",
-        abi = "emitClosePosition(address,address,address,uint256,uint256,uint256,uint256,uint256)"
+        abi = "emitClosePosition(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256)"
     )]
     pub struct EmitClosePositionCall {
         pub underlying_asset: ::ethers::core::types::Address,
         pub underlying_asset_usd: ::ethers::core::types::Address,
         pub account: ::ethers::core::types::Address,
-        pub collateral_amount: ::ethers::core::types::U256,
-        pub debt_amount: ::ethers::core::types::U256,
+        pub collateral_amount_to_sell: ::ethers::core::types::U256,
+        pub debt_amount_closed: ::ethers::core::types::U256,
+        pub remain_amount: ::ethers::core::types::U256,
         pub remain_amount_usd: ::ethers::core::types::U256,
         pub collateral_usd: ::ethers::core::types::U256,
         pub debt_scaled_usd: ::ethers::core::types::U256,
@@ -1397,6 +1503,7 @@ pub mod i_event_emitter {
     )]
     pub enum IEventEmitterCalls {
         EmitBorrow(EmitBorrowCall),
+        EmitClaimFees(EmitClaimFeesCall),
         EmitClose(EmitCloseCall),
         EmitClosePosition(EmitClosePositionCall),
         EmitDeposit(EmitDepositCall),
@@ -1418,6 +1525,11 @@ pub mod i_event_emitter {
                 data,
             ) {
                 return Ok(Self::EmitBorrow(decoded));
+            }
+            if let Ok(decoded) = <EmitClaimFeesCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmitClaimFees(decoded));
             }
             if let Ok(decoded) = <EmitCloseCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -1483,6 +1595,9 @@ pub mod i_event_emitter {
                 Self::EmitBorrow(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+                Self::EmitClaimFees(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::EmitClose(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -1523,6 +1638,7 @@ pub mod i_event_emitter {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
                 Self::EmitBorrow(element) => ::core::fmt::Display::fmt(element, f),
+                Self::EmitClaimFees(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmitClose(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmitClosePosition(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmitDeposit(element) => ::core::fmt::Display::fmt(element, f),
@@ -1542,6 +1658,11 @@ pub mod i_event_emitter {
     impl ::core::convert::From<EmitBorrowCall> for IEventEmitterCalls {
         fn from(value: EmitBorrowCall) -> Self {
             Self::EmitBorrow(value)
+        }
+    }
+    impl ::core::convert::From<EmitClaimFeesCall> for IEventEmitterCalls {
+        fn from(value: EmitClaimFeesCall) -> Self {
+            Self::EmitClaimFees(value)
         }
     }
     impl ::core::convert::From<EmitCloseCall> for IEventEmitterCalls {

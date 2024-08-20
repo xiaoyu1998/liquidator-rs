@@ -18,6 +18,17 @@ pub mod close_utils {
             events: ::std::collections::BTreeMap::new(),
             errors: ::core::convert::From::from([
                 (
+                    ::std::borrow::ToOwned::to_owned("ClosePercentageExceeding"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "ClosePercentageExceeding",
+                            ),
+                            inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("CollateralCanNotCoverDebt"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
@@ -41,6 +52,32 @@ pub mod close_utils {
                                     ),
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("EmptyCollateral"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyCollateral"),
+                            inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("key"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
                                     ),
                                 },
                             ],
@@ -159,10 +196,10 @@ pub mod close_utils {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("PoolIsPaused"),
+                    ::std::borrow::ToOwned::to_owned("PoolIsNotUsd"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("PoolIsPaused"),
+                            name: ::std::borrow::ToOwned::to_owned("PoolIsNotUsd"),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("pool"),
@@ -176,13 +213,13 @@ pub mod close_utils {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("PoolNotFound"),
+                    ::std::borrow::ToOwned::to_owned("PoolIsPaused"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("PoolNotFound"),
+                            name: ::std::borrow::ToOwned::to_owned("PoolIsPaused"),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("key"),
+                                    name: ::std::borrow::ToOwned::to_owned("pool"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Address,
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("address"),
@@ -295,6 +332,21 @@ pub mod close_utils {
             Self::new(contract.address(), contract.client())
         }
     }
+    ///Custom Error type `ClosePercentageExceeding` with signature `ClosePercentageExceeding()` and selector `0x553af544`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "ClosePercentageExceeding", abi = "ClosePercentageExceeding()")]
+    pub struct ClosePercentageExceeding;
     ///Custom Error type `CollateralCanNotCoverDebt` with signature `CollateralCanNotCoverDebt(uint256,uint256)` and selector `0xac3fb11d`
     #[derive(
         Clone,
@@ -315,6 +367,38 @@ pub mod close_utils {
     pub struct CollateralCanNotCoverDebt {
         pub collateral_amount: ::ethers::core::types::U256,
         pub debt_amount: ::ethers::core::types::U256,
+    }
+    ///Custom Error type `EmptyCollateral` with signature `EmptyCollateral()` and selector `0x6c53056d`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyCollateral", abi = "EmptyCollateral()")]
+    pub struct EmptyCollateral;
+    ///Custom Error type `EmptyPool` with signature `EmptyPool(address)` and selector `0x00ee0bb5`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyPool", abi = "EmptyPool(address)")]
+    pub struct EmptyPool {
+        pub key: ::ethers::core::types::Address,
     }
     ///Custom Error type `EmptyPosition` with signature `EmptyPosition()` and selector `0x4dfbbff3`
     #[derive(
@@ -420,6 +504,23 @@ pub mod close_utils {
     pub struct PoolIsNotBorrowing {
         pub pool: ::ethers::core::types::Address,
     }
+    ///Custom Error type `PoolIsNotUsd` with signature `PoolIsNotUsd(address)` and selector `0x72d66964`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "PoolIsNotUsd", abi = "PoolIsNotUsd(address)")]
+    pub struct PoolIsNotUsd {
+        pub pool: ::ethers::core::types::Address,
+    }
     ///Custom Error type `PoolIsPaused` with signature `PoolIsPaused(address)` and selector `0xdca37e03`
     #[derive(
         Clone,
@@ -436,23 +537,6 @@ pub mod close_utils {
     #[etherror(name = "PoolIsPaused", abi = "PoolIsPaused(address)")]
     pub struct PoolIsPaused {
         pub pool: ::ethers::core::types::Address,
-    }
-    ///Custom Error type `PoolNotFound` with signature `PoolNotFound(address)` and selector `0x6a34f98c`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(name = "PoolNotFound", abi = "PoolNotFound(address)")]
-    pub struct PoolNotFound {
-        pub key: ::ethers::core::types::Address,
     }
     ///Custom Error type `UsdCollateralCanNotCoverDebt` with signature `UsdCollateralCanNotCoverDebt(uint256,uint256,uint256,address)` and selector `0xb2a4b254`
     #[derive(
@@ -489,7 +573,10 @@ pub mod close_utils {
         Hash
     )]
     pub enum CloseUtilsErrors {
+        ClosePercentageExceeding(ClosePercentageExceeding),
         CollateralCanNotCoverDebt(CollateralCanNotCoverDebt),
+        EmptyCollateral(EmptyCollateral),
+        EmptyPool(EmptyPool),
         EmptyPosition(EmptyPosition),
         EmptyPositions(EmptyPositions),
         HealthFactorLowerThanLiquidationThreshold(
@@ -498,8 +585,8 @@ pub mod close_utils {
         PoolIsFrozen(PoolIsFrozen),
         PoolIsInactive(PoolIsInactive),
         PoolIsNotBorrowing(PoolIsNotBorrowing),
+        PoolIsNotUsd(PoolIsNotUsd),
         PoolIsPaused(PoolIsPaused),
-        PoolNotFound(PoolNotFound),
         UsdCollateralCanNotCoverDebt(UsdCollateralCanNotCoverDebt),
         /// The standard solidity revert string, with selector
         /// Error(string) -- 0x08c379a0
@@ -515,10 +602,25 @@ pub mod close_utils {
             ) {
                 return Ok(Self::RevertString(decoded));
             }
+            if let Ok(decoded) = <ClosePercentageExceeding as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::ClosePercentageExceeding(decoded));
+            }
             if let Ok(decoded) = <CollateralCanNotCoverDebt as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
                 return Ok(Self::CollateralCanNotCoverDebt(decoded));
+            }
+            if let Ok(decoded) = <EmptyCollateral as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyCollateral(decoded));
+            }
+            if let Ok(decoded) = <EmptyPool as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyPool(decoded));
             }
             if let Ok(decoded) = <EmptyPosition as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -550,15 +652,15 @@ pub mod close_utils {
             ) {
                 return Ok(Self::PoolIsNotBorrowing(decoded));
             }
+            if let Ok(decoded) = <PoolIsNotUsd as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::PoolIsNotUsd(decoded));
+            }
             if let Ok(decoded) = <PoolIsPaused as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
                 return Ok(Self::PoolIsPaused(decoded));
-            }
-            if let Ok(decoded) = <PoolNotFound as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::PoolNotFound(decoded));
             }
             if let Ok(decoded) = <UsdCollateralCanNotCoverDebt as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -571,7 +673,16 @@ pub mod close_utils {
     impl ::ethers::core::abi::AbiEncode for CloseUtilsErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
+                Self::ClosePercentageExceeding(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::CollateralCanNotCoverDebt(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::EmptyCollateral(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::EmptyPool(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::EmptyPosition(element) => {
@@ -592,10 +703,10 @@ pub mod close_utils {
                 Self::PoolIsNotBorrowing(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::PoolIsPaused(element) => {
+                Self::PoolIsNotUsd(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::PoolNotFound(element) => {
+                Self::PoolIsPaused(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::UsdCollateralCanNotCoverDebt(element) => {
@@ -610,9 +721,19 @@ pub mod close_utils {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
                 _ if selector
+                    == <ClosePercentageExceeding as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
                     == <CollateralCanNotCoverDebt as ::ethers::contract::EthError>::selector() => {
                     true
                 }
+                _ if selector
+                    == <EmptyCollateral as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <EmptyPool as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
                     == <EmptyPosition as ::ethers::contract::EthError>::selector() => {
                     true
@@ -636,9 +757,9 @@ pub mod close_utils {
                     true
                 }
                 _ if selector
-                    == <PoolIsPaused as ::ethers::contract::EthError>::selector() => true,
+                    == <PoolIsNotUsd as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
-                    == <PoolNotFound as ::ethers::contract::EthError>::selector() => true,
+                    == <PoolIsPaused as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
                     == <UsdCollateralCanNotCoverDebt as ::ethers::contract::EthError>::selector() => {
                     true
@@ -650,9 +771,14 @@ pub mod close_utils {
     impl ::core::fmt::Display for CloseUtilsErrors {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
+                Self::ClosePercentageExceeding(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::CollateralCanNotCoverDebt(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
+                Self::EmptyCollateral(element) => ::core::fmt::Display::fmt(element, f),
+                Self::EmptyPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyPosition(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyPositions(element) => ::core::fmt::Display::fmt(element, f),
                 Self::HealthFactorLowerThanLiquidationThreshold(element) => {
@@ -663,8 +789,8 @@ pub mod close_utils {
                 Self::PoolIsNotBorrowing(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
+                Self::PoolIsNotUsd(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PoolIsPaused(element) => ::core::fmt::Display::fmt(element, f),
-                Self::PoolNotFound(element) => ::core::fmt::Display::fmt(element, f),
                 Self::UsdCollateralCanNotCoverDebt(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -677,9 +803,24 @@ pub mod close_utils {
             Self::RevertString(value)
         }
     }
+    impl ::core::convert::From<ClosePercentageExceeding> for CloseUtilsErrors {
+        fn from(value: ClosePercentageExceeding) -> Self {
+            Self::ClosePercentageExceeding(value)
+        }
+    }
     impl ::core::convert::From<CollateralCanNotCoverDebt> for CloseUtilsErrors {
         fn from(value: CollateralCanNotCoverDebt) -> Self {
             Self::CollateralCanNotCoverDebt(value)
+        }
+    }
+    impl ::core::convert::From<EmptyCollateral> for CloseUtilsErrors {
+        fn from(value: EmptyCollateral) -> Self {
+            Self::EmptyCollateral(value)
+        }
+    }
+    impl ::core::convert::From<EmptyPool> for CloseUtilsErrors {
+        fn from(value: EmptyPool) -> Self {
+            Self::EmptyPool(value)
         }
     }
     impl ::core::convert::From<EmptyPosition> for CloseUtilsErrors {
@@ -713,14 +854,14 @@ pub mod close_utils {
             Self::PoolIsNotBorrowing(value)
         }
     }
+    impl ::core::convert::From<PoolIsNotUsd> for CloseUtilsErrors {
+        fn from(value: PoolIsNotUsd) -> Self {
+            Self::PoolIsNotUsd(value)
+        }
+    }
     impl ::core::convert::From<PoolIsPaused> for CloseUtilsErrors {
         fn from(value: PoolIsPaused) -> Self {
             Self::PoolIsPaused(value)
-        }
-    }
-    impl ::core::convert::From<PoolNotFound> for CloseUtilsErrors {
-        fn from(value: PoolNotFound) -> Self {
-            Self::PoolNotFound(value)
         }
     }
     impl ::core::convert::From<UsdCollateralCanNotCoverDebt> for CloseUtilsErrors {

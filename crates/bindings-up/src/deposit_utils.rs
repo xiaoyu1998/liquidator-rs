@@ -29,6 +29,23 @@ pub mod deposit_utils {
                     ],
                 ),
                 (
+                    ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("key"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("PoolIsFrozen"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
@@ -87,23 +104,6 @@ pub mod deposit_utils {
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("pool"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("address"),
-                                    ),
-                                },
-                            ],
-                        },
-                    ],
-                ),
-                (
-                    ::std::borrow::ToOwned::to_owned("PoolNotFound"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("PoolNotFound"),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("key"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Address,
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("address"),
@@ -183,6 +183,23 @@ pub mod deposit_utils {
     )]
     #[etherror(name = "EmptyDepositAmounts", abi = "EmptyDepositAmounts()")]
     pub struct EmptyDepositAmounts;
+    ///Custom Error type `EmptyPool` with signature `EmptyPool(address)` and selector `0x00ee0bb5`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyPool", abi = "EmptyPool(address)")]
+    pub struct EmptyPool {
+        pub key: ::ethers::core::types::Address,
+    }
     ///Custom Error type `PoolIsFrozen` with signature `PoolIsFrozen(address)` and selector `0x1f01e9db`
     #[derive(
         Clone,
@@ -251,23 +268,6 @@ pub mod deposit_utils {
     pub struct PoolIsPaused {
         pub pool: ::ethers::core::types::Address,
     }
-    ///Custom Error type `PoolNotFound` with signature `PoolNotFound(address)` and selector `0x6a34f98c`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(name = "PoolNotFound", abi = "PoolNotFound(address)")]
-    pub struct PoolNotFound {
-        pub key: ::ethers::core::types::Address,
-    }
     ///Container type for all of the contract's custom errors
     #[derive(
         Clone,
@@ -281,11 +281,11 @@ pub mod deposit_utils {
     )]
     pub enum DepositUtilsErrors {
         EmptyDepositAmounts(EmptyDepositAmounts),
+        EmptyPool(EmptyPool),
         PoolIsFrozen(PoolIsFrozen),
         PoolIsInactive(PoolIsInactive),
         PoolIsNotBorrowing(PoolIsNotBorrowing),
         PoolIsPaused(PoolIsPaused),
-        PoolNotFound(PoolNotFound),
         /// The standard solidity revert string, with selector
         /// Error(string) -- 0x08c379a0
         RevertString(::std::string::String),
@@ -304,6 +304,11 @@ pub mod deposit_utils {
                 data,
             ) {
                 return Ok(Self::EmptyDepositAmounts(decoded));
+            }
+            if let Ok(decoded) = <EmptyPool as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyPool(decoded));
             }
             if let Ok(decoded) = <PoolIsFrozen as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -325,11 +330,6 @@ pub mod deposit_utils {
             ) {
                 return Ok(Self::PoolIsPaused(decoded));
             }
-            if let Ok(decoded) = <PoolNotFound as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::PoolNotFound(decoded));
-            }
             Err(::ethers::core::abi::Error::InvalidData.into())
         }
     }
@@ -337,6 +337,9 @@ pub mod deposit_utils {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
                 Self::EmptyDepositAmounts(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::EmptyPool(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::PoolIsFrozen(element) => {
@@ -349,9 +352,6 @@ pub mod deposit_utils {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::PoolIsPaused(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::PoolNotFound(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
@@ -367,6 +367,8 @@ pub mod deposit_utils {
                     true
                 }
                 _ if selector
+                    == <EmptyPool as ::ethers::contract::EthError>::selector() => true,
+                _ if selector
                     == <PoolIsFrozen as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
                     == <PoolIsInactive as ::ethers::contract::EthError>::selector() => {
@@ -378,8 +380,6 @@ pub mod deposit_utils {
                 }
                 _ if selector
                     == <PoolIsPaused as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <PoolNotFound as ::ethers::contract::EthError>::selector() => true,
                 _ => false,
             }
         }
@@ -390,13 +390,13 @@ pub mod deposit_utils {
                 Self::EmptyDepositAmounts(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
+                Self::EmptyPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PoolIsFrozen(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PoolIsInactive(element) => ::core::fmt::Display::fmt(element, f),
                 Self::PoolIsNotBorrowing(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::PoolIsPaused(element) => ::core::fmt::Display::fmt(element, f),
-                Self::PoolNotFound(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RevertString(s) => ::core::fmt::Display::fmt(s, f),
             }
         }
@@ -409,6 +409,11 @@ pub mod deposit_utils {
     impl ::core::convert::From<EmptyDepositAmounts> for DepositUtilsErrors {
         fn from(value: EmptyDepositAmounts) -> Self {
             Self::EmptyDepositAmounts(value)
+        }
+    }
+    impl ::core::convert::From<EmptyPool> for DepositUtilsErrors {
+        fn from(value: EmptyPool) -> Self {
+            Self::EmptyPool(value)
         }
     }
     impl ::core::convert::From<PoolIsFrozen> for DepositUtilsErrors {
@@ -429,11 +434,6 @@ pub mod deposit_utils {
     impl ::core::convert::From<PoolIsPaused> for DepositUtilsErrors {
         fn from(value: PoolIsPaused) -> Self {
             Self::PoolIsPaused(value)
-        }
-    }
-    impl ::core::convert::From<PoolNotFound> for DepositUtilsErrors {
-        fn from(value: PoolNotFound) -> Self {
-            Self::PoolNotFound(value)
         }
     }
 }

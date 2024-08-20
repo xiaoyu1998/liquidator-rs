@@ -18,13 +18,28 @@ pub mod redeem_utils {
             events: ::std::collections::BTreeMap::new(),
             errors: ::core::convert::From::from([
                 (
-                    ::std::borrow::ToOwned::to_owned("CollateralBalanceIsZero"),
+                    ::std::borrow::ToOwned::to_owned("EmptyCollateral"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "CollateralBalanceIsZero",
-                            ),
+                            name: ::std::borrow::ToOwned::to_owned("EmptyCollateral"),
                             inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("key"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
                         },
                     ],
                 ),
@@ -148,23 +163,6 @@ pub mod redeem_utils {
                         },
                     ],
                 ),
-                (
-                    ::std::borrow::ToOwned::to_owned("PoolNotFound"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("PoolNotFound"),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("key"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("address"),
-                                    ),
-                                },
-                            ],
-                        },
-                    ],
-                ),
             ]),
             receive: false,
             fallback: false,
@@ -220,7 +218,7 @@ pub mod redeem_utils {
             Self::new(contract.address(), contract.client())
         }
     }
-    ///Custom Error type `CollateralBalanceIsZero` with signature `CollateralBalanceIsZero()` and selector `0xe43ec917`
+    ///Custom Error type `EmptyCollateral` with signature `EmptyCollateral()` and selector `0x6c53056d`
     #[derive(
         Clone,
         ::ethers::contract::EthError,
@@ -233,8 +231,25 @@ pub mod redeem_utils {
         Eq,
         Hash
     )]
-    #[etherror(name = "CollateralBalanceIsZero", abi = "CollateralBalanceIsZero()")]
-    pub struct CollateralBalanceIsZero;
+    #[etherror(name = "EmptyCollateral", abi = "EmptyCollateral()")]
+    pub struct EmptyCollateral;
+    ///Custom Error type `EmptyPool` with signature `EmptyPool(address)` and selector `0x00ee0bb5`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyPool", abi = "EmptyPool(address)")]
+    pub struct EmptyPool {
+        pub key: ::ethers::core::types::Address,
+    }
     ///Custom Error type `EmptyPosition` with signature `EmptyPosition()` and selector `0x4dfbbff3`
     #[derive(
         Clone,
@@ -354,23 +369,6 @@ pub mod redeem_utils {
     pub struct PoolIsPaused {
         pub pool: ::ethers::core::types::Address,
     }
-    ///Custom Error type `PoolNotFound` with signature `PoolNotFound(address)` and selector `0x6a34f98c`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(name = "PoolNotFound", abi = "PoolNotFound(address)")]
-    pub struct PoolNotFound {
-        pub key: ::ethers::core::types::Address,
-    }
     ///Container type for all of the contract's custom errors
     #[derive(
         Clone,
@@ -383,7 +381,8 @@ pub mod redeem_utils {
         Hash
     )]
     pub enum RedeemUtilsErrors {
-        CollateralBalanceIsZero(CollateralBalanceIsZero),
+        EmptyCollateral(EmptyCollateral),
+        EmptyPool(EmptyPool),
         EmptyPosition(EmptyPosition),
         EmptyRedeemAmount(EmptyRedeemAmount),
         HealthFactorLowerThanLiquidationThreshold(
@@ -393,7 +392,6 @@ pub mod redeem_utils {
         PoolIsInactive(PoolIsInactive),
         PoolIsNotBorrowing(PoolIsNotBorrowing),
         PoolIsPaused(PoolIsPaused),
-        PoolNotFound(PoolNotFound),
         /// The standard solidity revert string, with selector
         /// Error(string) -- 0x08c379a0
         RevertString(::std::string::String),
@@ -408,10 +406,15 @@ pub mod redeem_utils {
             ) {
                 return Ok(Self::RevertString(decoded));
             }
-            if let Ok(decoded) = <CollateralBalanceIsZero as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) = <EmptyCollateral as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
-                return Ok(Self::CollateralBalanceIsZero(decoded));
+                return Ok(Self::EmptyCollateral(decoded));
+            }
+            if let Ok(decoded) = <EmptyPool as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyPool(decoded));
             }
             if let Ok(decoded) = <EmptyPosition as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -448,18 +451,16 @@ pub mod redeem_utils {
             ) {
                 return Ok(Self::PoolIsPaused(decoded));
             }
-            if let Ok(decoded) = <PoolNotFound as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::PoolNotFound(decoded));
-            }
             Err(::ethers::core::abi::Error::InvalidData.into())
         }
     }
     impl ::ethers::core::abi::AbiEncode for RedeemUtilsErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
-                Self::CollateralBalanceIsZero(element) => {
+                Self::EmptyCollateral(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::EmptyPool(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::EmptyPosition(element) => {
@@ -483,9 +484,6 @@ pub mod redeem_utils {
                 Self::PoolIsPaused(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::PoolNotFound(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::RevertString(s) => ::ethers::core::abi::AbiEncode::encode(s),
             }
         }
@@ -495,9 +493,11 @@ pub mod redeem_utils {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
                 _ if selector
-                    == <CollateralBalanceIsZero as ::ethers::contract::EthError>::selector() => {
+                    == <EmptyCollateral as ::ethers::contract::EthError>::selector() => {
                     true
                 }
+                _ if selector
+                    == <EmptyPool as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
                     == <EmptyPosition as ::ethers::contract::EthError>::selector() => {
                     true
@@ -522,8 +522,6 @@ pub mod redeem_utils {
                 }
                 _ if selector
                     == <PoolIsPaused as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
-                    == <PoolNotFound as ::ethers::contract::EthError>::selector() => true,
                 _ => false,
             }
         }
@@ -531,9 +529,8 @@ pub mod redeem_utils {
     impl ::core::fmt::Display for RedeemUtilsErrors {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::CollateralBalanceIsZero(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::EmptyCollateral(element) => ::core::fmt::Display::fmt(element, f),
+                Self::EmptyPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyPosition(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptyRedeemAmount(element) => ::core::fmt::Display::fmt(element, f),
                 Self::HealthFactorLowerThanLiquidationThreshold(element) => {
@@ -545,7 +542,6 @@ pub mod redeem_utils {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::PoolIsPaused(element) => ::core::fmt::Display::fmt(element, f),
-                Self::PoolNotFound(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RevertString(s) => ::core::fmt::Display::fmt(s, f),
             }
         }
@@ -555,9 +551,14 @@ pub mod redeem_utils {
             Self::RevertString(value)
         }
     }
-    impl ::core::convert::From<CollateralBalanceIsZero> for RedeemUtilsErrors {
-        fn from(value: CollateralBalanceIsZero) -> Self {
-            Self::CollateralBalanceIsZero(value)
+    impl ::core::convert::From<EmptyCollateral> for RedeemUtilsErrors {
+        fn from(value: EmptyCollateral) -> Self {
+            Self::EmptyCollateral(value)
+        }
+    }
+    impl ::core::convert::From<EmptyPool> for RedeemUtilsErrors {
+        fn from(value: EmptyPool) -> Self {
+            Self::EmptyPool(value)
         }
     }
     impl ::core::convert::From<EmptyPosition> for RedeemUtilsErrors {
@@ -594,11 +595,6 @@ pub mod redeem_utils {
     impl ::core::convert::From<PoolIsPaused> for RedeemUtilsErrors {
         fn from(value: PoolIsPaused) -> Self {
             Self::PoolIsPaused(value)
-        }
-    }
-    impl ::core::convert::From<PoolNotFound> for RedeemUtilsErrors {
-        fn from(value: PoolNotFound) -> Self {
-            Self::PoolNotFound(value)
         }
     }
 }

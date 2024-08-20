@@ -18,6 +18,23 @@ pub mod supply_utils {
             events: ::std::collections::BTreeMap::new(),
             errors: ::core::convert::From::from([
                 (
+                    ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("EmptyPool"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("key"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("EmptySupplyAmounts"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
@@ -85,23 +102,6 @@ pub mod supply_utils {
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
                                     name: ::std::borrow::ToOwned::to_owned("pool"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("address"),
-                                    ),
-                                },
-                            ],
-                        },
-                    ],
-                ),
-                (
-                    ::std::borrow::ToOwned::to_owned("PoolNotFound"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("PoolNotFound"),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("key"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Address,
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("address"),
@@ -198,6 +198,23 @@ pub mod supply_utils {
             Self::new(contract.address(), contract.client())
         }
     }
+    ///Custom Error type `EmptyPool` with signature `EmptyPool(address)` and selector `0x00ee0bb5`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthError,
+        ::ethers::contract::EthDisplay,
+        serde::Serialize,
+        serde::Deserialize,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[etherror(name = "EmptyPool", abi = "EmptyPool(address)")]
+    pub struct EmptyPool {
+        pub key: ::ethers::core::types::Address,
+    }
     ///Custom Error type `EmptySupplyAmounts` with signature `EmptySupplyAmounts()` and selector `0xd52fec05`
     #[derive(
         Clone,
@@ -281,23 +298,6 @@ pub mod supply_utils {
     pub struct PoolIsPaused {
         pub pool: ::ethers::core::types::Address,
     }
-    ///Custom Error type `PoolNotFound` with signature `PoolNotFound(address)` and selector `0x6a34f98c`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthError,
-        ::ethers::contract::EthDisplay,
-        serde::Serialize,
-        serde::Deserialize,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[etherror(name = "PoolNotFound", abi = "PoolNotFound(address)")]
-    pub struct PoolNotFound {
-        pub key: ::ethers::core::types::Address,
-    }
     ///Custom Error type `SupplyCapacityExceeded` with signature `SupplyCapacityExceeded(uint256,uint256)` and selector `0xe321f56b`
     #[derive(
         Clone,
@@ -331,12 +331,12 @@ pub mod supply_utils {
         Hash
     )]
     pub enum SupplyUtilsErrors {
+        EmptyPool(EmptyPool),
         EmptySupplyAmounts(EmptySupplyAmounts),
         PoolIsFrozen(PoolIsFrozen),
         PoolIsInactive(PoolIsInactive),
         PoolIsNotBorrowing(PoolIsNotBorrowing),
         PoolIsPaused(PoolIsPaused),
-        PoolNotFound(PoolNotFound),
         SupplyCapacityExceeded(SupplyCapacityExceeded),
         /// The standard solidity revert string, with selector
         /// Error(string) -- 0x08c379a0
@@ -351,6 +351,11 @@ pub mod supply_utils {
                 data,
             ) {
                 return Ok(Self::RevertString(decoded));
+            }
+            if let Ok(decoded) = <EmptyPool as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::EmptyPool(decoded));
             }
             if let Ok(decoded) = <EmptySupplyAmounts as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -377,11 +382,6 @@ pub mod supply_utils {
             ) {
                 return Ok(Self::PoolIsPaused(decoded));
             }
-            if let Ok(decoded) = <PoolNotFound as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::PoolNotFound(decoded));
-            }
             if let Ok(decoded) = <SupplyCapacityExceeded as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
@@ -393,6 +393,9 @@ pub mod supply_utils {
     impl ::ethers::core::abi::AbiEncode for SupplyUtilsErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
+                Self::EmptyPool(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::EmptySupplyAmounts(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -408,9 +411,6 @@ pub mod supply_utils {
                 Self::PoolIsPaused(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::PoolNotFound(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::SupplyCapacityExceeded(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -422,6 +422,8 @@ pub mod supply_utils {
         fn valid_selector(selector: [u8; 4]) -> bool {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
+                _ if selector
+                    == <EmptyPool as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
                     == <EmptySupplyAmounts as ::ethers::contract::EthError>::selector() => {
                     true
@@ -439,8 +441,6 @@ pub mod supply_utils {
                 _ if selector
                     == <PoolIsPaused as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
-                    == <PoolNotFound as ::ethers::contract::EthError>::selector() => true,
-                _ if selector
                     == <SupplyCapacityExceeded as ::ethers::contract::EthError>::selector() => {
                     true
                 }
@@ -451,6 +451,7 @@ pub mod supply_utils {
     impl ::core::fmt::Display for SupplyUtilsErrors {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
+                Self::EmptyPool(element) => ::core::fmt::Display::fmt(element, f),
                 Self::EmptySupplyAmounts(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -460,7 +461,6 @@ pub mod supply_utils {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::PoolIsPaused(element) => ::core::fmt::Display::fmt(element, f),
-                Self::PoolNotFound(element) => ::core::fmt::Display::fmt(element, f),
                 Self::SupplyCapacityExceeded(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -471,6 +471,11 @@ pub mod supply_utils {
     impl ::core::convert::From<::std::string::String> for SupplyUtilsErrors {
         fn from(value: String) -> Self {
             Self::RevertString(value)
+        }
+    }
+    impl ::core::convert::From<EmptyPool> for SupplyUtilsErrors {
+        fn from(value: EmptyPool) -> Self {
+            Self::EmptyPool(value)
         }
     }
     impl ::core::convert::From<EmptySupplyAmounts> for SupplyUtilsErrors {
@@ -496,11 +501,6 @@ pub mod supply_utils {
     impl ::core::convert::From<PoolIsPaused> for SupplyUtilsErrors {
         fn from(value: PoolIsPaused) -> Self {
             Self::PoolIsPaused(value)
-        }
-    }
-    impl ::core::convert::From<PoolNotFound> for SupplyUtilsErrors {
-        fn from(value: PoolNotFound) -> Self {
-            Self::PoolNotFound(value)
         }
     }
     impl ::core::convert::From<SupplyCapacityExceeded> for SupplyUtilsErrors {
