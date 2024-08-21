@@ -240,7 +240,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .map_err(|e| error!("Error finding liq ops: {}", e))
             .ok()??;
 
-        info!("Best op - profit: {}", op.profit);
+        info!("Best op - borrower: {:?} profit: {}", op.borrower, op.profit);
 
         if op.profit <= I256::from(0) {
             info!("No profitable ops, passing");
@@ -279,6 +279,159 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                     .ok()?,
             }),
         }));
+    }
+
+   async fn get_best_liquidation_opportunity(&mut self) -> Result<Option<LiquidationOpportunity>> {
+        let underwaters = self.get_underwater_borrowers().await?;
+
+        if underwaters.len() == 0 {
+            return Err(anyhow!("No underwater borrowers found"));
+        }
+
+        info!("Found {} underwaters", underwaters.len());
+        let mut best_bonus: I256 = I256::MIN;
+        let mut best_op: Option<LiquidationOpportunity> = None;
+
+        for (borrower, _health_factor, user_total_collateral_usd, user_total_debt_usd) in underwaters {
+            if let Some(op) = self
+                .get_liquidation_profit(
+                    self.borrowers
+                        .get(&borrower)
+                        .ok_or(anyhow!("Borrower not found"))?,
+                    //&health_factor,
+                    &user_total_collateral_usd,
+                    &user_total_debt_usd,
+                )
+                .await
+                .map_err(|e| info!("Liquidation op failed {}", e))
+                .ok()
+            {
+                if op.profit > best_bonus {
+                    best_bonus = op.profit;
+                    best_op = Some(op);
+                }
+            }
+        }
+
+        Ok(best_op)
+    }
+
+    // for all known borrowers, return a sorted set of those with health factor < liquidation_threshold
+    async fn get_underwater_borrowers(&mut self) -> Result<Vec<(Address, U256, U256, U256)>> {
+        let mut underwater_borrowers = Vec::new();
+
+        let borrowers: Vec<&Borrower> = self
+            .borrowers
+            .values()
+            .filter(|b| b.positions.len() > 0)
+            .collect();
+
+        for chunk in borrowers.chunks(MULTICALL_CHUNK_SIZE) {
+            let result: Vec<(U256, U256, U256)> = chunk.iter().map(|borrower| {
+                let mut user_total_collateral_usd = U256::from(0);
+                let mut user_total_debt_usd = U256::from(0);
+                for (_, position) in &borrower.positions {
+                    let price = self.pools.get(&position.pool).unwrap().price;
+                    let decimals = self.pools.get(&position.pool).unwrap().decimals;
+                    let borrow_index = self.pools.get(&position.pool).unwrap().borrow_index;
+                    let debt = ray_mul(position.debt_scaled, borrow_index);
+                    user_total_collateral_usd += ray_mul(price, adjust_precision(position.collateral, decimals));
+                    user_total_debt_usd += ray_mul(price, adjust_precision(debt, decimals));
+                }               
+
+                let health_factor = if user_total_debt_usd == U256::zero() {
+                    U256::max_value()
+                } else {
+                    ray_div(user_total_collateral_usd, user_total_debt_usd) 
+                };
+
+                (health_factor, user_total_collateral_usd, user_total_debt_usd) 
+            }).collect();
+
+            for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
+                //info!("account {:?} {} {}", borrower.address, health_factor, self.liquidation_threshold);
+                if health_factor < self.liquidation_threshold {
+                    //prevent resend tx
+                    let now: DateTime<Utc> = Utc::now();
+                    match self.sents.get(&borrower.address) {
+                        Some(&sent_time) => {
+                            let duration: Duration = now - sent_time;
+                            if duration.num_seconds() < RETRY_DURATION_IN_SECS {
+                                continue;
+                            }
+                        },
+                        None => {}
+                    }
+
+                    info!(
+                        "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
+                        borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd
+                    );
+                    underwater_borrowers.push((borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd));
+                }
+            }
+        }
+
+        // sort borrowers by health factor
+        underwater_borrowers.sort_by(|a, b| a.1.cmp(&b.1));
+        Ok(underwater_borrowers)
+    }
+
+    async fn get_liquidation_profit(
+        &self,
+        borrower: &Borrower,
+//        health_factor: &U256,
+        user_total_collateral_usd: &U256,
+        user_total_debt_usd: &U256,
+    ) -> Result<LiquidationOpportunity> {
+        let mut profit: U256 = U256::zero();
+        if user_total_collateral_usd > user_total_debt_usd {
+            profit = user_total_collateral_usd - user_total_debt_usd;
+        }
+
+        let eth_price = self.pools.get(&self.config.eth).unwrap().price;
+        let mut op = LiquidationOpportunity {
+            borrower: borrower.address,
+            profit: I256::from_dec_str(&ray_div( profit, eth_price).to_string())?,
+            collaterals: Vec::new(),
+            debts: Vec::new(),
+            uniswap_fee: 3000,
+            gas_fee_usd: U256::zero() 
+        };
+        for (_, position) in &borrower.positions {
+            if position.collateral > U256::zero() {
+                op.collaterals.push(Asset{
+                    token: position.pool.clone(), 
+                    amount: position.collateral, 
+                });
+            }
+            if position.debt_scaled > U256::zero() {
+                op.debts.push(Asset{
+                    token: position.pool.clone(), 
+                    amount: position.debt_scaled, 
+                });
+            }
+        }
+        info!(
+            "op {:?} ", op
+        );
+
+
+        Ok(op)
+    }
+
+    async fn build_liquidation_tx(&self, op: &LiquidationOpportunity) -> Result<TypedTransaction> {
+        let liquidator = Liquidator::new(self.liquidator, self.client.clone());
+        let mut call = liquidator.liquidate(LiquidationParams{
+            account: op.borrower,
+            usd_token: self.config.usd,
+            collaterals: op.collaterals.clone(),
+            debts: op.debts.clone(),
+            uniswap_fee: 3000,
+            gas_fee_usd: U256::zero()
+
+        });
+        Ok(call.tx.set_chain_id(self.chain_id).clone())
     }
 
     // load borrower state cache from file if exists
@@ -731,159 +884,6 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         self.liquidation_threshold = reader.get_liquidation_health_factor(self.config.data_store).await?;
         info!("liquidation_threshold {:?}", self.liquidation_threshold);
         Ok(())
-    }
-
-    async fn get_best_liquidation_opportunity(&mut self) -> Result<Option<LiquidationOpportunity>> {
-        let underwaters = self.get_underwater_borrowers().await?;
-
-        if underwaters.len() == 0 {
-            return Err(anyhow!("No underwater borrowers found"));
-        }
-
-        info!("Found {} underwaters", underwaters.len());
-        let mut best_bonus: I256 = I256::MIN;
-        let mut best_op: Option<LiquidationOpportunity> = None;
-
-        for (borrower, _health_factor, user_total_collateral_usd, user_total_debt_usd) in underwaters {
-            if let Some(op) = self
-                .get_liquidation_profit(
-                    self.borrowers
-                        .get(&borrower)
-                        .ok_or(anyhow!("Borrower not found"))?,
-                    //&health_factor,
-                    &user_total_collateral_usd,
-                    &user_total_debt_usd,
-                )
-                .await
-                .map_err(|e| info!("Liquidation op failed {}", e))
-                .ok()
-            {
-                if op.profit > best_bonus {
-                    best_bonus = op.profit;
-                    best_op = Some(op);
-                }
-            }
-        }
-
-        Ok(best_op)
-    }
-
-    // for all known borrowers, return a sorted set of those with health factor < liquidation_threshold
-    async fn get_underwater_borrowers(&mut self) -> Result<Vec<(Address, U256, U256, U256)>> {
-        let mut underwater_borrowers = Vec::new();
-
-        let borrowers: Vec<&Borrower> = self
-            .borrowers
-            .values()
-            .filter(|b| b.positions.len() > 0)
-            .collect();
-
-        for chunk in borrowers.chunks(MULTICALL_CHUNK_SIZE) {
-            let result: Vec<(U256, U256, U256)> = chunk.iter().map(|borrower| {
-                let mut user_total_collateral_usd = U256::from(0);
-                let mut user_total_debt_usd = U256::from(0);
-                for (_, position) in &borrower.positions {
-                    let price = self.pools.get(&position.pool).unwrap().price;
-                    let decimals = self.pools.get(&position.pool).unwrap().decimals;
-                    let borrow_index = self.pools.get(&position.pool).unwrap().borrow_index;
-                    let debt = ray_mul(position.debt_scaled, borrow_index);
-                    user_total_collateral_usd += ray_mul(price, adjust_precision(position.collateral, decimals));
-                    user_total_debt_usd += ray_mul(price, adjust_precision(debt, decimals));
-                }               
-
-                let health_factor = if user_total_debt_usd == U256::zero() {
-                    U256::max_value()
-                } else {
-                    ray_div(user_total_collateral_usd, user_total_debt_usd) 
-                };
-
-                (health_factor, user_total_collateral_usd, user_total_debt_usd) 
-            }).collect();
-
-            for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
-                //info!("account {:?} {} {}", borrower.address, health_factor, self.liquidation_threshold);
-                if health_factor < self.liquidation_threshold {
-                    //prevent resend tx
-                    let now: DateTime<Utc> = Utc::now();
-                    match self.sents.get(&borrower.address) {
-                        Some(&sent_time) => {
-                            let duration: Duration = now - sent_time;
-                            if duration.num_seconds() < RETRY_DURATION_IN_SECS {
-                                continue;
-                            }
-                        },
-                        None => {}
-                    }
-
-                    info!(
-                        "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
-                        borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd
-                    );
-                    underwater_borrowers.push((borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd));
-                }
-            }
-        }
-
-        // sort borrowers by health factor
-        underwater_borrowers.sort_by(|a, b| a.1.cmp(&b.1));
-        Ok(underwater_borrowers)
-    }
-
-    async fn get_liquidation_profit(
-        &self,
-        borrower: &Borrower,
-//        health_factor: &U256,
-        user_total_collateral_usd: &U256,
-        user_total_debt_usd: &U256,
-    ) -> Result<LiquidationOpportunity> {
-        let mut profit: U256 = U256::zero();
-        if user_total_collateral_usd > user_total_debt_usd {
-            profit = user_total_collateral_usd - user_total_debt_usd;
-        }
-
-        let eth_price = self.pools.get(&self.config.eth).unwrap().price;
-        let mut op = LiquidationOpportunity {
-            borrower: borrower.address,
-            profit: I256::from_dec_str(&ray_div( profit, eth_price).to_string())?,
-            collaterals: Vec::new(),
-            debts: Vec::new(),
-            uniswap_fee: 3000,
-            gas_fee_usd: U256::zero() 
-        };
-        for (_, position) in &borrower.positions {
-            if position.collateral > U256::zero() {
-                op.collaterals.push(Asset{
-                    token: position.pool.clone(), 
-                    amount: position.collateral, 
-                });
-            }
-            if position.debt_scaled > U256::zero() {
-                op.debts.push(Asset{
-                    token: position.pool.clone(), 
-                    amount: position.debt_scaled, 
-                });
-            }
-        }
-        info!(
-            "op {:?} ", op
-        );
-
-
-        Ok(op)
-    }
-
-    async fn build_liquidation_tx(&self, op: &LiquidationOpportunity) -> Result<TypedTransaction> {
-        let liquidator = Liquidator::new(self.liquidator, self.client.clone());
-        let mut call = liquidator.liquidate(LiquidationParams{
-            account: op.borrower,
-            usd_token: self.config.usd,
-            collaterals: op.collaterals.clone(),
-            debts: op.debts.clone(),
-            uniswap_fee: 3000,
-            gas_fee_usd: U256::zero()
-
-        });
-        Ok(call.tx.set_chain_id(self.chain_id).clone())
     }
 
 }
