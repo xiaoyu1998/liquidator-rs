@@ -1,62 +1,20 @@
 {
   "USDT": {
-    "address": "0x1b220C1f46E3E4F2D0eC35eEC35129AE551d6467",
+    "address": "0x5081a39b8A5f0E35a8D959395a630b68B74Dd30f",
     "decimals": 6,
-    "oracle": "0x12569CDF0F041d98f42D84dB824374C396820f7a",
-    "oracleDecimals": 8
+    "oracle": "0x2E2Ed0Cfd3AD2f1d34481277b3204d807Ca2F8c2",
+    "oracleDecimals": 24
   },
   "UNI": {
-    "address": "0xE490272Ce1b5c15837016bD87cc1bD899387040a",
+    "address": "0x1fA02b2d6A771842690194Cf62D91bdd92BfE28d",
     "decimals": 18,
-    "oracle": "0x775D441eF91549568925Df0519d65547fb148132",
-    "oracleDecimals": 8
-  },
-  "WBTC": {
-    "address": "0x8a28e19cC8Ff38E2235bbf303f084DdbA8C6ee15",
-    "decimals": 8,
-    "oracle": "0xC88C20A5fBB780D1594a1e7D4a6180b7273A4CE5",
-    "oracleDecimals": 8
+    "oracle": "0xD8a5a9b31c3C0232E196d518E89Fd8bF83AcAd43",
+    "oracleDecimals": 12
   },
   "WETH": {
-    "address": "0x7bE92293D0e48a6A98aebeb6D488896e2045C17B",
+    "address": "0xdbC43Ba45381e02825b14322cDdd15eC4B3164E6",
     "decimals": 18,
-    "oracle": "0xCB66DEF834f0d2eC1678935A40F427F49bAc3E08",
-    "oracleDecimals": 8
-  },
-  "LINK": {
-    "address": "0x0D3252152a4133f603AebcFE48CCE6196243fA40",
-    "decimals": 18,
-    "oracle": "0x50e15c92c6c9D0a6CB21B7301eBf798d48328e78",
-    "oracleDecimals": 8
-  },
-  "MATIC": {
-    "address": "0xEaE8D2f420a254Cb062e1d5F92b08a4173725C42",
-    "decimals": 18,
-    "oracle": "0x8E4EE6E9576419b407C7BF0D3f98fE71184C2C7A",
-    "oracleDecimals": 8
-  },
-  "MKR": {
-    "address": "0x88F4A9312FF613c43b4DCA9873403885e12cFD91",
-    "decimals": 18,
-    "oracle": "0x23Be71b1Ac35aFd12773fD491d807D46DE16F5E5",
-    "oracleDecimals": 8
-  },
-  "SOL": {
-    "address": "0x59D492B867d64CF05919Cf77ff2782b3fF9E35d2",
-    "decimals": 9,
-    "oracle": "0x06F07b1c67A98C1FBBc8a31336D317D70faA0336",
-    "oracleDecimals": 8
-  },
-  "ARB": {
-    "address": "0x9734Fb63E86217EfBC54Bba85571bf173879CAE5",
-    "decimals": 18,
-    "oracle": "0x9DB4E17756848d3E0e2a1d1B06f12Eb10abDfe3e",
-    "oracleDecimals": 8
-  },
-  "AAVE": {
-    "address": "0x88422A361b02C671bAf7FfAD323D94b993689c24",
-    "decimals": 18,
-    "oracle": "0xF7aDEc46cB93Be3cEe3DBa1c03596E7058Dc1866",
-    "oracleDecimals": 8
+    "oracle": "0xDC11f7E700A4c898AE5CAddB1082cFfa76512aDD",
+    "oracleDecimals": 12
   }
 }

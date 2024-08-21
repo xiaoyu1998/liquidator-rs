@@ -473,34 +473,9 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("deposit {:?} {} {} {}", log.depositer, self.pools.get(&log.pool).unwrap().symbol, log.collateral, log.debt_scaled);   
+                info!("deposit {:?} {} {} {}", log.depositer, self.pools.get(&log.pool).unwrap().symbol, log.collateral, log.debt_scaled);  
                 let user = log.depositer;      
-                if self.borrowers.contains_key(&user) {
-                    let borrower = self.borrowers.get_mut(&user).unwrap();
-                    borrower.positions.insert(
-                        log.pool, 
-                        Position {
-                            pool:log.pool,
-                            collateral:log.collateral,
-                            debt_scaled:log.debt_scaled,
-                        }
-                    );
-                } else { 
-                    self.borrowers.insert(
-                        user,
-                        Borrower {
-                            address: user,
-                            positions: HashMap::from([(
-                                log.pool, 
-                                Position {
-                                    pool:log.pool,
-                                    collateral:log.collateral,
-                                    debt_scaled:log.debt_scaled,                               
-                                }
-                            )])
-                        },
-                    );
-                }
+                self.update_position(user, log.pool, log.collateral, log.debt_scaled);
                 return;
             });
 
@@ -510,32 +485,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .for_each(|log| {
                 info!("borrow {:?} {} {} {}", log.borrower, self.pools.get(&log.pool).unwrap().symbol, log.collateral, log.debt_scaled);   
                 let user = log.borrower;
-                if self.borrowers.contains_key(&user) {
-                    let borrower = self.borrowers.get_mut(&user).unwrap();
-                    borrower.positions.insert(
-                        log.pool, 
-                        Position {
-                            pool:log.pool,
-                            collateral:log.collateral,
-                            debt_scaled:log.debt_scaled,
-                        }
-                    );
-                } else {
-                    self.borrowers.insert(
-                        user,
-                        Borrower {
-                            address: user,
-                            positions: HashMap::from([(
-                                log.pool, 
-                                Position {
-                                    pool:log.pool,
-                                    collateral:log.collateral,
-                                    debt_scaled:log.debt_scaled
-                                }
-                            )])
-                        },
-                    );
-                }
+                self.update_position(user, log.pool, log.collateral, log.debt_scaled);
                 return;
             });
 
@@ -545,18 +495,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .for_each(|log| {
                 info!("repay {:?} {} {} {}", log.repayer, self.pools.get(&log.pool).unwrap().symbol, log.collateral, log.debt_scaled);   
                 let user = log.repayer;
-                let borrower = self.borrowers.get_mut(&user).unwrap();
-                borrower.positions.insert(
-                    log.pool, 
-                    Position {
-                        pool:log.pool,
-                        collateral:log.collateral,
-                        debt_scaled:log.debt_scaled
-                    }
-                ); 
-                // if log.collateral == U256::from(0) && log.debt_scaled == U256::from(0)  {
-                //     self.borrowers.remove(&user);
-                // }          
+                self.update_position(user, log.pool, log.collateral, log.debt_scaled);          
                 return;
             });
 
@@ -566,18 +505,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .for_each(|log| {
                 info!("redeem {:?} {} {} {}", log.redeemer, self.pools.get(&log.pool).unwrap().symbol, log.collateral, log.debt_scaled); 
                 let user = log.redeemer;
-                let borrower = self.borrowers.get_mut(&user).unwrap();
-                borrower.positions.insert(
-                    log.pool,
-                    Position {
-                        pool:log.pool,
-                        collateral:log.collateral,
-                        debt_scaled:log.debt_scaled,
-                    }
-                );
-                // if log.collateral == U256::from(0)  && log.debt_scaled == U256::from(0)  {
-                //     self.borrowers.remove(&user);
-                // }          
+                self.update_position(user, log.pool, log.collateral, log.debt_scaled);        
                 return;
             });
 
@@ -588,23 +516,8 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 info!("swapIn {:?} {} {} {}", log.account, self.pools.get(&log.pool_in).unwrap().symbol, log.collateral_in, log.debt_scaled_in); 
                 info!("swapOut {:?} {} {} {}", log.account, self.pools.get(&log.pool_out).unwrap().symbol, log.collateral_out, log.debt_scaled_out); 
                 let user = log.account;
-                let borrower = self.borrowers.get_mut(&user).unwrap();
-                borrower.positions.insert(
-                    log.pool_in, 
-                    Position {
-                        pool:log.pool_in,
-                        collateral:log.collateral_in,
-                        debt_scaled:log.debt_scaled_in
-                    }
-                );
-                borrower.positions.insert(
-                    log.pool_out,
-                    Position {
-                        pool:log.pool_out,
-                        collateral:log.collateral_out,
-                        debt_scaled:log.debt_scaled_out
-                    }
-                );
+                self.update_position(user, log.pool_in, log.collateral_in, log.debt_scaled_in);
+                self.update_position(user, log.pool_out, log.collateral_out, log.debt_scaled_out);
                 return;
             });
 
@@ -624,16 +537,8 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .for_each(|log| {
                 info!("close_position {:?} {} {} {} {} ", log.account, self.pools.get(&log.pool).unwrap().symbol, self.pools.get(&log.pool_usd).unwrap().symbol, log.collateral_usd, log.debt_scaled_usd); 
                 let user = log.account;
-                let borrower = self.borrowers.get_mut(&user).unwrap();
-                borrower.positions.remove(&log.pool);
-                borrower.positions.insert(
-                    log.pool_usd, 
-                    Position {
-                        pool:log.pool_usd,
-                        collateral:log.collateral_usd,
-                        debt_scaled:log.debt_scaled_usd,
-                    }
-                );
+                self.update_position(user, log.pool_usd, log.collateral_usd, log.debt_scaled_usd);
+                //self.update_position(user, log.pool, log.remain_collateral, log.remain_debt);
                 return;
             });
 
@@ -641,7 +546,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("close {}", log.account);
+                info!("close {:?}", log.account);
                 let user = log.account;
                 self.borrowers.remove(&user);
                 return;
@@ -880,6 +785,49 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         self.liquidation_threshold = reader.get_liquidation_health_factor(self.config.data_store).await?;
         info!("liquidation_threshold {:?}", self.liquidation_threshold);
         Ok(())
+    }
+
+    fn update_position(&mut self, account: Address, pool: Address, collateral: U256, debt_scaled: U256) {
+        //remove position and remove borrower
+        if collateral == U256::zero() && debt_scaled == U256::zero(){
+            if self.borrowers.contains_key(&account) {
+                let borrower = self.borrowers.get_mut(&account).unwrap();
+                borrower.positions.remove(&pool);
+                if borrower.positions.len() == 0 {
+                    self.borrowers.remove(&account);
+                }
+            }
+            return
+        }
+
+        //insert position and insert borrower
+        if self.borrowers.contains_key(&account) {
+            let borrower = self.borrowers.get_mut(&account).unwrap();
+            borrower.positions.insert(
+                pool, 
+                Position {
+                    pool:pool,
+                    collateral:collateral,
+                    debt_scaled:debt_scaled,
+                }
+            );
+        } else {
+            self.borrowers.insert(
+                account,
+                Borrower {
+                    address: account,
+                    positions: HashMap::from([(
+                        pool, 
+                        Position {
+                            pool:pool,
+                            collateral:collateral,
+                            debt_scaled:debt_scaled
+                        }
+                    )])
+                },
+            );
+        }
+
     }
 
 }
