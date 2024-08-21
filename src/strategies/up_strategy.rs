@@ -469,7 +469,6 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
         self.update_liquidation_threshold().await?;
 
-    
         self.get_deposit_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
@@ -486,7 +485,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                             debt_scaled:log.debt_scaled,
                         }
                     );
-                } else {
+                } else { 
                     self.borrowers.insert(
                         user,
                         Borrower {
@@ -555,9 +554,9 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                         debt_scaled:log.debt_scaled
                     }
                 ); 
-                if log.collateral == U256::from(0) && log.debt_scaled == U256::from(0)  {
-                    self.borrowers.remove(&user);
-                }          
+                // if log.collateral == U256::from(0) && log.debt_scaled == U256::from(0)  {
+                //     self.borrowers.remove(&user);
+                // }          
                 return;
             });
 
@@ -576,9 +575,9 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                         debt_scaled:log.debt_scaled,
                     }
                 );
-                if log.collateral == U256::from(0)  && log.debt_scaled == U256::from(0)  {
-                    self.borrowers.remove(&user);
-                }          
+                // if log.collateral == U256::from(0)  && log.debt_scaled == U256::from(0)  {
+                //     self.borrowers.remove(&user);
+                // }          
                 return;
             });
 
@@ -589,7 +588,6 @@ impl<M: Middleware + 'static> UpStrategy<M> {
                 info!("swapIn {:?} {} {} {}", log.account, self.pools.get(&log.pool_in).unwrap().symbol, log.collateral_in, log.debt_scaled_in); 
                 info!("swapOut {:?} {} {} {}", log.account, self.pools.get(&log.pool_out).unwrap().symbol, log.collateral_out, log.debt_scaled_out); 
                 let user = log.account;
-                //info!("swap {}", log);
                 let borrower = self.borrowers.get_mut(&user).unwrap();
                 borrower.positions.insert(
                     log.pool_in, 
@@ -667,8 +665,6 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     // fetch all deposit events from the from_block to to_block
     async fn get_deposit_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<DepositFilter>> {
         let event_emitter = EventEmitter::<M>::new(self.config.event_emitter, self.client.clone());
-        //info!("event_emitter {:?}", event_emitter );
-        //info!("client {:?}", self.client );
         let mut res = Vec::new();
         for start_block in
             (from_block.as_u64()..to_block.as_u64()).step_by(LOG_BLOCK_RANGE as usize)
