@@ -514,7 +514,8 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     // fetch all deposit events from the from_block to to_block
     async fn get_deposit_logs(&self, from_block: U64, to_block: U64) -> Result<Vec<DepositFilter>> {
         let event_emitter = EventEmitter::<M>::new(self.config.event_emitter, self.client.clone());
-
+        //info!("event_emitter {:?}", event_emitter );
+        //info!("client {:?}", self.client );
         let mut res = Vec::new();
         for start_block in
             (from_block.as_u64()..to_block.as_u64()).step_by(LOG_BLOCK_RANGE as usize)
@@ -728,6 +729,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
     async fn update_liquidation_threshold(&mut self) -> Result<()> {
         let reader = Reader::<M>::new(self.config.reader, self.client.clone());
         self.liquidation_threshold = reader.get_liquidation_health_factor(self.config.data_store).await?;
+        info!("liquidation_threshold {:?}", self.liquidation_threshold);
         Ok(())
     }
 
