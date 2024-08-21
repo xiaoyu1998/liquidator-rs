@@ -79,7 +79,7 @@ fn get_deployment_config(deployment: Deployment, last_block_number: u64) -> Depl
             event_emitter: *up_contracts.get("EventEmitter#EventEmitter").unwrap(),
             exchange_router: *up_contracts.get("ExchangeRouter#ExchangeRouter").unwrap(),
             liquidation_handler: *up_contracts.get("LiquidationHandler#LiquidationHandler").unwrap(),
-            eth: underly_assets.get("ETH").unwrap().address,
+            eth: underly_assets.get("WETH").unwrap().address,
             usd: underly_assets.get("USDT").unwrap().address,
             last_block_number: last_block_number,
         }
@@ -242,7 +242,7 @@ impl<M: Middleware + 'static> UpStrategy<M> {
 
         info!("Best op - profit: {}", op.profit);
 
-        if op.profit < I256::from(0) {
+        if op.profit <= I256::from(0) {
             info!("No profitable ops, passing");
             return None;
         }
@@ -836,11 +836,15 @@ impl<M: Middleware + 'static> UpStrategy<M> {
         user_total_collateral_usd: &U256,
         user_total_debt_usd: &U256,
     ) -> Result<LiquidationOpportunity> {
+        let mut profit: U256 = U256::zero();
+        if user_total_collateral_usd > user_total_debt_usd {
+            profit = user_total_collateral_usd - user_total_debt_usd;
+        }
 
         let eth_price = self.pools.get(&self.config.eth).unwrap().price;
         let mut op = LiquidationOpportunity {
             borrower: borrower.address,
-            profit: I256::from_dec_str(&ray_div( user_total_collateral_usd - user_total_debt_usd, eth_price).to_string())?,
+            profit: I256::from_dec_str(&ray_div( profit, eth_price).to_string())?,
             collaterals: Vec::new(),
             debts: Vec::new(),
             uniswap_fee: 3000,
