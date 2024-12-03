@@ -6,7 +6,6 @@ use artemis_core::types::Strategy;
 use async_trait::async_trait;
 use bindings_up::{
     reader::Reader,
-    //exchange_router::ExchangeRouter,
     event_emitter::{
         EventEmitter, 
         DepositFilter, 
@@ -45,7 +44,6 @@ struct DeploymentConfig {
     data_store: Address,
     reader: Address,
     event_emitter: Address,
-    exchange_router: Address,
     liquidation_handler: Address,
     eth: Address,
     usd: Address,
@@ -77,7 +75,6 @@ fn get_deployment_config(deployment: Deployment, last_block_number: u64) -> Depl
             data_store: *up_contracts.get("DataStore#DataStore").unwrap(),
             reader: *up_contracts.get("Reader#Reader").unwrap(),
             event_emitter: *up_contracts.get("EventEmitter#EventEmitter").unwrap(),
-            exchange_router: *up_contracts.get("ExchangeRouter#ExchangeRouter").unwrap(),
             liquidation_handler: *up_contracts.get("LiquidationHandler#LiquidationHandler").unwrap(),
             eth: underly_assets.get("WETH").unwrap().address,
             usd: underly_assets.get("USDT").unwrap().address,
@@ -193,13 +190,11 @@ impl<M: Middleware + 'static> Strategy<Event, Action> for UpStrategy<M> {
         info!("self.config.data_store {:?}", self.config.data_store);
         info!("self.config.reader {:?}", self.config.reader);
         info!("self.config.event_emitter {:?}", self.config.event_emitter);
-        info!("self.config.exchange_router {:?}", self.config.exchange_router);
         info!("self.config.liquidation_handler {:?}", self.config.liquidation_handler);
         info!("self.config.eth {:?}", self.config.eth);
         info!("self.config.usd {:?}", self.config.usd);
                 
         self.update_pools().await?;
-        //self.approve_tokens().await?;
         self.load_cache()?;
         self.update_state().await?;
 
