@@ -1,13 +1,13 @@
 [package]
-name = "up-liquidator"
+name = "mm-liquidator"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bindings-up = { path = "./crates/bindings-up" }
-bindings-liquidator = { path = "./crates/bindings-liquidator" }
-
+bindings-mm = { path = "./crates/bindings-mm" }
 artemis-core = { git = "https://github.com/paradigmxyz/artemis"}
+alloy = { version = "0.7.3", features = ["full"] }
+alloy-primitives = "0.8.11"
 ethers = { version = "2", features = ["ws", "rustls"]}
 tokio = { version = "1.18", features = ["full"] }
 dotenv = "0.15.0"
@@ -23,7 +23,6 @@ crossbeam = "0.8.2"
 crossbeam-channel = "0.5.8"
 tokio-stream = "0.1.14"
 reqwest = "0.11.18"
-alloy-primitives = "0.2.0"
 serde_qs = "0.12.0"
 async-stream = "0.3.5"
 mockito = "1.1.0"
@@ -31,3 +30,4 @@ serde_json = "1.0.105"
 ethers-contract = "2.0.9"
 hex = "0.4.3"
 chrono = "0.4"
+sha3 = "0.10"

@@ -17,5 +17,4 @@ pub enum Action {
 #[derive(Debug, Clone)]
 pub struct Config {
     pub chain_id: u64,
-    pub bid_percentage: u64,
 }
