@@ -28,7 +28,7 @@ impl TimeCollector {
 /// This implementation uses the [PubsubClient](PubsubClient) to subscribe to new blocks.
 #[async_trait]
 impl Collector<NewTick> for TimeCollector {
-    async fn get_event_stream(&self) -> Result<CollectorStream<'_, NewTick>> {
+    async fn get_event_stream<'a>(&'a self) -> Result<CollectorStream<'a, NewTick>> {
         let stream = IntervalStream::new(tokio::time::interval(Duration::from_secs(
             self.poll_secs,
         )))

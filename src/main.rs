@@ -8,7 +8,7 @@ use collectors::time_collector::TimeCollector;
 use alloy::{
     network::EthereumWallet,
     signers::local::PrivateKeySigner,
-    providers::{Provider, ProviderBuilder}, 
+    providers::ProviderBuilder, 
 };
 
 use executors::protect_executor::ProtectExecutor;
@@ -111,16 +111,16 @@ async fn main() -> Result<()> {
         )
     );
 
-    // let executor = ExecutorMap::new(executor, |action| match action {
-    //     Action::SubmitTx(tx) => Some(tx),
-    // });
+    let executor = ExecutorMap::new(executor, |action| match action {
+        Action::SubmitTx(tx) => Some(tx),
+    });
 
-    // engine.add_executor(Box::new(executor));
-    // // Start engine.
-    // if let Ok(mut set) = engine.run().await {
-    //     while let Some(res) = set.join_next().await {
-    //         info!("res: {:?}", res);
-    //     }
-    // }
+    engine.add_executor(Box::new(executor));
+    // Start engine.
+    if let Ok(mut set) = engine.run().await {
+        while let Some(res) = set.join_next().await {
+            info!("res: {:?}", res);
+        }
+    }
     Ok(())
 }
