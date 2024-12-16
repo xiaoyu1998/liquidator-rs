@@ -96,16 +96,16 @@ pub struct StateCache {
     last_block_number: u64,
     borrowers: HashMap<Address, Borrower>,
     pools: HashMap<Bytes32, Pool>,
-    sents: HashMap<Address, DateTime<Utc>>,
+    //sents: HashMap<Address, DateTime<Utc>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Position {
     pool: Bytes32,
     base_collateral: U256,
-    base_debtScaled: U256,
+    base_debt_scaled: U256,
     meme_collateral: U256,
-    meme_debtScaled: U256,
+    meme_debt_scaled: U256,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -153,7 +153,7 @@ pub struct MmStrategy<T, P, N = alloy_contract::private::Ethereum>
     last_block_number: u64,
     borrowers: HashMap<Address, Borrower>,
     pools: HashMap<Bytes32, Pool>,
-    sents: HashMap<Address, DateTime<Utc>>,
+    //sents: HashMap<Address, DateTime<Utc>>,
     chain_id: u64,
     config: DeploymentConfig,
     liquidator: Address,
@@ -179,7 +179,7 @@ impl<
             last_block_number: last_block_number,
             borrowers: HashMap::new(),
             pools: HashMap::new(),
-            sents: HashMap::new(),
+            //sents: HashMap::new(),
             chain_id: config.chain_id,
             config: get_deployment_config(deployment, last_block_number),
             liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
@@ -452,7 +452,7 @@ impl<
                 self.last_block_number = cache.last_block_number;
                 self.borrowers = cache.borrowers;
                 self.pools = cache.pools;
-                self.sents = cache.sents;
+                //self.sents = cache.sents;
             }
             Err(_) => {
                 info!("no state cache file found, creating new one");
@@ -580,7 +580,7 @@ impl<
             last_block_number: latest_block,
             borrowers: self.borrowers.clone(),
             pools: self.pools.clone(),
-            sents: self.sents.clone(),
+            //sents: self.sents.clone(),
         };
         self.last_block_number = latest_block;
         let file = File::create(STATE_CACHE_FILE)?;
@@ -810,13 +810,13 @@ impl<
         account: Address, 
         pool: Bytes32, 
         base_collateral: U256, 
-        base_debtScaled: U256, 
+        base_debt_scaled: U256, 
         meme_collateral: U256, 
-        meme_debtScaled: U256
+        meme_debt_scaled: U256
     ) {
         //remove position and remove borrower
         if base_collateral == U256::ZERO && meme_collateral == U256::ZERO && 
-           base_debtScaled == U256::ZERO && meme_debtScaled == U256::ZERO {
+           base_debt_scaled == U256::ZERO && meme_debt_scaled == U256::ZERO {
             if self.borrowers.contains_key(&account) {
                 let borrower = self.borrowers.get_mut(&account).unwrap();
                 borrower.positions.remove(&pool);
@@ -835,9 +835,9 @@ impl<
                 Position {
                     pool:pool,
                     base_collateral:base_collateral,
-                    base_debtScaled:base_debtScaled,
+                    base_debt_scaled:base_debt_scaled,
                     meme_collateral:meme_collateral,
-                    meme_debtScaled:meme_debtScaled,
+                    meme_debt_scaled:meme_debt_scaled,
                 }
             );
         } else {
@@ -850,9 +850,9 @@ impl<
                         Position {
                             pool:pool,
                             base_collateral:base_collateral,
-                            base_debtScaled:base_debtScaled,
+                            base_debt_scaled:base_debt_scaled,
                             meme_collateral:meme_collateral,
-                            meme_debtScaled:meme_debtScaled,
+                            meme_debt_scaled:meme_debt_scaled,
                         }
                     )])
                 },

@@ -79,19 +79,17 @@ async fn main() -> Result<()> {
     let signer: PrivateKeySigner = args.private_key.parse().expect("should parse private key");
     let wallet = EthereumWallet::from(signer);
 
-    // let address = wallet.address();
-    // info!("address {:?}", address);
-
     let rpc = (&args.rpc).parse()?;
     let provider = ProviderBuilder::new().with_cached_nonce_management().wallet(wallet.clone()).on_http(rpc);
+    //let provider = ProviderBuilder::new().wallet(wallet.clone()).on_http(rpc);
 
     // // Set up engine.
-    // let mut engine: Engine<Event, Action> = Engine::default();
+    let mut engine: Engine<Event, Action> = Engine::default();
 
     // // Set up time collector.
-    // let time_collector = Box::new(TimeCollector::new(args.pool_interval_secs));
-    // let time_collector = CollectorMap::new(time_collector, Event::NewTick);
-    // engine.add_collector(Box::new(time_collector));
+    let time_collector = Box::new(TimeCollector::new(args.pool_interval_secs));
+    let time_collector = CollectorMap::new(time_collector, Event::NewTick);
+    engine.add_collector(Box::new(time_collector));
 
     let config = Config {
         chain_id: chain_id,
@@ -104,9 +102,14 @@ async fn main() -> Result<()> {
         args.liquidator_address,
         args.last_block_number,
     );
-    // engine.add_strategy(Box::new(strategy));
+    engine.add_strategy(Box::new(strategy));
 
-    // let executor = Box::new(ProtectExecutor::new(provider.clone(), provider.clone()));
+    let executor = Box::new(
+        ProtectExecutor::new(
+            Arc::new(provider.clone()), 
+            Arc::new(provider.clone())
+        )
+    );
 
     // let executor = ExecutorMap::new(executor, |action| match action {
     //     Action::SubmitTx(tx) => Some(tx),
