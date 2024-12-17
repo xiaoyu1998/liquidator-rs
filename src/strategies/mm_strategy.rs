@@ -10,6 +10,7 @@ use bindings_mm::{
     //shared_types::LiquidationParams,
     //ierc20::IERC20,
 };
+use std::future::IntoFuture;
 // use bindings_liquidator::{
 //     liquidator::{Liquidator, LiquidationParams, Asset},
 // };
@@ -24,7 +25,7 @@ use tracing::{error, info};
 use chrono::{DateTime, Duration, Utc};
 use clap::{Parser, ValueEnum};
 use super::types::{Action, Event};
-use alloy_primitives::{Address, Uint};
+//use alloy_primitives::{Address, Uint, String};
 use sha3::{Digest, Keccak256};
 //use alloy::contract as alloy_contract;
 
@@ -33,6 +34,7 @@ use alloy::{
     network::EthereumWallet,
     //signers::local::PrivateKeySigner,
     providers::{ProviderBuilder}, 
+    sol_types::private::{Address, Uint},
 };
 
 type Bytes32 = [u8; 32];
@@ -119,9 +121,9 @@ pub struct Borrower {
 pub struct Pool {
     token0: Address,
     token1: Address,
-    symbol: String,
+    symbol0: String,
+    symbol1: String,
     price: U256,
-    decimals: U256,
     borrow_index0: U256,
     borrow_index1: U256,
 }
@@ -158,13 +160,14 @@ pub struct MmStrategy<T, P, N = alloy_contract::private::Ethereum>
     config: DeploymentConfig,
     liquidator: Address,
     liquidation_threshold: U256,
-    _network_transport: ::core::marker::PhantomData<(N, T)>,
-
+     _network_transport: ::core::marker::PhantomData<(N, T)>,
+    //reader: Reader::ReaderInstance<T, P, N>,
+    //event_emitter: EventEmitter::EventEmitterInstance<T, P, N>,
 }
 
 impl<   
     T: alloy_contract::private::Transport + ::core::clone::Clone,
-    P: alloy_contract::private::Provider<T, N>,
+    P: alloy_contract::private::Provider<T, N> + 'static,
     N: alloy_contract::private::Network,
 > MmStrategy<T, P, N> {
     pub fn new(
@@ -174,6 +177,7 @@ impl<
         liquidator_address: String,
         last_block_number: u64,
     ) -> Self {
+        let deployment_config = get_deployment_config(deployment, last_block_number);
         Self {
             client,
             last_block_number: last_block_number,
@@ -181,10 +185,12 @@ impl<
             pools: HashMap::new(),
             //sents: HashMap::new(),
             chain_id: config.chain_id,
-            config: get_deployment_config(deployment, last_block_number),
+            config: deployment_config,
             liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
             liquidation_threshold: U256::ZERO,
             _network_transport: ::core::marker::PhantomData,
+            //reader:Reader::new(deployment_config.reader.clone(), client.clone()),
+            //event_emitter:EventEmitter::new(deployment_config.event_emitter, client.clone()),
         }
     }
 }
@@ -208,7 +214,7 @@ impl<
 #[async_trait]
 impl<   
     T: alloy_contract::private::Transport + ::core::clone::Clone,
-    P: alloy_contract::private::Provider<T, N>,
+    P: alloy_contract::private::Provider<T, N>  + 'static,
     N: alloy_contract::private::Network,
 > Strategy<Event, Action> for MmStrategy<T, P, N>{
     async fn sync_state(&mut self) -> Result<()> {
@@ -237,7 +243,7 @@ impl<
 
 impl<   
     T: alloy_contract::private::Transport + ::core::clone::Clone,
-    P: alloy_contract::private::Provider<T, N>,
+    P: alloy_contract::private::Provider<T, N>  + 'static,
     N: alloy_contract::private::Network,
 > MmStrategy<T, P, N> {
 
@@ -482,7 +488,7 @@ impl<
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("deposit {:?} {} {} {} {} {}", log.depositor, self.pools.get(&hash_addresses_ordered(log.baseToken, log.memeToken)).unwrap().symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);  
+                info!("deposit {:?} {} {} {} {} {}", log.depositor, self.pools.get(&hash_addresses_ordered(log.baseToken, log.memeToken)).unwrap().symbol1, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);  
                 let user = log.depositor;      
                 self.update_position(
                     user, 
@@ -593,23 +599,6 @@ impl<
     // fetch all deposit events from the from_block to to_block
     async fn get_deposit_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Deposit>> {
         let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
-
-        // let pk:&str = "0x6ee1d6db9b9eaa05c5d0ed235d1f1eb84d877076819c873e08ff0cd5987d7413";
-        // let signer: PrivateKeySigner = pk.into();
-        // let wallet = EthereumWallet::from(signer);
-
-        // let rpc_url = "https://eth.merkle.io".parse()?;
-        // let provider = ProviderBuilder::new()
-        //     .with_recommended_fillers()
-        //     .wallet(wallet.clone())
-        //     .on_http(rpc_url);
-
-        // let rpc_url = "https://eth.merkle.io".parse()?;
-        // let provider = ProviderBuilder::new()
-        //     .with_recommended_fillers()
-        //     .on_http(rpc_url);
-
-        //let event_emitter = EventEmitter::new(self.config.event_emitter, provider);
         let mut res = Vec::new();
         for start_block in
             (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
@@ -776,24 +765,27 @@ impl<
     // }
 
     async fn update_pools(&mut self) -> Result<()> {
-        //info!("self.config.reader {:?}", self.config.reader);
-        // let reader = Reader::new(self.config.reader, self.client.clone());
-        // let all_pools = reader.get_pools(self.config.data_store).await?;
-        // for pool in all_pools {
-        //     info!("pool {:?} {} {} ", pool.token0, pool.symbol, pool.price);
-        //     self.pools.insert(
-        //         hash_addresses_ordered(pool.assets[0].token, pool.assets[0].token),
-        //         Pool {
-        //             token0: pool.assets[0].token,
-        //             token1: pool.assets[1].token,
-        //             symbol: pool.symbol,
-        //             price: pool.price,
-        //             decimals: pool.decimals,
-        //             borrow_index0: pool.assets[0].borrow_index,
-        //             borrow_index1: pool.assets[1].borrow_index,
-        //         },
-        //     );           
-        // }
+        // info!("self.config.reader {:?}", self.config.reader);
+        // let all_pools = self.reader.getPools_0(self.config.data_store.clone()).await?;
+
+        let reader = Reader::new(self.config.reader.clone(), self.client.clone());
+        let all_pools = reader.getPools_0(self.config.data_store.clone()).call().await.unwrap();
+
+        for pool in all_pools._0.iter() {
+            info!("pool {:?} {} {} ", pool.assets[0].token, pool.assets[0].symbol, pool.price);
+            self.pools.insert(
+                hash_addresses_ordered(pool.assets[0].token, pool.assets[0].token),
+                Pool {
+                    token0: pool.assets[0].token,
+                    token1: pool.assets[1].token,
+                    symbol0: pool.assets[0].symbol.clone(),
+                    symbol1: pool.assets[1].symbol.clone(),
+                    price: pool.price,
+                    borrow_index0: pool.assets[0].borrowIndex,
+                    borrow_index1: pool.assets[1].borrowIndex,
+                },
+            );           
+        }
 
         Ok(())
     }
