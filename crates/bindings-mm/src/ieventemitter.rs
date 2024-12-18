@@ -441,9 +441,10 @@ interface IEventEmitter {
     function emitAdd(address adder, address baseToken, address memeToken, address to, uint256 amount0, uint256 amount1) external;
     function emitBorrow(address borrower, address baseToken, address memeToken, uint256 positionId, uint8 tokenIndex, uint256 borrowAmount, uint256 borrowRate, Event.Liquidation memory liquidation) external;
     function emitClaimFees(address underlyingAsset, uint256 scaledUnclaimedFee, uint256 liquidityIndex, uint256 unclaimedFee) external;
-    function emitClose(address underlyingAssetUsd, address account, uint256 amountUsdStartClose, uint256 amountUsdAfterRepayAndSellCollateral, uint256 amountUsdAfterBuyCollateralAndRepay) external;
+    function emitClose(address account, uint256 positionId) external;
     function emitDeposit(address depositor, address baseToken, address memeToken, uint256 depositAmount, uint256 baseCollateral, uint256 baseDebtScaled, uint256 memeCollateral, uint256 memeDebtScaled) external;
-    function emitLiquidation(address liquidator, address account, uint256 marginLevel, uint256 marginLevelLiquidationThreshold, uint256 totalCollateralUsd, uint256 totalDebtUsd) external;
+    function emitLiquidation(address liquidator, address account, uint256 positionId, uint256 marginLevel, uint256 marginLevelLiquidationThreshold, uint256 totalCollateralUsd, uint256 totalDebtUsd, uint256 memePrice) external;
+    function emitPoolCreated(address baseToken, address memeToken, address source, uint256 createdTimestamp, uint256 baseDecimals, uint256 memeDecimals) external;
     function emitPoolUpdated(address underlyingAsset, uint256 liquidityRate, uint256 borrowRate, uint256 liquidityIndex, uint256 borrowIndex) external;
     function emitRemove(address remover, address baseToken, address memeToken, uint256 liquidity, address to, uint256 amount0, uint256 amount1) external;
     function emitRepay(address repayer, address baseToken, address memeToken, uint256 positionId, uint8 tokenIndex, uint256 repayAmount, Event.Liquidation memory liquidation) external;
@@ -596,27 +597,12 @@ interface IEventEmitter {
     "name": "emitClose",
     "inputs": [
       {
-        "name": "underlyingAssetUsd",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
         "name": "account",
         "type": "address",
         "internalType": "address"
       },
       {
-        "name": "amountUsdStartClose",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "amountUsdAfterRepayAndSellCollateral",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "amountUsdAfterBuyCollateralAndRepay",
+        "name": "positionId",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -687,6 +673,11 @@ interface IEventEmitter {
         "internalType": "address"
       },
       {
+        "name": "positionId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
         "name": "marginLevel",
         "type": "uint256",
         "internalType": "uint256"
@@ -703,6 +694,49 @@ interface IEventEmitter {
       },
       {
         "name": "totalDebtUsd",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "memePrice",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "emitPoolCreated",
+    "inputs": [
+      {
+        "name": "baseToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "memeToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "source",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "createdTimestamp",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "baseDecimals",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "memeDecimals",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -1531,20 +1565,17 @@ function emitClaimFees(address underlyingAsset, uint256 scaledUnclaimedFee, uint
             }
         }
     };
-    /**Function with signature `emitClose(address,address,uint256,uint256,uint256)` and selector `0x324ac765`.
+    /**Function with signature `emitClose(address,uint256)` and selector `0x5a7a3776`.
 ```solidity
-function emitClose(address underlyingAssetUsd, address account, uint256 amountUsdStartClose, uint256 amountUsdAfterRepayAndSellCollateral, uint256 amountUsdAfterBuyCollateralAndRepay) external;
+function emitClose(address account, uint256 positionId) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
     pub struct emitCloseCall {
-        pub underlyingAssetUsd: alloy::sol_types::private::Address,
         pub account: alloy::sol_types::private::Address,
-        pub amountUsdStartClose: alloy::sol_types::private::primitives::aliases::U256,
-        pub amountUsdAfterRepayAndSellCollateral: alloy::sol_types::private::primitives::aliases::U256,
-        pub amountUsdAfterBuyCollateralAndRepay: alloy::sol_types::private::primitives::aliases::U256,
+        pub positionId: alloy::sol_types::private::primitives::aliases::U256,
     }
-    ///Container type for the return parameters of the [`emitClose(address,address,uint256,uint256,uint256)`](emitCloseCall) function.
+    ///Container type for the return parameters of the [`emitClose(address,uint256)`](emitCloseCall) function.
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
     pub struct emitCloseReturn {}
@@ -1560,17 +1591,11 @@ function emitClose(address underlyingAssetUsd, address account, uint256 amountUs
             #[doc(hidden)]
             type UnderlyingSolTuple<'a> = (
                 alloy::sol_types::sol_data::Address,
-                alloy::sol_types::sol_data::Address,
-                alloy::sol_types::sol_data::Uint<256>,
-                alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
             );
             #[doc(hidden)]
             type UnderlyingRustTuple<'a> = (
                 alloy::sol_types::private::Address,
-                alloy::sol_types::private::Address,
-                alloy::sol_types::private::primitives::aliases::U256,
-                alloy::sol_types::private::primitives::aliases::U256,
                 alloy::sol_types::private::primitives::aliases::U256,
             );
             #[cfg(test)]
@@ -1588,13 +1613,7 @@ function emitClose(address underlyingAssetUsd, address account, uint256 amountUs
             #[doc(hidden)]
             impl ::core::convert::From<emitCloseCall> for UnderlyingRustTuple<'_> {
                 fn from(value: emitCloseCall) -> Self {
-                    (
-                        value.underlyingAssetUsd,
-                        value.account,
-                        value.amountUsdStartClose,
-                        value.amountUsdAfterRepayAndSellCollateral,
-                        value.amountUsdAfterBuyCollateralAndRepay,
-                    )
+                    (value.account, value.positionId)
                 }
             }
             #[automatically_derived]
@@ -1602,11 +1621,8 @@ function emitClose(address underlyingAssetUsd, address account, uint256 amountUs
             impl ::core::convert::From<UnderlyingRustTuple<'_>> for emitCloseCall {
                 fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
                     Self {
-                        underlyingAssetUsd: tuple.0,
-                        account: tuple.1,
-                        amountUsdStartClose: tuple.2,
-                        amountUsdAfterRepayAndSellCollateral: tuple.3,
-                        amountUsdAfterBuyCollateralAndRepay: tuple.4,
+                        account: tuple.0,
+                        positionId: tuple.1,
                     }
                 }
             }
@@ -1646,9 +1662,6 @@ function emitClose(address underlyingAssetUsd, address account, uint256 amountUs
         impl alloy_sol_types::SolCall for emitCloseCall {
             type Parameters<'a> = (
                 alloy::sol_types::sol_data::Address,
-                alloy::sol_types::sol_data::Address,
-                alloy::sol_types::sol_data::Uint<256>,
-                alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
             );
             type Token<'a> = <Self::Parameters<
@@ -1659,8 +1672,8 @@ function emitClose(address underlyingAssetUsd, address account, uint256 amountUs
             type ReturnToken<'a> = <Self::ReturnTuple<
                 'a,
             > as alloy_sol_types::SolType>::Token<'a>;
-            const SIGNATURE: &'static str = "emitClose(address,address,uint256,uint256,uint256)";
-            const SELECTOR: [u8; 4] = [50u8, 74u8, 199u8, 101u8];
+            const SIGNATURE: &'static str = "emitClose(address,uint256)";
+            const SELECTOR: [u8; 4] = [90u8, 122u8, 55u8, 118u8];
             #[inline]
             fn new<'a>(
                 tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
@@ -1671,24 +1684,11 @@ function emitClose(address underlyingAssetUsd, address account, uint256 amountUs
             fn tokenize(&self) -> Self::Token<'_> {
                 (
                     <alloy::sol_types::sol_data::Address as alloy_sol_types::SolType>::tokenize(
-                        &self.underlyingAssetUsd,
-                    ),
-                    <alloy::sol_types::sol_data::Address as alloy_sol_types::SolType>::tokenize(
                         &self.account,
                     ),
                     <alloy::sol_types::sol_data::Uint<
                         256,
-                    > as alloy_sol_types::SolType>::tokenize(&self.amountUsdStartClose),
-                    <alloy::sol_types::sol_data::Uint<
-                        256,
-                    > as alloy_sol_types::SolType>::tokenize(
-                        &self.amountUsdAfterRepayAndSellCollateral,
-                    ),
-                    <alloy::sol_types::sol_data::Uint<
-                        256,
-                    > as alloy_sol_types::SolType>::tokenize(
-                        &self.amountUsdAfterBuyCollateralAndRepay,
-                    ),
+                    > as alloy_sol_types::SolType>::tokenize(&self.positionId),
                 )
             }
             #[inline]
@@ -1898,21 +1898,23 @@ function emitDeposit(address depositor, address baseToken, address memeToken, ui
             }
         }
     };
-    /**Function with signature `emitLiquidation(address,address,uint256,uint256,uint256,uint256)` and selector `0x94e0dd1d`.
+    /**Function with signature `emitLiquidation(address,address,uint256,uint256,uint256,uint256,uint256,uint256)` and selector `0x42ff64a5`.
 ```solidity
-function emitLiquidation(address liquidator, address account, uint256 marginLevel, uint256 marginLevelLiquidationThreshold, uint256 totalCollateralUsd, uint256 totalDebtUsd) external;
+function emitLiquidation(address liquidator, address account, uint256 positionId, uint256 marginLevel, uint256 marginLevelLiquidationThreshold, uint256 totalCollateralUsd, uint256 totalDebtUsd, uint256 memePrice) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
     pub struct emitLiquidationCall {
         pub liquidator: alloy::sol_types::private::Address,
         pub account: alloy::sol_types::private::Address,
+        pub positionId: alloy::sol_types::private::primitives::aliases::U256,
         pub marginLevel: alloy::sol_types::private::primitives::aliases::U256,
         pub marginLevelLiquidationThreshold: alloy::sol_types::private::primitives::aliases::U256,
         pub totalCollateralUsd: alloy::sol_types::private::primitives::aliases::U256,
         pub totalDebtUsd: alloy::sol_types::private::primitives::aliases::U256,
+        pub memePrice: alloy::sol_types::private::primitives::aliases::U256,
     }
-    ///Container type for the return parameters of the [`emitLiquidation(address,address,uint256,uint256,uint256,uint256)`](emitLiquidationCall) function.
+    ///Container type for the return parameters of the [`emitLiquidation(address,address,uint256,uint256,uint256,uint256,uint256,uint256)`](emitLiquidationCall) function.
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
     pub struct emitLiquidationReturn {}
@@ -1933,11 +1935,15 @@ function emitLiquidation(address liquidator, address account, uint256 marginLeve
                 alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
             );
             #[doc(hidden)]
             type UnderlyingRustTuple<'a> = (
                 alloy::sol_types::private::Address,
                 alloy::sol_types::private::Address,
+                alloy::sol_types::private::primitives::aliases::U256,
+                alloy::sol_types::private::primitives::aliases::U256,
                 alloy::sol_types::private::primitives::aliases::U256,
                 alloy::sol_types::private::primitives::aliases::U256,
                 alloy::sol_types::private::primitives::aliases::U256,
@@ -1961,10 +1967,12 @@ function emitLiquidation(address liquidator, address account, uint256 marginLeve
                     (
                         value.liquidator,
                         value.account,
+                        value.positionId,
                         value.marginLevel,
                         value.marginLevelLiquidationThreshold,
                         value.totalCollateralUsd,
                         value.totalDebtUsd,
+                        value.memePrice,
                     )
                 }
             }
@@ -1975,10 +1983,12 @@ function emitLiquidation(address liquidator, address account, uint256 marginLeve
                     Self {
                         liquidator: tuple.0,
                         account: tuple.1,
-                        marginLevel: tuple.2,
-                        marginLevelLiquidationThreshold: tuple.3,
-                        totalCollateralUsd: tuple.4,
-                        totalDebtUsd: tuple.5,
+                        positionId: tuple.2,
+                        marginLevel: tuple.3,
+                        marginLevelLiquidationThreshold: tuple.4,
+                        totalCollateralUsd: tuple.5,
+                        totalDebtUsd: tuple.6,
+                        memePrice: tuple.7,
                     }
                 }
             }
@@ -2025,6 +2035,8 @@ function emitLiquidation(address liquidator, address account, uint256 marginLeve
                 alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
             );
             type Token<'a> = <Self::Parameters<
                 'a,
@@ -2034,8 +2046,8 @@ function emitLiquidation(address liquidator, address account, uint256 marginLeve
             type ReturnToken<'a> = <Self::ReturnTuple<
                 'a,
             > as alloy_sol_types::SolType>::Token<'a>;
-            const SIGNATURE: &'static str = "emitLiquidation(address,address,uint256,uint256,uint256,uint256)";
-            const SELECTOR: [u8; 4] = [148u8, 224u8, 221u8, 29u8];
+            const SIGNATURE: &'static str = "emitLiquidation(address,address,uint256,uint256,uint256,uint256,uint256,uint256)";
+            const SELECTOR: [u8; 4] = [66u8, 255u8, 100u8, 165u8];
             #[inline]
             fn new<'a>(
                 tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
@@ -2053,6 +2065,9 @@ function emitLiquidation(address liquidator, address account, uint256 marginLeve
                     ),
                     <alloy::sol_types::sol_data::Uint<
                         256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.positionId),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
                     > as alloy_sol_types::SolType>::tokenize(&self.marginLevel),
                     <alloy::sol_types::sol_data::Uint<
                         256,
@@ -2065,6 +2080,188 @@ function emitLiquidation(address liquidator, address account, uint256 marginLeve
                     <alloy::sol_types::sol_data::Uint<
                         256,
                     > as alloy_sol_types::SolType>::tokenize(&self.totalDebtUsd),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.memePrice),
+                )
+            }
+            #[inline]
+            fn abi_decode_returns(
+                data: &[u8],
+                validate: bool,
+            ) -> alloy_sol_types::Result<Self::Return> {
+                <Self::ReturnTuple<
+                    '_,
+                > as alloy_sol_types::SolType>::abi_decode_sequence(data, validate)
+                    .map(Into::into)
+            }
+        }
+    };
+    /**Function with signature `emitPoolCreated(address,address,address,uint256,uint256,uint256)` and selector `0x55ac84ba`.
+```solidity
+function emitPoolCreated(address baseToken, address memeToken, address source, uint256 createdTimestamp, uint256 baseDecimals, uint256 memeDecimals) external;
+```*/
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct emitPoolCreatedCall {
+        pub baseToken: alloy::sol_types::private::Address,
+        pub memeToken: alloy::sol_types::private::Address,
+        pub source: alloy::sol_types::private::Address,
+        pub createdTimestamp: alloy::sol_types::private::primitives::aliases::U256,
+        pub baseDecimals: alloy::sol_types::private::primitives::aliases::U256,
+        pub memeDecimals: alloy::sol_types::private::primitives::aliases::U256,
+    }
+    ///Container type for the return parameters of the [`emitPoolCreated(address,address,address,uint256,uint256,uint256)`](emitPoolCreatedCall) function.
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct emitPoolCreatedReturn {}
+    #[allow(
+        non_camel_case_types,
+        non_snake_case,
+        clippy::pub_underscore_fields,
+        clippy::style
+    )]
+    const _: () = {
+        use alloy::sol_types as alloy_sol_types;
+        {
+            #[doc(hidden)]
+            type UnderlyingSolTuple<'a> = (
+                alloy::sol_types::sol_data::Address,
+                alloy::sol_types::sol_data::Address,
+                alloy::sol_types::sol_data::Address,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+            );
+            #[doc(hidden)]
+            type UnderlyingRustTuple<'a> = (
+                alloy::sol_types::private::Address,
+                alloy::sol_types::private::Address,
+                alloy::sol_types::private::Address,
+                alloy::sol_types::private::primitives::aliases::U256,
+                alloy::sol_types::private::primitives::aliases::U256,
+                alloy::sol_types::private::primitives::aliases::U256,
+            );
+            #[cfg(test)]
+            #[allow(dead_code, unreachable_patterns)]
+            fn _type_assertion(
+                _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+            ) {
+                match _t {
+                    alloy_sol_types::private::AssertTypeEq::<
+                        <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                    >(_) => {}
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<emitPoolCreatedCall> for UnderlyingRustTuple<'_> {
+                fn from(value: emitPoolCreatedCall) -> Self {
+                    (
+                        value.baseToken,
+                        value.memeToken,
+                        value.source,
+                        value.createdTimestamp,
+                        value.baseDecimals,
+                        value.memeDecimals,
+                    )
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<UnderlyingRustTuple<'_>> for emitPoolCreatedCall {
+                fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                    Self {
+                        baseToken: tuple.0,
+                        memeToken: tuple.1,
+                        source: tuple.2,
+                        createdTimestamp: tuple.3,
+                        baseDecimals: tuple.4,
+                        memeDecimals: tuple.5,
+                    }
+                }
+            }
+        }
+        {
+            #[doc(hidden)]
+            type UnderlyingSolTuple<'a> = ();
+            #[doc(hidden)]
+            type UnderlyingRustTuple<'a> = ();
+            #[cfg(test)]
+            #[allow(dead_code, unreachable_patterns)]
+            fn _type_assertion(
+                _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+            ) {
+                match _t {
+                    alloy_sol_types::private::AssertTypeEq::<
+                        <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                    >(_) => {}
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<emitPoolCreatedReturn>
+            for UnderlyingRustTuple<'_> {
+                fn from(value: emitPoolCreatedReturn) -> Self {
+                    ()
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<UnderlyingRustTuple<'_>>
+            for emitPoolCreatedReturn {
+                fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                    Self {}
+                }
+            }
+        }
+        #[automatically_derived]
+        impl alloy_sol_types::SolCall for emitPoolCreatedCall {
+            type Parameters<'a> = (
+                alloy::sol_types::sol_data::Address,
+                alloy::sol_types::sol_data::Address,
+                alloy::sol_types::sol_data::Address,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+            );
+            type Token<'a> = <Self::Parameters<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            type Return = emitPoolCreatedReturn;
+            type ReturnTuple<'a> = ();
+            type ReturnToken<'a> = <Self::ReturnTuple<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            const SIGNATURE: &'static str = "emitPoolCreated(address,address,address,uint256,uint256,uint256)";
+            const SELECTOR: [u8; 4] = [85u8, 172u8, 132u8, 186u8];
+            #[inline]
+            fn new<'a>(
+                tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
+            ) -> Self {
+                tuple.into()
+            }
+            #[inline]
+            fn tokenize(&self) -> Self::Token<'_> {
+                (
+                    <alloy::sol_types::sol_data::Address as alloy_sol_types::SolType>::tokenize(
+                        &self.baseToken,
+                    ),
+                    <alloy::sol_types::sol_data::Address as alloy_sol_types::SolType>::tokenize(
+                        &self.memeToken,
+                    ),
+                    <alloy::sol_types::sol_data::Address as alloy_sol_types::SolType>::tokenize(
+                        &self.source,
+                    ),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.createdTimestamp),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.baseDecimals),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.memeDecimals),
                 )
             }
             #[inline]
@@ -3019,6 +3216,7 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
         emitClose(emitCloseCall),
         emitDeposit(emitDepositCall),
         emitLiquidation(emitLiquidationCall),
+        emitPoolCreated(emitPoolCreatedCall),
         emitPoolUpdated(emitPoolUpdatedCall),
         emitRemove(emitRemoveCall),
         emitRepay(emitRepayCall),
@@ -3036,11 +3234,12 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
         pub const SELECTORS: &'static [[u8; 4usize]] = &[
             [21u8, 247u8, 98u8, 213u8],
             [41u8, 42u8, 231u8, 34u8],
-            [50u8, 74u8, 199u8, 101u8],
+            [66u8, 255u8, 100u8, 165u8],
+            [85u8, 172u8, 132u8, 186u8],
+            [90u8, 122u8, 55u8, 118u8],
             [124u8, 36u8, 218u8, 183u8],
             [130u8, 98u8, 0u8, 158u8],
             [137u8, 202u8, 212u8, 217u8],
-            [148u8, 224u8, 221u8, 29u8],
             [150u8, 222u8, 36u8, 127u8],
             [156u8, 132u8, 87u8, 146u8],
             [158u8, 212u8, 134u8, 235u8],
@@ -3050,8 +3249,8 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
     #[automatically_derived]
     impl alloy_sol_types::SolInterface for IEventEmitterCalls {
         const NAME: &'static str = "IEventEmitterCalls";
-        const MIN_DATA_LENGTH: usize = 128usize;
-        const COUNT: usize = 11usize;
+        const MIN_DATA_LENGTH: usize = 64usize;
+        const COUNT: usize = 12usize;
         #[inline]
         fn selector(&self) -> [u8; 4] {
             match self {
@@ -3070,6 +3269,9 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                 }
                 Self::emitLiquidation(_) => {
                     <emitLiquidationCall as alloy_sol_types::SolCall>::SELECTOR
+                }
+                Self::emitPoolCreated(_) => {
+                    <emitPoolCreatedCall as alloy_sol_types::SolCall>::SELECTOR
                 }
                 Self::emitPoolUpdated(_) => {
                     <emitPoolUpdatedCall as alloy_sol_types::SolCall>::SELECTOR
@@ -3132,6 +3334,32 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                     emitRemove
                 },
                 {
+                    fn emitLiquidation(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<IEventEmitterCalls> {
+                        <emitLiquidationCall as alloy_sol_types::SolCall>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(IEventEmitterCalls::emitLiquidation)
+                    }
+                    emitLiquidation
+                },
+                {
+                    fn emitPoolCreated(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<IEventEmitterCalls> {
+                        <emitPoolCreatedCall as alloy_sol_types::SolCall>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(IEventEmitterCalls::emitPoolCreated)
+                    }
+                    emitPoolCreated
+                },
+                {
                     fn emitClose(
                         data: &[u8],
                         validate: bool,
@@ -3182,19 +3410,6 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                             .map(IEventEmitterCalls::emitDeposit)
                     }
                     emitDeposit
-                },
-                {
-                    fn emitLiquidation(
-                        data: &[u8],
-                        validate: bool,
-                    ) -> alloy_sol_types::Result<IEventEmitterCalls> {
-                        <emitLiquidationCall as alloy_sol_types::SolCall>::abi_decode_raw(
-                                data,
-                                validate,
-                            )
-                            .map(IEventEmitterCalls::emitLiquidation)
-                    }
-                    emitLiquidation
                 },
                 {
                     fn emitSwap(
@@ -3286,6 +3501,11 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                         inner,
                     )
                 }
+                Self::emitPoolCreated(inner) => {
+                    <emitPoolCreatedCall as alloy_sol_types::SolCall>::abi_encoded_size(
+                        inner,
+                    )
+                }
                 Self::emitPoolUpdated(inner) => {
                     <emitPoolUpdatedCall as alloy_sol_types::SolCall>::abi_encoded_size(
                         inner,
@@ -3339,6 +3559,12 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                 }
                 Self::emitLiquidation(inner) => {
                     <emitLiquidationCall as alloy_sol_types::SolCall>::abi_encode_raw(
+                        inner,
+                        out,
+                    )
+                }
+                Self::emitPoolCreated(inner) => {
+                    <emitPoolCreatedCall as alloy_sol_types::SolCall>::abi_encode_raw(
                         inner,
                         out,
                     )
@@ -3606,19 +3832,13 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
         ///Creates a new call builder for the [`emitClose`] function.
         pub fn emitClose(
             &self,
-            underlyingAssetUsd: alloy::sol_types::private::Address,
             account: alloy::sol_types::private::Address,
-            amountUsdStartClose: alloy::sol_types::private::primitives::aliases::U256,
-            amountUsdAfterRepayAndSellCollateral: alloy::sol_types::private::primitives::aliases::U256,
-            amountUsdAfterBuyCollateralAndRepay: alloy::sol_types::private::primitives::aliases::U256,
+            positionId: alloy::sol_types::private::primitives::aliases::U256,
         ) -> alloy_contract::SolCallBuilder<T, &P, emitCloseCall, N> {
             self.call_builder(
                 &emitCloseCall {
-                    underlyingAssetUsd,
                     account,
-                    amountUsdStartClose,
-                    amountUsdAfterRepayAndSellCollateral,
-                    amountUsdAfterBuyCollateralAndRepay,
+                    positionId,
                 },
             )
         }
@@ -3652,19 +3872,44 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
             &self,
             liquidator: alloy::sol_types::private::Address,
             account: alloy::sol_types::private::Address,
+            positionId: alloy::sol_types::private::primitives::aliases::U256,
             marginLevel: alloy::sol_types::private::primitives::aliases::U256,
             marginLevelLiquidationThreshold: alloy::sol_types::private::primitives::aliases::U256,
             totalCollateralUsd: alloy::sol_types::private::primitives::aliases::U256,
             totalDebtUsd: alloy::sol_types::private::primitives::aliases::U256,
+            memePrice: alloy::sol_types::private::primitives::aliases::U256,
         ) -> alloy_contract::SolCallBuilder<T, &P, emitLiquidationCall, N> {
             self.call_builder(
                 &emitLiquidationCall {
                     liquidator,
                     account,
+                    positionId,
                     marginLevel,
                     marginLevelLiquidationThreshold,
                     totalCollateralUsd,
                     totalDebtUsd,
+                    memePrice,
+                },
+            )
+        }
+        ///Creates a new call builder for the [`emitPoolCreated`] function.
+        pub fn emitPoolCreated(
+            &self,
+            baseToken: alloy::sol_types::private::Address,
+            memeToken: alloy::sol_types::private::Address,
+            source: alloy::sol_types::private::Address,
+            createdTimestamp: alloy::sol_types::private::primitives::aliases::U256,
+            baseDecimals: alloy::sol_types::private::primitives::aliases::U256,
+            memeDecimals: alloy::sol_types::private::primitives::aliases::U256,
+        ) -> alloy_contract::SolCallBuilder<T, &P, emitPoolCreatedCall, N> {
+            self.call_builder(
+                &emitPoolCreatedCall {
+                    baseToken,
+                    memeToken,
+                    source,
+                    createdTimestamp,
+                    baseDecimals,
+                    memeDecimals,
                 },
             )
         }

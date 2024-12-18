@@ -68,6 +68,7 @@ interface Errors {
     error Unauthorized(address msgSender, string role);
     error UsdCollateralCanNotCoverDebt(uint256 usdCollateralAmount, uint256 usdCollateralAmountNeeded, uint256 debtAmount, address underlyingAsset);
     error UserDoNotHaveDebtInPosition(address account, bytes32 positionKey);
+    error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceReserve);
 }
 ```
 
@@ -784,6 +785,22 @@ interface Errors {
         "internalType": "bytes32"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "liquidityDidNotReachShortThreshord",
+    "inputs": [
+      {
+        "name": "threshold",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "basePriceReserve",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
   }
 ]
 ```*/
@@ -799,22 +816,22 @@ pub mod Errors {
     /// The creation / init bytecode of the contract.
     ///
     /// ```text
-    ///0x60556032600b8282823980515f1a607314602657634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220b2d3b9096e1b2b7ef3486962f8723f4fcf30776842bc736056ce21a3d944f8a164736f6c634300081c0033
+    ///0x60556032600b8282823980515f1a607314602657634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f5ffdfea264697066735822122008bea4a379e709d23a78776bd15231ffc90a20c510f940cc288ad39ac866da8164736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"`U`2`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`&WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \xB2\xD3\xB9\tn\x1B+~\xF3Hib\xF8r?O\xCF0whB\xBCs`V\xCE!\xA3\xD9D\xF8\xA1dsolcC\0\x08\x1C\x003",
+        b"`U`2`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`&WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \x08\xBE\xA4\xA3y\xE7\t\xD2:xwk\xD1R1\xFF\xC9\n \xC5\x10\xF9@\xCC(\x8A\xD3\x9A\xC8f\xDA\x81dsolcC\0\x08\x1C\x003",
     );
     /// The runtime bytecode of the contract, as deployed on the network.
     ///
     /// ```text
-    ///0x730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220b2d3b9096e1b2b7ef3486962f8723f4fcf30776842bc736056ce21a3d944f8a164736f6c634300081c0033
+    ///0x730000000000000000000000000000000000000000301460806040525f5ffdfea264697066735822122008bea4a379e709d23a78776bd15231ffc90a20c510f940cc288ad39ac866da8164736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static DEPLOYED_BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \xB2\xD3\xB9\tn\x1B+~\xF3Hib\xF8r?O\xCF0whB\xBCs`V\xCE!\xA3\xD9D\xF8\xA1dsolcC\0\x08\x1C\x003",
+        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \x08\xBE\xA4\xA3y\xE7\t\xD2:xwk\xD1R1\xFF\xC9\n \xC5\x10\xF9@\xCC(\x8A\xD3\x9A\xC8f\xDA\x81dsolcC\0\x08\x1C\x003",
     );
     /**Custom error with signature `AccountNotMatch(address,address)` and selector `0x25c7157e`.
 ```solidity
@@ -5664,6 +5681,91 @@ error UserDoNotHaveDebtInPosition(address account, bytes32 positionKey);
             }
         }
     };
+    /**Custom error with signature `liquidityDidNotReachShortThreshord(uint256,uint256)` and selector `0xfe0081af`.
+```solidity
+error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceReserve);
+```*/
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct liquidityDidNotReachShortThreshord {
+        pub threshold: alloy::sol_types::private::primitives::aliases::U256,
+        pub basePriceReserve: alloy::sol_types::private::primitives::aliases::U256,
+    }
+    #[allow(
+        non_camel_case_types,
+        non_snake_case,
+        clippy::pub_underscore_fields,
+        clippy::style
+    )]
+    const _: () = {
+        use alloy::sol_types as alloy_sol_types;
+        #[doc(hidden)]
+        type UnderlyingSolTuple<'a> = (
+            alloy::sol_types::sol_data::Uint<256>,
+            alloy::sol_types::sol_data::Uint<256>,
+        );
+        #[doc(hidden)]
+        type UnderlyingRustTuple<'a> = (
+            alloy::sol_types::private::primitives::aliases::U256,
+            alloy::sol_types::private::primitives::aliases::U256,
+        );
+        #[cfg(test)]
+        #[allow(dead_code, unreachable_patterns)]
+        fn _type_assertion(
+            _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+        ) {
+            match _t {
+                alloy_sol_types::private::AssertTypeEq::<
+                    <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                >(_) => {}
+            }
+        }
+        #[automatically_derived]
+        #[doc(hidden)]
+        impl ::core::convert::From<liquidityDidNotReachShortThreshord>
+        for UnderlyingRustTuple<'_> {
+            fn from(value: liquidityDidNotReachShortThreshord) -> Self {
+                (value.threshold, value.basePriceReserve)
+            }
+        }
+        #[automatically_derived]
+        #[doc(hidden)]
+        impl ::core::convert::From<UnderlyingRustTuple<'_>>
+        for liquidityDidNotReachShortThreshord {
+            fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                Self {
+                    threshold: tuple.0,
+                    basePriceReserve: tuple.1,
+                }
+            }
+        }
+        #[automatically_derived]
+        impl alloy_sol_types::SolError for liquidityDidNotReachShortThreshord {
+            type Parameters<'a> = UnderlyingSolTuple<'a>;
+            type Token<'a> = <Self::Parameters<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            const SIGNATURE: &'static str = "liquidityDidNotReachShortThreshord(uint256,uint256)";
+            const SELECTOR: [u8; 4] = [254u8, 0u8, 129u8, 175u8];
+            #[inline]
+            fn new<'a>(
+                tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
+            ) -> Self {
+                tuple.into()
+            }
+            #[inline]
+            fn tokenize(&self) -> Self::Token<'_> {
+                (
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.threshold),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.basePriceReserve),
+                )
+            }
+        }
+    };
     ///Container for all the [`Errors`](self) custom errors.
     pub enum ErrorsErrors {
         AccountNotMatch(AccountNotMatch),
@@ -5731,6 +5833,7 @@ error UserDoNotHaveDebtInPosition(address account, bytes32 positionKey);
         Unauthorized(Unauthorized),
         UsdCollateralCanNotCoverDebt(UsdCollateralCanNotCoverDebt),
         UserDoNotHaveDebtInPosition(UserDoNotHaveDebtInPosition),
+        liquidityDidNotReachShortThreshord(liquidityDidNotReachShortThreshord),
     }
     #[automatically_derived]
     impl ErrorsErrors {
@@ -5806,13 +5909,14 @@ error UserDoNotHaveDebtInPosition(address account, bytes32 positionKey);
             [249u8, 56u8, 26u8, 250u8],
             [250u8, 132u8, 170u8, 206u8],
             [253u8, 158u8, 104u8, 196u8],
+            [254u8, 0u8, 129u8, 175u8],
         ];
     }
     #[automatically_derived]
     impl alloy_sol_types::SolInterface for ErrorsErrors {
         const NAME: &'static str = "ErrorsErrors";
         const MIN_DATA_LENGTH: usize = 0usize;
-        const COUNT: usize = 65usize;
+        const COUNT: usize = 66usize;
         #[inline]
         fn selector(&self) -> [u8; 4] {
             match self {
@@ -6004,6 +6108,9 @@ error UserDoNotHaveDebtInPosition(address account, bytes32 positionKey);
                 }
                 Self::UserDoNotHaveDebtInPosition(_) => {
                     <UserDoNotHaveDebtInPosition as alloy_sol_types::SolError>::SELECTOR
+                }
+                Self::liquidityDidNotReachShortThreshord(_) => {
+                    <liquidityDidNotReachShortThreshord as alloy_sol_types::SolError>::SELECTOR
                 }
             }
         }
@@ -6871,6 +6978,19 @@ error UserDoNotHaveDebtInPosition(address account, bytes32 positionKey);
                     }
                     EmptyWithdrawAmounts
                 },
+                {
+                    fn liquidityDidNotReachShortThreshord(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<ErrorsErrors> {
+                        <liquidityDidNotReachShortThreshord as alloy_sol_types::SolError>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(ErrorsErrors::liquidityDidNotReachShortThreshord)
+                    }
+                    liquidityDidNotReachShortThreshord
+                },
             ];
             let Ok(idx) = Self::SELECTORS.binary_search(&selector) else {
                 return Err(
@@ -7187,6 +7307,11 @@ error UserDoNotHaveDebtInPosition(address account, bytes32 positionKey);
                 }
                 Self::UserDoNotHaveDebtInPosition(inner) => {
                     <UserDoNotHaveDebtInPosition as alloy_sol_types::SolError>::abi_encoded_size(
+                        inner,
+                    )
+                }
+                Self::liquidityDidNotReachShortThreshord(inner) => {
+                    <liquidityDidNotReachShortThreshord as alloy_sol_types::SolError>::abi_encoded_size(
                         inner,
                     )
                 }
@@ -7572,6 +7697,12 @@ error UserDoNotHaveDebtInPosition(address account, bytes32 positionKey);
                 }
                 Self::UserDoNotHaveDebtInPosition(inner) => {
                     <UserDoNotHaveDebtInPosition as alloy_sol_types::SolError>::abi_encode_raw(
+                        inner,
+                        out,
+                    )
+                }
+                Self::liquidityDidNotReachShortThreshord(inner) => {
+                    <liquidityDidNotReachShortThreshord as alloy_sol_types::SolError>::abi_encode_raw(
                         inner,
                         out,
                     )

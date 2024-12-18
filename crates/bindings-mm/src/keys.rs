@@ -13,6 +13,7 @@ interface Keys {
     function POSITION() external view returns (bytes32);
     function POSITION_LIST() external view returns (bytes32);
     function REENTRANCY_GUARD_STATUS() external view returns (bytes32);
+    function SHORT_LIQUIDITY_THRESHOLD() external view returns (bytes32);
     function TOKEN_BASE() external view returns (bytes32);
     function TREASURY() external view returns (bytes32);
     function WNT() external view returns (bytes32);
@@ -154,6 +155,19 @@ interface Keys {
   },
   {
     "type": "function",
+    "name": "SHORT_LIQUIDITY_THRESHOLD",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "TOKEN_BASE",
     "inputs": [],
     "outputs": [
@@ -205,22 +219,22 @@ pub mod Keys {
     /// The creation / init bytecode of the contract.
     ///
     /// ```text
-    ///0x610449610034600b8282823980515f1a607314602857634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe73000000000000000000000000000000000000000030146080604052600436106100d6575f3560e01c80637535d24611610093578063993f54501161006e578063993f5450146101345780639bfe0ccf1461013c578063b8b4a54314610144578063cea63f5d1461014c575f5ffd5b80637535d2461461011c578063769af85d146101245780637bf43e471461012c575f5ffd5b8063041429b8146100da5780632d2c5565146100f4578063355ac596146100fc57806335bf74571461010457806336fef13d1461010c5780636714ddd514610114575b5f5ffd5b6100e2610154565b60405190815260200160405180910390f35b6100e26101a6565b6100e26101d2565b6100e26101fe565b6100e261022b565b6100e2610261565b6100e26102a2565b6100e26102ca565b6100e26102f8565b6100e261031f565b6100e2610360565b6100e26103a1565b6100e26103d2565b60405160200161018d906020808252601590820152741050d0d3d5539517d413d4d2551253d397d31254d5605a1b604082015260600190565b6040516020818303038152906040528051906020012081565b60405160200161018d90602080825260089082015267545245415355525960c01b604082015260600190565b60405160200161018d906020808252600890820152672827a9a4aa24a7a760c11b604082015260600190565b60405160200161018d906020808252600990820152681413d3d317d31254d560ba1b604082015260600190565b60405160200161018d906020808252601290820152712222a12a2fa9a0a322aa2cafa320a1aa27a960711b604082015260600190565b60405160200161018d906020808252601e908201527f44454641554c545f494e5445524553545f524154455f53545241544547590000604082015260600190565b60405160200161018d906020808252600490820152631413d3d360e21b604082015260600190565b60405160200161018d906020808252600a9082015269544f4b454e5f4241534560b01b604082015260600190565b60405160200161018d9060208082526003908201526215d39560ea1b604082015260600190565b60405160200161018d906020808252601a908201527f44454641554c545f504f4f4c5f434f4e46494755524154494f4e000000000000604082015260600190565b60405160200161018d9060208082526017908201527f5245454e5452414e43595f47554152445f535441545553000000000000000000604082015260600190565b60405160200161018d906020808252600d908201526c1413d4d2551253d397d31254d5609a1b604082015260600190565b60405160200161018d9060208082526017908201527f4d415247494e5f4c4556454c4c5f5448524553484f4c4400000000000000000060408201526060019056fea2646970667358221220de7bac9f9833bd88182078d2df2090dbaff2f711cdeec2995f47f6daa689a45c64736f6c634300081c0033
+    ///0x6104ac610034600b8282823980515f1a607314602857634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe73000000000000000000000000000000000000000030146080604052600436106100f0575f3560e01c80637535d24611610093578063993f54501161006e578063993f5450146101565780639bfe0ccf1461015e578063b8b4a54314610166578063cea63f5d1461016e575f5ffd5b80637535d2461461013e578063769af85d146101465780637bf43e471461014e575f5ffd5b8063355ac596116100ce578063355ac5961461011e57806335bf74571461012657806336fef13d1461012e5780636714ddd514610136575f5ffd5b8063041429b8146100f45780632ccfe1eb1461010e5780632d2c556514610116575b5f5ffd5b6100fc610176565b60405190815260200160405180910390f35b6100fc6101c8565b6100fc610209565b6100fc610235565b6100fc610261565b6100fc61028e565b6100fc6102c4565b6100fc610305565b6100fc61032d565b6100fc61035b565b6100fc610382565b6100fc6103c3565b6100fc610404565b6100fc610435565b6040516020016101af906020808252601590820152741050d0d3d5539517d413d4d2551253d397d31254d5605a1b604082015260600190565b6040516020818303038152906040528051906020012081565b6040516020016101af9060208082526019908201527f53484f52545f4c49515549444954595f5448524553484f4c4400000000000000604082015260600190565b6040516020016101af90602080825260089082015267545245415355525960c01b604082015260600190565b6040516020016101af906020808252600890820152672827a9a4aa24a7a760c11b604082015260600190565b6040516020016101af906020808252600990820152681413d3d317d31254d560ba1b604082015260600190565b6040516020016101af906020808252601290820152712222a12a2fa9a0a322aa2cafa320a1aa27a960711b604082015260600190565b6040516020016101af906020808252601e908201527f44454641554c545f494e5445524553545f524154455f53545241544547590000604082015260600190565b6040516020016101af906020808252600490820152631413d3d360e21b604082015260600190565b6040516020016101af906020808252600a9082015269544f4b454e5f4241534560b01b604082015260600190565b6040516020016101af9060208082526003908201526215d39560ea1b604082015260600190565b6040516020016101af906020808252601a908201527f44454641554c545f504f4f4c5f434f4e46494755524154494f4e000000000000604082015260600190565b6040516020016101af9060208082526017908201527f5245454e5452414e43595f47554152445f535441545553000000000000000000604082015260600190565b6040516020016101af906020808252600d908201526c1413d4d2551253d397d31254d5609a1b604082015260600190565b6040516020016101af9060208082526017908201527f4d415247494e5f4c4556454c4c5f5448524553484f4c4400000000000000000060408201526060019056fea2646970667358221220fa706b89d3472a90549458347679f406796bdfd6e49cc3e9adfbdb262e94db4d64736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"a\x04Ia\x004`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`(WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\x046\x10a\0\xD6W_5`\xE0\x1C\x80cu5\xD2F\x11a\0\x93W\x80c\x99?TP\x11a\0nW\x80c\x99?TP\x14a\x014W\x80c\x9B\xFE\x0C\xCF\x14a\x01<W\x80c\xB8\xB4\xA5C\x14a\x01DW\x80c\xCE\xA6?]\x14a\x01LW__\xFD[\x80cu5\xD2F\x14a\x01\x1CW\x80cv\x9A\xF8]\x14a\x01$W\x80c{\xF4>G\x14a\x01,W__\xFD[\x80c\x04\x14)\xB8\x14a\0\xDAW\x80c-,Ue\x14a\0\xF4W\x80c5Z\xC5\x96\x14a\0\xFCW\x80c5\xBFtW\x14a\x01\x04W\x80c6\xFE\xF1=\x14a\x01\x0CW\x80cg\x14\xDD\xD5\x14a\x01\x14W[__\xFD[a\0\xE2a\x01TV[`@Q\x90\x81R` \x01`@Q\x80\x91\x03\x90\xF3[a\0\xE2a\x01\xA6V[a\0\xE2a\x01\xD2V[a\0\xE2a\x01\xFEV[a\0\xE2a\x02+V[a\0\xE2a\x02aV[a\0\xE2a\x02\xA2V[a\0\xE2a\x02\xCAV[a\0\xE2a\x02\xF8V[a\0\xE2a\x03\x1FV[a\0\xE2a\x03`V[a\0\xE2a\x03\xA1V[a\0\xE2a\x03\xD2V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x15\x90\x82\x01Rt\x10P\xD0\xD3\xD5S\x95\x17\xD4\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`Z\x1B`@\x82\x01R``\x01\x90V[`@Q` \x81\x83\x03\x03\x81R\x90`@R\x80Q\x90` \x01 \x81V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x08\x90\x82\x01RgTREASURY`\xC0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x08\x90\x82\x01Rg('\xA9\xA4\xAA$\xA7\xA7`\xC1\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\t\x90\x82\x01Rh\x14\x13\xD3\xD3\x17\xD3\x12T\xD5`\xBA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x12\x90\x82\x01Rq\"\"\xA1*/\xA9\xA0\xA3\"\xAA,\xAF\xA3 \xA1\xAA'\xA9`q\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x1E\x90\x82\x01R\x7FDEFAULT_INTEREST_RATE_STRATEGY\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x04\x90\x82\x01Rc\x14\x13\xD3\xD3`\xE2\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\n\x90\x82\x01RiTOKEN_BASE`\xB0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x03\x90\x82\x01Rb\x15\xD3\x95`\xEA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x1A\x90\x82\x01R\x7FDEFAULT_POOL_CONFIGURATION\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x17\x90\x82\x01R\x7FREENTRANCY_GUARD_STATUS\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\r\x90\x82\x01Rl\x14\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`\x9A\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x17\x90\x82\x01R\x7FMARGIN_LEVELL_THRESHOLD\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V\xFE\xA2dipfsX\"\x12 \xDE{\xAC\x9F\x983\xBD\x88\x18 x\xD2\xDF \x90\xDB\xAF\xF2\xF7\x11\xCD\xEE\xC2\x99_G\xF6\xDA\xA6\x89\xA4\\dsolcC\0\x08\x1C\x003",
+        b"a\x04\xACa\x004`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`(WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\x046\x10a\0\xF0W_5`\xE0\x1C\x80cu5\xD2F\x11a\0\x93W\x80c\x99?TP\x11a\0nW\x80c\x99?TP\x14a\x01VW\x80c\x9B\xFE\x0C\xCF\x14a\x01^W\x80c\xB8\xB4\xA5C\x14a\x01fW\x80c\xCE\xA6?]\x14a\x01nW__\xFD[\x80cu5\xD2F\x14a\x01>W\x80cv\x9A\xF8]\x14a\x01FW\x80c{\xF4>G\x14a\x01NW__\xFD[\x80c5Z\xC5\x96\x11a\0\xCEW\x80c5Z\xC5\x96\x14a\x01\x1EW\x80c5\xBFtW\x14a\x01&W\x80c6\xFE\xF1=\x14a\x01.W\x80cg\x14\xDD\xD5\x14a\x016W__\xFD[\x80c\x04\x14)\xB8\x14a\0\xF4W\x80c,\xCF\xE1\xEB\x14a\x01\x0EW\x80c-,Ue\x14a\x01\x16W[__\xFD[a\0\xFCa\x01vV[`@Q\x90\x81R` \x01`@Q\x80\x91\x03\x90\xF3[a\0\xFCa\x01\xC8V[a\0\xFCa\x02\tV[a\0\xFCa\x025V[a\0\xFCa\x02aV[a\0\xFCa\x02\x8EV[a\0\xFCa\x02\xC4V[a\0\xFCa\x03\x05V[a\0\xFCa\x03-V[a\0\xFCa\x03[V[a\0\xFCa\x03\x82V[a\0\xFCa\x03\xC3V[a\0\xFCa\x04\x04V[a\0\xFCa\x045V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x15\x90\x82\x01Rt\x10P\xD0\xD3\xD5S\x95\x17\xD4\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`Z\x1B`@\x82\x01R``\x01\x90V[`@Q` \x81\x83\x03\x03\x81R\x90`@R\x80Q\x90` \x01 \x81V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x19\x90\x82\x01R\x7FSHORT_LIQUIDITY_THRESHOLD\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x08\x90\x82\x01RgTREASURY`\xC0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x08\x90\x82\x01Rg('\xA9\xA4\xAA$\xA7\xA7`\xC1\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\t\x90\x82\x01Rh\x14\x13\xD3\xD3\x17\xD3\x12T\xD5`\xBA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x12\x90\x82\x01Rq\"\"\xA1*/\xA9\xA0\xA3\"\xAA,\xAF\xA3 \xA1\xAA'\xA9`q\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x1E\x90\x82\x01R\x7FDEFAULT_INTEREST_RATE_STRATEGY\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x04\x90\x82\x01Rc\x14\x13\xD3\xD3`\xE2\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\n\x90\x82\x01RiTOKEN_BASE`\xB0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x03\x90\x82\x01Rb\x15\xD3\x95`\xEA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x1A\x90\x82\x01R\x7FDEFAULT_POOL_CONFIGURATION\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x17\x90\x82\x01R\x7FREENTRANCY_GUARD_STATUS\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\r\x90\x82\x01Rl\x14\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`\x9A\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x17\x90\x82\x01R\x7FMARGIN_LEVELL_THRESHOLD\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V\xFE\xA2dipfsX\"\x12 \xFApk\x89\xD3G*\x90T\x94X4vy\xF4\x06yk\xDF\xD6\xE4\x9C\xC3\xE9\xAD\xFB\xDB&.\x94\xDBMdsolcC\0\x08\x1C\x003",
     );
     /// The runtime bytecode of the contract, as deployed on the network.
     ///
     /// ```text
-    ///0x73000000000000000000000000000000000000000030146080604052600436106100d6575f3560e01c80637535d24611610093578063993f54501161006e578063993f5450146101345780639bfe0ccf1461013c578063b8b4a54314610144578063cea63f5d1461014c575f5ffd5b80637535d2461461011c578063769af85d146101245780637bf43e471461012c575f5ffd5b8063041429b8146100da5780632d2c5565146100f4578063355ac596146100fc57806335bf74571461010457806336fef13d1461010c5780636714ddd514610114575b5f5ffd5b6100e2610154565b60405190815260200160405180910390f35b6100e26101a6565b6100e26101d2565b6100e26101fe565b6100e261022b565b6100e2610261565b6100e26102a2565b6100e26102ca565b6100e26102f8565b6100e261031f565b6100e2610360565b6100e26103a1565b6100e26103d2565b60405160200161018d906020808252601590820152741050d0d3d5539517d413d4d2551253d397d31254d5605a1b604082015260600190565b6040516020818303038152906040528051906020012081565b60405160200161018d90602080825260089082015267545245415355525960c01b604082015260600190565b60405160200161018d906020808252600890820152672827a9a4aa24a7a760c11b604082015260600190565b60405160200161018d906020808252600990820152681413d3d317d31254d560ba1b604082015260600190565b60405160200161018d906020808252601290820152712222a12a2fa9a0a322aa2cafa320a1aa27a960711b604082015260600190565b60405160200161018d906020808252601e908201527f44454641554c545f494e5445524553545f524154455f53545241544547590000604082015260600190565b60405160200161018d906020808252600490820152631413d3d360e21b604082015260600190565b60405160200161018d906020808252600a9082015269544f4b454e5f4241534560b01b604082015260600190565b60405160200161018d9060208082526003908201526215d39560ea1b604082015260600190565b60405160200161018d906020808252601a908201527f44454641554c545f504f4f4c5f434f4e46494755524154494f4e000000000000604082015260600190565b60405160200161018d9060208082526017908201527f5245454e5452414e43595f47554152445f535441545553000000000000000000604082015260600190565b60405160200161018d906020808252600d908201526c1413d4d2551253d397d31254d5609a1b604082015260600190565b60405160200161018d9060208082526017908201527f4d415247494e5f4c4556454c4c5f5448524553484f4c4400000000000000000060408201526060019056fea2646970667358221220de7bac9f9833bd88182078d2df2090dbaff2f711cdeec2995f47f6daa689a45c64736f6c634300081c0033
+    ///0x73000000000000000000000000000000000000000030146080604052600436106100f0575f3560e01c80637535d24611610093578063993f54501161006e578063993f5450146101565780639bfe0ccf1461015e578063b8b4a54314610166578063cea63f5d1461016e575f5ffd5b80637535d2461461013e578063769af85d146101465780637bf43e471461014e575f5ffd5b8063355ac596116100ce578063355ac5961461011e57806335bf74571461012657806336fef13d1461012e5780636714ddd514610136575f5ffd5b8063041429b8146100f45780632ccfe1eb1461010e5780632d2c556514610116575b5f5ffd5b6100fc610176565b60405190815260200160405180910390f35b6100fc6101c8565b6100fc610209565b6100fc610235565b6100fc610261565b6100fc61028e565b6100fc6102c4565b6100fc610305565b6100fc61032d565b6100fc61035b565b6100fc610382565b6100fc6103c3565b6100fc610404565b6100fc610435565b6040516020016101af906020808252601590820152741050d0d3d5539517d413d4d2551253d397d31254d5605a1b604082015260600190565b6040516020818303038152906040528051906020012081565b6040516020016101af9060208082526019908201527f53484f52545f4c49515549444954595f5448524553484f4c4400000000000000604082015260600190565b6040516020016101af90602080825260089082015267545245415355525960c01b604082015260600190565b6040516020016101af906020808252600890820152672827a9a4aa24a7a760c11b604082015260600190565b6040516020016101af906020808252600990820152681413d3d317d31254d560ba1b604082015260600190565b6040516020016101af906020808252601290820152712222a12a2fa9a0a322aa2cafa320a1aa27a960711b604082015260600190565b6040516020016101af906020808252601e908201527f44454641554c545f494e5445524553545f524154455f53545241544547590000604082015260600190565b6040516020016101af906020808252600490820152631413d3d360e21b604082015260600190565b6040516020016101af906020808252600a9082015269544f4b454e5f4241534560b01b604082015260600190565b6040516020016101af9060208082526003908201526215d39560ea1b604082015260600190565b6040516020016101af906020808252601a908201527f44454641554c545f504f4f4c5f434f4e46494755524154494f4e000000000000604082015260600190565b6040516020016101af9060208082526017908201527f5245454e5452414e43595f47554152445f535441545553000000000000000000604082015260600190565b6040516020016101af906020808252600d908201526c1413d4d2551253d397d31254d5609a1b604082015260600190565b6040516020016101af9060208082526017908201527f4d415247494e5f4c4556454c4c5f5448524553484f4c4400000000000000000060408201526060019056fea2646970667358221220fa706b89d3472a90549458347679f406796bdfd6e49cc3e9adfbdb262e94db4d64736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static DEPLOYED_BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\x046\x10a\0\xD6W_5`\xE0\x1C\x80cu5\xD2F\x11a\0\x93W\x80c\x99?TP\x11a\0nW\x80c\x99?TP\x14a\x014W\x80c\x9B\xFE\x0C\xCF\x14a\x01<W\x80c\xB8\xB4\xA5C\x14a\x01DW\x80c\xCE\xA6?]\x14a\x01LW__\xFD[\x80cu5\xD2F\x14a\x01\x1CW\x80cv\x9A\xF8]\x14a\x01$W\x80c{\xF4>G\x14a\x01,W__\xFD[\x80c\x04\x14)\xB8\x14a\0\xDAW\x80c-,Ue\x14a\0\xF4W\x80c5Z\xC5\x96\x14a\0\xFCW\x80c5\xBFtW\x14a\x01\x04W\x80c6\xFE\xF1=\x14a\x01\x0CW\x80cg\x14\xDD\xD5\x14a\x01\x14W[__\xFD[a\0\xE2a\x01TV[`@Q\x90\x81R` \x01`@Q\x80\x91\x03\x90\xF3[a\0\xE2a\x01\xA6V[a\0\xE2a\x01\xD2V[a\0\xE2a\x01\xFEV[a\0\xE2a\x02+V[a\0\xE2a\x02aV[a\0\xE2a\x02\xA2V[a\0\xE2a\x02\xCAV[a\0\xE2a\x02\xF8V[a\0\xE2a\x03\x1FV[a\0\xE2a\x03`V[a\0\xE2a\x03\xA1V[a\0\xE2a\x03\xD2V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x15\x90\x82\x01Rt\x10P\xD0\xD3\xD5S\x95\x17\xD4\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`Z\x1B`@\x82\x01R``\x01\x90V[`@Q` \x81\x83\x03\x03\x81R\x90`@R\x80Q\x90` \x01 \x81V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x08\x90\x82\x01RgTREASURY`\xC0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x08\x90\x82\x01Rg('\xA9\xA4\xAA$\xA7\xA7`\xC1\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\t\x90\x82\x01Rh\x14\x13\xD3\xD3\x17\xD3\x12T\xD5`\xBA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x12\x90\x82\x01Rq\"\"\xA1*/\xA9\xA0\xA3\"\xAA,\xAF\xA3 \xA1\xAA'\xA9`q\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x1E\x90\x82\x01R\x7FDEFAULT_INTEREST_RATE_STRATEGY\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x04\x90\x82\x01Rc\x14\x13\xD3\xD3`\xE2\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\n\x90\x82\x01RiTOKEN_BASE`\xB0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x03\x90\x82\x01Rb\x15\xD3\x95`\xEA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x1A\x90\x82\x01R\x7FDEFAULT_POOL_CONFIGURATION\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x17\x90\x82\x01R\x7FREENTRANCY_GUARD_STATUS\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\r\x90\x82\x01Rl\x14\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`\x9A\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\x8D\x90` \x80\x82R`\x17\x90\x82\x01R\x7FMARGIN_LEVELL_THRESHOLD\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V\xFE\xA2dipfsX\"\x12 \xDE{\xAC\x9F\x983\xBD\x88\x18 x\xD2\xDF \x90\xDB\xAF\xF2\xF7\x11\xCD\xEE\xC2\x99_G\xF6\xDA\xA6\x89\xA4\\dsolcC\0\x08\x1C\x003",
+        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\x046\x10a\0\xF0W_5`\xE0\x1C\x80cu5\xD2F\x11a\0\x93W\x80c\x99?TP\x11a\0nW\x80c\x99?TP\x14a\x01VW\x80c\x9B\xFE\x0C\xCF\x14a\x01^W\x80c\xB8\xB4\xA5C\x14a\x01fW\x80c\xCE\xA6?]\x14a\x01nW__\xFD[\x80cu5\xD2F\x14a\x01>W\x80cv\x9A\xF8]\x14a\x01FW\x80c{\xF4>G\x14a\x01NW__\xFD[\x80c5Z\xC5\x96\x11a\0\xCEW\x80c5Z\xC5\x96\x14a\x01\x1EW\x80c5\xBFtW\x14a\x01&W\x80c6\xFE\xF1=\x14a\x01.W\x80cg\x14\xDD\xD5\x14a\x016W__\xFD[\x80c\x04\x14)\xB8\x14a\0\xF4W\x80c,\xCF\xE1\xEB\x14a\x01\x0EW\x80c-,Ue\x14a\x01\x16W[__\xFD[a\0\xFCa\x01vV[`@Q\x90\x81R` \x01`@Q\x80\x91\x03\x90\xF3[a\0\xFCa\x01\xC8V[a\0\xFCa\x02\tV[a\0\xFCa\x025V[a\0\xFCa\x02aV[a\0\xFCa\x02\x8EV[a\0\xFCa\x02\xC4V[a\0\xFCa\x03\x05V[a\0\xFCa\x03-V[a\0\xFCa\x03[V[a\0\xFCa\x03\x82V[a\0\xFCa\x03\xC3V[a\0\xFCa\x04\x04V[a\0\xFCa\x045V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x15\x90\x82\x01Rt\x10P\xD0\xD3\xD5S\x95\x17\xD4\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`Z\x1B`@\x82\x01R``\x01\x90V[`@Q` \x81\x83\x03\x03\x81R\x90`@R\x80Q\x90` \x01 \x81V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x19\x90\x82\x01R\x7FSHORT_LIQUIDITY_THRESHOLD\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x08\x90\x82\x01RgTREASURY`\xC0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x08\x90\x82\x01Rg('\xA9\xA4\xAA$\xA7\xA7`\xC1\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\t\x90\x82\x01Rh\x14\x13\xD3\xD3\x17\xD3\x12T\xD5`\xBA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x12\x90\x82\x01Rq\"\"\xA1*/\xA9\xA0\xA3\"\xAA,\xAF\xA3 \xA1\xAA'\xA9`q\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x1E\x90\x82\x01R\x7FDEFAULT_INTEREST_RATE_STRATEGY\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x04\x90\x82\x01Rc\x14\x13\xD3\xD3`\xE2\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\n\x90\x82\x01RiTOKEN_BASE`\xB0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x03\x90\x82\x01Rb\x15\xD3\x95`\xEA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x1A\x90\x82\x01R\x7FDEFAULT_POOL_CONFIGURATION\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x17\x90\x82\x01R\x7FREENTRANCY_GUARD_STATUS\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\r\x90\x82\x01Rl\x14\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`\x9A\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xAF\x90` \x80\x82R`\x17\x90\x82\x01R\x7FMARGIN_LEVELL_THRESHOLD\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V\xFE\xA2dipfsX\"\x12 \xFApk\x89\xD3G*\x90T\x94X4vy\xF4\x06yk\xDF\xD6\xE4\x9C\xC3\xE9\xAD\xFB\xDB&.\x94\xDBMdsolcC\0\x08\x1C\x003",
     );
     /**Function with signature `ACCOUNT_POSITION_LIST()` and selector `0x041429b8`.
 ```solidity
@@ -1426,6 +1440,128 @@ function REENTRANCY_GUARD_STATUS() external view returns (bytes32);
             }
         }
     };
+    /**Function with signature `SHORT_LIQUIDITY_THRESHOLD()` and selector `0x2ccfe1eb`.
+```solidity
+function SHORT_LIQUIDITY_THRESHOLD() external view returns (bytes32);
+```*/
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct SHORT_LIQUIDITY_THRESHOLDCall {}
+    ///Container type for the return parameters of the [`SHORT_LIQUIDITY_THRESHOLD()`](SHORT_LIQUIDITY_THRESHOLDCall) function.
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct SHORT_LIQUIDITY_THRESHOLDReturn {
+        pub _0: alloy::sol_types::private::FixedBytes<32>,
+    }
+    #[allow(
+        non_camel_case_types,
+        non_snake_case,
+        clippy::pub_underscore_fields,
+        clippy::style
+    )]
+    const _: () = {
+        use alloy::sol_types as alloy_sol_types;
+        {
+            #[doc(hidden)]
+            type UnderlyingSolTuple<'a> = ();
+            #[doc(hidden)]
+            type UnderlyingRustTuple<'a> = ();
+            #[cfg(test)]
+            #[allow(dead_code, unreachable_patterns)]
+            fn _type_assertion(
+                _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+            ) {
+                match _t {
+                    alloy_sol_types::private::AssertTypeEq::<
+                        <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                    >(_) => {}
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<SHORT_LIQUIDITY_THRESHOLDCall>
+            for UnderlyingRustTuple<'_> {
+                fn from(value: SHORT_LIQUIDITY_THRESHOLDCall) -> Self {
+                    ()
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<UnderlyingRustTuple<'_>>
+            for SHORT_LIQUIDITY_THRESHOLDCall {
+                fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                    Self {}
+                }
+            }
+        }
+        {
+            #[doc(hidden)]
+            type UnderlyingSolTuple<'a> = (alloy::sol_types::sol_data::FixedBytes<32>,);
+            #[doc(hidden)]
+            type UnderlyingRustTuple<'a> = (alloy::sol_types::private::FixedBytes<32>,);
+            #[cfg(test)]
+            #[allow(dead_code, unreachable_patterns)]
+            fn _type_assertion(
+                _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+            ) {
+                match _t {
+                    alloy_sol_types::private::AssertTypeEq::<
+                        <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                    >(_) => {}
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<SHORT_LIQUIDITY_THRESHOLDReturn>
+            for UnderlyingRustTuple<'_> {
+                fn from(value: SHORT_LIQUIDITY_THRESHOLDReturn) -> Self {
+                    (value._0,)
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<UnderlyingRustTuple<'_>>
+            for SHORT_LIQUIDITY_THRESHOLDReturn {
+                fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                    Self { _0: tuple.0 }
+                }
+            }
+        }
+        #[automatically_derived]
+        impl alloy_sol_types::SolCall for SHORT_LIQUIDITY_THRESHOLDCall {
+            type Parameters<'a> = ();
+            type Token<'a> = <Self::Parameters<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            type Return = SHORT_LIQUIDITY_THRESHOLDReturn;
+            type ReturnTuple<'a> = (alloy::sol_types::sol_data::FixedBytes<32>,);
+            type ReturnToken<'a> = <Self::ReturnTuple<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            const SIGNATURE: &'static str = "SHORT_LIQUIDITY_THRESHOLD()";
+            const SELECTOR: [u8; 4] = [44u8, 207u8, 225u8, 235u8];
+            #[inline]
+            fn new<'a>(
+                tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
+            ) -> Self {
+                tuple.into()
+            }
+            #[inline]
+            fn tokenize(&self) -> Self::Token<'_> {
+                ()
+            }
+            #[inline]
+            fn abi_decode_returns(
+                data: &[u8],
+                validate: bool,
+            ) -> alloy_sol_types::Result<Self::Return> {
+                <Self::ReturnTuple<
+                    '_,
+                > as alloy_sol_types::SolType>::abi_decode_sequence(data, validate)
+                    .map(Into::into)
+            }
+        }
+    };
     /**Function with signature `TOKEN_BASE()` and selector `0x769af85d`.
 ```solidity
 function TOKEN_BASE() external view returns (bytes32);
@@ -1792,6 +1928,7 @@ function WNT() external view returns (bytes32);
         POSITION(POSITIONCall),
         POSITION_LIST(POSITION_LISTCall),
         REENTRANCY_GUARD_STATUS(REENTRANCY_GUARD_STATUSCall),
+        SHORT_LIQUIDITY_THRESHOLD(SHORT_LIQUIDITY_THRESHOLDCall),
         TOKEN_BASE(TOKEN_BASECall),
         TREASURY(TREASURYCall),
         WNT(WNTCall),
@@ -1806,6 +1943,7 @@ function WNT() external view returns (bytes32);
         /// Prefer using `SolInterface` methods instead.
         pub const SELECTORS: &'static [[u8; 4usize]] = &[
             [4u8, 20u8, 41u8, 184u8],
+            [44u8, 207u8, 225u8, 235u8],
             [45u8, 44u8, 85u8, 101u8],
             [53u8, 90u8, 197u8, 150u8],
             [53u8, 191u8, 116u8, 87u8],
@@ -1824,7 +1962,7 @@ function WNT() external view returns (bytes32);
     impl alloy_sol_types::SolInterface for KeysCalls {
         const NAME: &'static str = "KeysCalls";
         const MIN_DATA_LENGTH: usize = 0usize;
-        const COUNT: usize = 13usize;
+        const COUNT: usize = 14usize;
         #[inline]
         fn selector(&self) -> [u8; 4] {
             match self {
@@ -1853,6 +1991,9 @@ function WNT() external view returns (bytes32);
                 }
                 Self::REENTRANCY_GUARD_STATUS(_) => {
                     <REENTRANCY_GUARD_STATUSCall as alloy_sol_types::SolCall>::SELECTOR
+                }
+                Self::SHORT_LIQUIDITY_THRESHOLD(_) => {
+                    <SHORT_LIQUIDITY_THRESHOLDCall as alloy_sol_types::SolCall>::SELECTOR
                 }
                 Self::TOKEN_BASE(_) => {
                     <TOKEN_BASECall as alloy_sol_types::SolCall>::SELECTOR
@@ -1892,6 +2033,19 @@ function WNT() external view returns (bytes32);
                             .map(KeysCalls::ACCOUNT_POSITION_LIST)
                     }
                     ACCOUNT_POSITION_LIST
+                },
+                {
+                    fn SHORT_LIQUIDITY_THRESHOLD(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<KeysCalls> {
+                        <SHORT_LIQUIDITY_THRESHOLDCall as alloy_sol_types::SolCall>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(KeysCalls::SHORT_LIQUIDITY_THRESHOLD)
+                    }
+                    SHORT_LIQUIDITY_THRESHOLD
                 },
                 {
                     fn TREASURY(
@@ -2107,6 +2261,11 @@ function WNT() external view returns (bytes32);
                         inner,
                     )
                 }
+                Self::SHORT_LIQUIDITY_THRESHOLD(inner) => {
+                    <SHORT_LIQUIDITY_THRESHOLDCall as alloy_sol_types::SolCall>::abi_encoded_size(
+                        inner,
+                    )
+                }
                 Self::TOKEN_BASE(inner) => {
                     <TOKEN_BASECall as alloy_sol_types::SolCall>::abi_encoded_size(inner)
                 }
@@ -2174,6 +2333,12 @@ function WNT() external view returns (bytes32);
                 }
                 Self::REENTRANCY_GUARD_STATUS(inner) => {
                     <REENTRANCY_GUARD_STATUSCall as alloy_sol_types::SolCall>::abi_encode_raw(
+                        inner,
+                        out,
+                    )
+                }
+                Self::SHORT_LIQUIDITY_THRESHOLD(inner) => {
+                    <SHORT_LIQUIDITY_THRESHOLDCall as alloy_sol_types::SolCall>::abi_encode_raw(
                         inner,
                         out,
                     )
@@ -2422,6 +2587,12 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
             &self,
         ) -> alloy_contract::SolCallBuilder<T, &P, REENTRANCY_GUARD_STATUSCall, N> {
             self.call_builder(&REENTRANCY_GUARD_STATUSCall {})
+        }
+        ///Creates a new call builder for the [`SHORT_LIQUIDITY_THRESHOLD`] function.
+        pub fn SHORT_LIQUIDITY_THRESHOLD(
+            &self,
+        ) -> alloy_contract::SolCallBuilder<T, &P, SHORT_LIQUIDITY_THRESHOLDCall, N> {
+            self.call_builder(&SHORT_LIQUIDITY_THRESHOLDCall {})
         }
         ///Creates a new call builder for the [`TOKEN_BASE`] function.
         pub fn TOKEN_BASE(
