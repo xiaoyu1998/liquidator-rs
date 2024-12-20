@@ -466,7 +466,6 @@ impl<
         );
 
         //self.update_liquidation_threshold().await?;
-
         self.get_deposit_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
@@ -484,22 +483,22 @@ impl<
                 return;
             });
 
-        // self.get_borrow_logs(start_block.into(), latest_block)
-        //     .await?
-        //     .into_iter()
-        //     .for_each(|log| {
-        //         info!("borrow {:?} {} {} {} {} {}", log.borrower, self.pools.get(hash_addresses_ordered(log.baseToken, log.memeToken)).unwrap().symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
-        //         let user = log.borrower;
-        //         self.update_position(
-        //             user, 
-        //             hash_addresses_ordered(log.baseToken, log.memeToken), 
-        //             log.baseCollateral, 
-        //             log.baseDebtScaled, 
-        //             log.memeCollateral, 
-        //             log.memeDebtScaled
-        //         );
-        //         return;
-        //     });
+        self.get_borrow_logs(start_block.into(), latest_block)
+            .await?
+            .into_iter()
+            .for_each(|log| {
+                info!("borrow {:?} {} {} {} {} {}", log.borrower, self.pools.get(&hash_addresses_ordered(log.baseToken, log.memeToken)).unwrap().symbol1, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
+                let user = log.borrower;
+                self.update_position(
+                    user, 
+                    hash_addresses_ordered(log.baseToken, log.memeToken), 
+                    log.baseCollateral, 
+                    log.baseDebtScaled, 
+                    log.memeCollateral, 
+                    log.memeDebtScaled
+                );
+                return;
+            });
 
         // self.get_repay_logs(start_block.into(), latest_block)
         //     .await?
@@ -573,10 +572,7 @@ impl<
         };
         self.last_block_number = latest_block;
         let file = File::create(STATE_CACHE_FILE)?;
-        //file.write_all(serde_json::to_string(&cache)?.as_bytes())?;
-        info!("borrowers {:?}", "i am here1");
         serde_json::to_writer_pretty(file, &cache)?;
-        info!("borrowers {:?}", "i am here2");
 
         Ok(())
     }
@@ -589,7 +585,6 @@ impl<
             (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
         {
             let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-            //info!("get_deposit_logs start_block {} end_block {}", start_block, end_block );
             event_emitter.Deposit_filter()  
                 .from_block(start_block)
                 .to_block(end_block)
@@ -605,29 +600,28 @@ impl<
         Ok(res)
     }
 
-    // // fetch all borrow events from the from_block to to_block
-    // async fn get_borrow_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Borrow>> {
-    //     let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
+    // fetch all borrow events from the from_block to to_block
+    async fn get_borrow_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Borrow>> {
+        let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
+        let mut res = Vec::new();
+        for start_block in
+            (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
+        {
+            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
+            event_emitter.Borrow_filter()
+                .from_block(start_block)
+                .to_block(end_block)
+                .address(self.config.event_emitter)
+                .query()
+                .await?
+                .into_iter()
+                .for_each(|(borrow,_)| {
+                    res.push(borrow);
+                });
+        }
 
-    //     let mut res = Vec::new();
-    //     for start_block in
-    //         (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
-    //     {
-    //         let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-    //         event_emitter.Borrow_filter()
-    //             .from_block(start_block)
-    //             .to_block(end_block)
-    //             .address(ValueOrArray::Value(self.config.event_emitter))
-    //             .query()
-    //             .await?
-    //             .into_iter()
-    //             .for_each(|log| {
-    //                 res.push(log);
-    //             });
-    //     }
-
-    //     Ok(res)
-    // }
+        Ok(res)
+    }
 
     // // fetch all repay events from the from_block to to_block
     // async fn get_repay_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Repay>> {
