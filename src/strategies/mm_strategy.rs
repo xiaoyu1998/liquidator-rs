@@ -35,9 +35,11 @@ use alloy::{
     //signers::local::PrivateKeySigner,
     providers::{ProviderBuilder}, 
     sol_types::private::{Address, Uint},
+    primitives::FixedBytes,
 };
 
-type Bytes32 = [u8; 32];
+//type Bytes32 = [u8; 32];
+type Bytes32 = FixedBytes<32>;
 type U256 = Uint<256, 4>;
 // type U256 = alloy_primitives::Uint<256, 4>;
 
@@ -96,8 +98,8 @@ fn get_deployment_config(deployment: Deployment, last_block_number: u64) -> Depl
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StateCache {
     last_block_number: u64,
-    borrowers: HashMap<Address, Borrower>,
     pools: HashMap<Bytes32, Pool>,
+    borrowers: HashMap<Address, Borrower>,
     //sents: HashMap<Address, DateTime<Utc>>,
 }
 
@@ -127,25 +129,6 @@ pub struct Pool {
     borrow_index0: U256,
     borrow_index1: U256,
 }
-
-// #[derive(Clone)]
-// struct DummyProvider;
-
-// impl<T: alloy_contract::private::Transport + Clone, N: alloy_contract::private::Network> 
-//     alloy_contract::private::Provider<T, N> for DummyProvider {
-//     // Provide empty or no-op implementations for required methods
-
-//     fn root(&self) -> &RootProvider<T, N> {
-//         unimplemented!("root method is not implemented yet");
-//     }
-
-// }
-
-// impl Default for DummyProvider {
-//     fn default() -> Self {
-//         DummyProvider
-//     }
-// }
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -591,7 +574,9 @@ impl<
         self.last_block_number = latest_block;
         let file = File::create(STATE_CACHE_FILE)?;
         //file.write_all(serde_json::to_string(&cache)?.as_bytes())?;
+        info!("borrowers {:?}", "i am here1");
         serde_json::to_writer_pretty(file, &cache)?;
+        info!("borrowers {:?}", "i am here2");
 
         Ok(())
     }
@@ -772,9 +757,9 @@ impl<
         let all_pools = reader.getPools_0(self.config.data_store.clone()).call().await.unwrap();
 
         for pool in all_pools._0.iter() {
-            info!("pool {:?} {} {} ", pool.assets[0].token, pool.assets[0].symbol, pool.price);
+            info!("pool {:?} {} {} ", pool.assets[0].token, pool.assets[1].symbol, pool.price);
             self.pools.insert(
-                hash_addresses_ordered(pool.assets[0].token, pool.assets[0].token),
+                hash_addresses_ordered(pool.assets[0].token, pool.assets[1].token),
                 Pool {
                     token0: pool.assets[0].token,
                     token1: pool.assets[1].token,
@@ -874,7 +859,11 @@ fn hash_addresses_ordered(addr1: Address, addr2: Address) -> Bytes32 {
     hasher.update(&bytes2);
 
     // Finalize the hash and convert to Bytes32
-    hasher.finalize().into()
+    let hash_result = hasher.finalize();
+
+    // Convert the result to Bytes32
+    FixedBytes::try_from(hash_result.as_slice()).expect("Hash should be 32 bytes")
+
 }
 
 // fn convert_alloy_to_ethers(alloy_uint: Uint<256, 4>) -> U256 {
