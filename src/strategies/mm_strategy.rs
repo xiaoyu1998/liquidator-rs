@@ -7,6 +7,7 @@ use async_trait::async_trait;
 use bindings_mm::{
     reader::Reader,
     eventemitter::EventEmitter,
+    exchangerouter::LiquidationUtils::LiquidationParams,
     //shared_types::LiquidationParams,
     //ierc20::IERC20,
 };
@@ -31,21 +32,14 @@ use sha3::{Digest, Keccak256};
 
 use alloy::{
     contract as alloy_contract,
-    network::{EthereumWallet,TransactionRequest},
+    network::{EthereumWallet, Ethereum, Network},
     //signers::local::PrivateKeySigner,
     providers::{ProviderBuilder}, 
     sol_types::private::{Address, Uint},
     primitives::{FixedBytes, U256, U512},
-    consensus::{TypedTransaction},
-
 };
 
-//type Bytes32 = [u8; 32];
 type Bytes32 = FixedBytes<32>;
-// type U256 = Uint<256, 4>;
-// type U256 = alloy_primitives::Uint<256, 4>;
-
-// use std::marker::PhantomData;
 
 #[derive(Debug)]
 struct DeploymentConfig {
@@ -245,7 +239,7 @@ impl<
             .ok()?;
 
         info!("Total position count: {}", self.positions.len());
-        let underwaters = self.get_underwater_positions().await;
+        let underwaters = self.get_underwater_positions().await?;
 
         let mut actions: Vec<Action> = Vec::new();
         for (account, position_id, margin_level, collateral, debt) in underwaters {
@@ -257,10 +251,10 @@ impl<
                         None
                     })
                     .ok()
-                    .map(|tx| SubmitTxToMempool {
+                    .map(|tx| Action::SubmitTx(SubmitTxToMempool {
                         tx,
                         gas_bid_info: Some(GasBidInfo{total_profit:U256::ZERO, bid_percentage:0}),
-                    })
+                    }))
             }
             .await;
 
@@ -272,14 +266,13 @@ impl<
         Some(actions)
     }
 
-    async fn build_liquidation_tx(&self, account: &Address, position_id: U256) -> Result<TransactionRequest> {
-        // let liquidator = Liquidator::new(self.liquidator, self.client.clone());
-        // let mut call = liquidator.liquidate(LiquidationParams{
-        //     account: account,
-        //     position_id: position_id
-        // });
-        // Ok(call.tx.set_chain_id(self.chain_id).clone())
-        None
+    async fn build_liquidation_tx(&self, account: &Address, position_id: U256) -> Result<<Ethereum as Network>::TransactionRequest> {
+        let exchangeRouter = ExchangeRouter::new(self.liquidator, self.client.clone());
+        let mut call = exchangeRouter.executeLiquidation(LiquidationParams{
+            account: *account,
+            positionId: position_id
+        });
+        Ok(call.tx.set_chain_id(self.chain_id).clone())
     }
 
     // for all known borrowers, return a sorted set of those with health factor < liquidation_threshold
