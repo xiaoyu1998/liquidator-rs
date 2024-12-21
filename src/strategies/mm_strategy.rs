@@ -31,16 +31,18 @@ use sha3::{Digest, Keccak256};
 
 use alloy::{
     contract as alloy_contract,
-    network::EthereumWallet,
+    network::{EthereumWallet,TransactionRequest},
     //signers::local::PrivateKeySigner,
     providers::{ProviderBuilder}, 
     sol_types::private::{Address, Uint},
-    primitives::FixedBytes,
+    primitives::{FixedBytes, U256, U512},
+    consensus::{TypedTransaction},
+
 };
 
 //type Bytes32 = [u8; 32];
 type Bytes32 = FixedBytes<32>;
-type U256 = Uint<256, 4>;
+// type U256 = Uint<256, 4>;
 // type U256 = alloy_primitives::Uint<256, 4>;
 
 // use std::marker::PhantomData;
@@ -99,12 +101,14 @@ fn get_deployment_config(deployment: Deployment, last_block_number: u64) -> Depl
 pub struct StateCache {
     last_block_number: u64,
     pools: HashMap<Bytes32, Pool>,
-    borrowers: HashMap<Address, Borrower>,
+    positions: HashMap<Bytes32, Position>,
     //sents: HashMap<Address, DateTime<Utc>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Position {
+    account: Address,
+    position_id: U256,
     pool: Bytes32,
     base_collateral: U256,
     base_debt_scaled: U256,
@@ -113,21 +117,17 @@ pub struct Position {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Borrower {
-    address: Address,
-    positions: HashMap<Bytes32, Position>,
-    //health: u64
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Pool {
-    token0: Address,
-    token1: Address,
-    symbol0: String,
-    symbol1: String,
     price: U256,
-    borrow_index0: U256,
-    borrow_index1: U256,
+    price_decimals: U256,
+    base_token: Address,
+    base_symbol: String,
+    base_token_decimals: U256,
+    base_borrow_index: U256,
+    meme_token: Address,
+    meme_symbol: String,
+    meme_token_decimals: U256,
+    meme_borrow_index: U256,
 }
 
 #[derive(Debug)]
@@ -136,8 +136,8 @@ pub struct MmStrategy<T, P, N = alloy_contract::private::Ethereum>
 {
     client: Arc<P>,
     last_block_number: u64,
-    borrowers: HashMap<Address, Borrower>,
     pools: HashMap<Bytes32, Pool>,
+    positions: HashMap<Bytes32, Position>,
     //sents: HashMap<Address, DateTime<Utc>>,
     chain_id: u64,
     config: DeploymentConfig,
@@ -164,7 +164,7 @@ impl<
         Self {
             client,
             last_block_number: last_block_number,
-            borrowers: HashMap::new(),
+            positions: HashMap::new(),
             pools: HashMap::new(),
             //sents: HashMap::new(),
             chain_id: config.chain_id,
@@ -219,7 +219,7 @@ impl<
             Event::NewTick(block) => self
                 .process_new_tick_event(block)
                 .await
-                .map_or(vec![], |a| vec![a]),
+                .unwrap_or_else(Vec::new),
         }
     }
 }
@@ -231,7 +231,7 @@ impl<
 > MmStrategy<T, P, N> {
 
     /// Process new block events, updating the internal state.
-    async fn process_new_tick_event(&mut self, event: NewTick) -> Option<Action> {
+    async fn process_new_tick_event(&mut self, event: NewTick) -> Option<Vec<Action>> {
         info!("received new tick: {:?}", event);
 
         self.update_pools()
@@ -244,141 +244,120 @@ impl<
             .map_err(|e| error!("Update State error: {}", e))
             .ok()?;
 
-        None
+        info!("Total position count: {}", self.positions.len());
+        let underwaters = self.get_underwater_positions().await;
 
-        // info!("Total borrower count: {}", self.borrowers.len());
-        // let op = self
-        //     .get_best_liquidation_opportunity()
-        //     .await
-        //     .map_err(|e| error!("Error finding liq ops: {}", e))
-        //     .ok()??;
+        let mut actions: Vec<Action> = Vec::new();
+        for (account, position_id, margin_level, collateral, debt) in underwaters {
+            let action = async {
+                self.build_liquidation_tx(&account, position_id)
+                    .await
+                    .map_err(|e| {
+                        error!("Error building liquidation: {}", e);
+                        None
+                    })
+                    .ok()
+                    .map(|tx| SubmitTxToMempool {
+                        tx,
+                        gas_bid_info: Some(GasBidInfo{total_profit:U256::ZERO, bid_percentage:0}),
+                    })
+            }
+            .await;
 
-        // info!("Best op - borrower: {:?} profit: {}", op.borrower, op.profit);
+            if let Some(action) = action {
+                actions.push(action);
+            }
+        }
 
-        // if op.profit <= I256::from(0) {
-        //     info!("No profitable ops, passing");
-        //     return None;
-        // }
-
-        // let now: DateTime<Utc> = Utc::now();
-        // self.sents.insert(op.borrower, now);
-
-        // //sent tx
-        // return Some(Action::SubmitTx(SubmitTxToMempool {
-        //     tx: self
-        //         .build_liquidation_tx(&op)
-        //         .await
-        //         .map_err(|e| error!("Error building liquidation: {}", e))
-        //         .ok()?,
-        //     gas_bid_info: Some(GasBidInfo {
-        //         bid_percentage: self.bid_percentage,
-        //         total_profit: U256::from_dec_str(&op.profit.to_string())
-        //             .map_err(|e| error!("Failed to bid: {}", e))
-        //             .ok()?,
-        //     }),
-        // }));
+        Some(actions)
     }
 
-//    async fn get_best_liquidation_opportunity(&mut self) -> Result<Option<LiquidationOpportunity>> {
-//         let underwaters = self.get_underwater_borrowers().await?;
+    async fn build_liquidation_tx(&self, account: &Address, position_id: U256) -> Result<TransactionRequest> {
+        // let liquidator = Liquidator::new(self.liquidator, self.client.clone());
+        // let mut call = liquidator.liquidate(LiquidationParams{
+        //     account: account,
+        //     position_id: position_id
+        // });
+        // Ok(call.tx.set_chain_id(self.chain_id).clone())
+        None
+    }
 
-//         if underwaters.len() == 0 {
-//             return Err(anyhow!("No underwater borrowers found"));
-//         }
+    // for all known borrowers, return a sorted set of those with health factor < liquidation_threshold
+    async fn get_underwater_positions(&mut self) -> Option<Vec<(Address, U256, U256, U256, U256)>> {
+        let mut underwater_positions = Vec::new();
 
-//         info!("Found {} underwaters", underwaters.len());
-//         let mut best_bonus: I256 = I256::MIN;
-//         let mut best_op: Option<LiquidationOpportunity> = None;
+        let positions: Vec<&Position> = self
+            .positions
+            .values()
+            .filter(|p| p.base_debt_scaled > U256::ZERO || p.meme_debt_scaled > U256::ZERO)
+            .collect();
 
-//         for (borrower, _health_factor, user_total_collateral_usd, user_total_debt_usd) in underwaters {
-//             if let Some(op) = self
-//                 .get_liquidation_profit(
-//                     self.borrowers
-//                         .get(&borrower)
-//                         .ok_or(anyhow!("Borrower not found"))?,
-//                     //&health_factor,
-//                     &user_total_collateral_usd,
-//                     &user_total_debt_usd,
-//                 )
-//                 .await
-//                 .map_err(|e| info!("Liquidation op failed {}", e))
-//                 .ok()
-//             {
-//                 if op.profit > best_bonus {
-//                     best_bonus = op.profit;
-//                     best_op = Some(op);
-//                 }
-//             }
-//         }
+        for chunk in positions.chunks(MULTICALL_CHUNK_SIZE) {
+            let result: Vec<(U256, U256, U256)> = chunk.iter().map(|position| {
+                let mut user_total_collateral_usd = U256::ZERO;
+                let mut user_total_debt_usd = U256::ZERO;
 
-//         Ok(best_op)
-//     }
+                let pool = self.pools.get(&position.pool).unwrap();
 
-//     // for all known borrowers, return a sorted set of those with health factor < liquidation_threshold
-//     async fn get_underwater_borrowers(&mut self) -> Result<Vec<(Address, U256, U256, U256)>> {
-//         let mut underwater_borrowers = Vec::new();
+                let price = pool.price;
+                let price_decimals = pool.price_decimals;
 
-//         let borrowers: Vec<&Borrower> = self
-//             .borrowers
-//             .values()
-//             .filter(|b| b.positions.len() > 0)
-//             .collect();
+                //meme
+                let base_borrow_index = pool.base_borrow_index;
+                let base_debt = ray_mul(position.base_debt_scaled, base_borrow_index);
+                let base_decimals = pool.base_token_decimals;
+                user_total_collateral_usd += adjust_precision(position.base_collateral, base_decimals);
+                user_total_debt_usd += adjust_precision(base_debt, base_decimals); 
 
-//         for chunk in borrowers.chunks(MULTICALL_CHUNK_SIZE) {
-//             let result: Vec<(U256, U256, U256)> = chunk.iter().map(|borrower| {
-//                 let mut user_total_collateral_usd = U256::from(0);
-//                 let mut user_total_debt_usd = U256::from(0);
-//                 for (_, position) in &borrower.positions {
-//                     let price = self.pools.get(&position.pool).unwrap().price;
-//                     let decimals = self.pools.get(&position.pool).unwrap().decimals;
-//                     let borrow_index = self.pools.get(&position.pool).unwrap().borrow_index;
-//                     let debt = ray_mul(position.debt_scaled, borrow_index);
-//                     user_total_collateral_usd += ray_mul(price, adjust_precision(position.collateral, decimals));
-//                     user_total_debt_usd += ray_mul(price, adjust_precision(debt, decimals));
-//                 }               
+                let meme_borrow_index = pool.meme_borrow_index;
+                let meme_debt = ray_mul(position.meme_debt_scaled, meme_borrow_index);
+                let meme_decimals = pool.meme_token_decimals;
+                user_total_collateral_usd += ray_mul(price, adjust_precision(position.meme_collateral, meme_decimals));
+                user_total_debt_usd += ray_mul(price, adjust_precision(meme_debt, meme_decimals)); 
 
-//                 let health_factor = if user_total_debt_usd == U256::ZERO {
-//                     U256::max_value()
-//                 } else {
-//                     ray_div(user_total_collateral_usd, user_total_debt_usd) 
-//                 };
 
-//                 (health_factor, user_total_collateral_usd, user_total_debt_usd) 
-//             }).collect();
+                let margin_level = if user_total_debt_usd == U256::ZERO {
+                    U256::MAX
+                } else {
+                    ray_div(user_total_collateral_usd, user_total_debt_usd) 
+                };
 
-//             for (borrower, (health_factor, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
-//                 //info!("account {:?} {} {}", borrower.address, health_factor, self.liquidation_threshold);
-//                 if health_factor < self.liquidation_threshold {
-//                     //prevent resend tx
-//                     let now: DateTime<Utc> = Utc::now();
-//                     match self.sents.get(&borrower.address) {
-//                         Some(&sent_time) => {
-//                             let duration: Duration = now - sent_time;
-//                             if duration.num_seconds() < RETRY_DURATION_IN_SECS {
-//                                 continue;
-//                             }
-//                         },
-//                         None => {}
-//                     }
+                (margin_level, user_total_collateral_usd, user_total_debt_usd) 
+            }).collect();
 
-//                     info!(
-//                         "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
-//                         borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd
-//                     );
-//                     underwater_borrowers.push((borrower.address, health_factor, user_total_collateral_usd, user_total_debt_usd));
-//                 }
-//             }
-//         }
+            for (position, (margin_level, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
+                //info!("account {:?} {} {}", borrower.address, margin_level, self.liquidation_threshold);
+                if margin_level < self.liquidation_threshold {
+                    // //prevent resend tx
+                    // let now: DateTime<Utc> = Utc::now();
+                    // match self.sents.get(&borrower.address) {
+                    //     Some(&sent_time) => {
+                    //         let duration: Duration = now - sent_time;
+                    //         if duration.num_seconds() < RETRY_DURATION_IN_SECS {
+                    //             continue;
+                    //         }
+                    //     },
+                    //     None => {}
+                    // }
 
-//         // sort borrowers by health factor
-//         underwater_borrowers.sort_by(|a, b| a.1.cmp(&b.1));
-//         Ok(underwater_borrowers)
-//     }
+                    // info!(
+                    //     "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
+                    //     borrower.address, margin_level, user_total_collateral_usd, user_total_debt_usd
+                    // );
+                    underwater_positions.push((position.account, position.position_id, margin_level, user_total_collateral_usd, user_total_debt_usd));
+                }
+            }
+        }
+
+        // sort positions by health factor
+        //underwater_positions.sort_by(|a, b| a.1.cmp(&b.1));
+        Some(underwater_positions)
+    }
 
 //     async fn get_liquidation_profit(
 //         &self,
 //         borrower: &Borrower,
-// //        health_factor: &U256,
+// //        margin_level: &U256,
 //         user_total_collateral_usd: &U256,
 //         user_total_debt_usd: &U256,
 //     ) -> Result<LiquidationOpportunity> {
@@ -418,20 +397,6 @@ impl<
 //         Ok(op)
 //     }
 
-    // async fn build_liquidation_tx(&self, op: &LiquidationOpportunity) -> Result<TypedTransaction> {
-    //     let liquidator = Liquidator::new(self.liquidator, self.client.clone());
-    //     let mut call = liquidator.liquidate(LiquidationParams{
-    //         account: op.borrower,
-    //         usd_token: self.config.usd,
-    //         collaterals: op.collaterals.clone(),
-    //         debts: op.debts.clone(),
-    //         uniswap_fee: 3000,
-    //         gas_fee_usd: U256::ZERO
-
-    //     });
-    //     Ok(call.tx.set_chain_id(self.chain_id).clone())
-    // }
-
     // load borrower state cache from file if exists
     fn load_cache(&mut self) -> Result<()> {
         match File::open(STATE_CACHE_FILE) {
@@ -439,7 +404,7 @@ impl<
                 let cache: StateCache = serde_json::from_reader(file)?;
                 info!("read state cache from file");
                 self.last_block_number = cache.last_block_number;
-                self.borrowers = cache.borrowers;
+                self.positions = cache.positions;
                 self.pools = cache.pools;
                 //self.sents = cache.sents;
             }
@@ -470,11 +435,13 @@ impl<
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("deposit {:?} {} {} {} {} {}", log.depositor, self.pools.get(&hash_addresses_ordered(log.baseToken, log.memeToken)).unwrap().symbol1, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);  
+                info!("deposit {:?} {} {} {} {} {}", log.depositor, self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);  
                 let user = log.depositor;      
                 self.update_position(
+                    hash_position_key(user, log.positionId),
                     user, 
-                    hash_addresses_ordered(log.baseToken, log.memeToken), 
+                    log.positionId,
+                    hash_pool_key(log.baseToken, log.memeToken), 
                     log.baseCollateral, 
                     log.baseDebtScaled, 
                     log.memeCollateral, 
@@ -487,11 +454,13 @@ impl<
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("borrow {:?} {} {} {} {} {}", log.borrower, self.pools.get(&hash_addresses_ordered(log.baseToken, log.memeToken)).unwrap().symbol1, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
+                info!("borrow {:?} {} {} {} {} {}", log.borrower, self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
                 let user = log.borrower;
                 self.update_position(
+                    hash_position_key(user, log.positionId),
                     user, 
-                    hash_addresses_ordered(log.baseToken, log.memeToken), 
+                    log.positionId,
+                    hash_pool_key(log.baseToken, log.memeToken), 
                     log.baseCollateral, 
                     log.baseDebtScaled, 
                     log.memeCollateral, 
@@ -504,11 +473,11 @@ impl<
         //     .await?
         //     .into_iter()
         //     .for_each(|log| {
-        //         info!("repay {:?} {} {} {} {} {}", log.repayer, self.pools.get(hash_addresses_ordered(log.baseToken, log.memeToken)).unwrap().symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
+        //         info!("repay {:?} {} {} {} {} {}", log.repayer, self.pools.get(hash_pool_key(log.baseToken, log.memeToken)).unwrap().symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
         //         let user = log.repayer;
         //         self.update_position(
         //             user, 
-        //             hash_addresses_ordered(log.baseToken, log.memeToken), 
+        //             hash_pool_key(log.baseToken, log.memeToken), 
         //             log.baseCollateral, 
         //             log.baseDebtScaled, 
         //             log.memeCollateral, 
@@ -521,9 +490,9 @@ impl<
         //     .await?
         //     .into_iter()
         //     .for_each(|log| {
-        //         info!("redeem {:?} {} {} {} {} {}", log.redeemer, self.pools.get(&hash_addresses_ordered(log.baseToken, log.memeToken)).unwrap().symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
+        //         info!("redeem {:?} {} {} {} {} {}", log.redeemer, self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
         //         let user = log.redeemer;
-        //         self.update_position(user, hash_addresses_ordered(log.baseToken, log.memeToken), log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);        
+        //         self.update_position(user, hash_pool_key(log.baseToken, log.memeToken), log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);        
         //         return;
         //     });
 
@@ -531,11 +500,11 @@ impl<
         //     .await?
         //     .into_iter()
         //     .for_each(|log| {
-        //         info!("swapIn {:?} {} {} {} {} {}", log.account, self.pools.get(&hash_addresses_ordered(log.tokenIn, log.tokenOut)).unwrap().symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
+        //         info!("swapIn {:?} {} {} {} {} {}", log.account, self.pools.get(&hash_pool_key(log.tokenIn, log.tokenOut)).unwrap().symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
         //         let user = log.account;
         //         self.update_position(
         //             user, 
-        //             hash_addresses_ordered(log.tokenIn, log.tokenOut), 
+        //             hash_pool_key(log.tokenIn, log.tokenOut), 
         //             log.baseCollateral, 
         //             log.baseDebtScaled, 
         //             log.memeCollateral, 
@@ -566,8 +535,8 @@ impl<
         // write state cache to file
         let cache = StateCache {
             last_block_number: latest_block,
-            borrowers: self.borrowers.clone(),
             pools: self.pools.clone(),
+            positions: self.positions.clone(),
             //sents: self.sents.clone(),
         };
         self.last_block_number = latest_block;
@@ -753,15 +722,18 @@ impl<
         for pool in all_pools._0.iter() {
             info!("pool {:?} {} {} ", pool.assets[0].token, pool.assets[1].symbol, pool.price);
             self.pools.insert(
-                hash_addresses_ordered(pool.assets[0].token, pool.assets[1].token),
+                hash_pool_key(pool.assets[0].token, pool.assets[1].token),
                 Pool {
-                    token0: pool.assets[0].token,
-                    token1: pool.assets[1].token,
-                    symbol0: pool.assets[0].symbol.clone(),
-                    symbol1: pool.assets[1].symbol.clone(),
                     price: pool.price,
-                    borrow_index0: pool.assets[0].borrowIndex,
-                    borrow_index1: pool.assets[1].borrowIndex,
+                    price_decimals: pool.priceDecimals,
+                    base_token: pool.assets[0].token,
+                    base_symbol: pool.assets[0].symbol.clone(),
+                    base_token_decimals: pool.assets[0].decimals,
+                    base_borrow_index: pool.assets[0].borrowIndex,
+                    meme_token: pool.assets[1].token,
+                    meme_symbol: pool.assets[1].symbol.clone(),
+                    meme_token_decimals: pool.assets[1].decimals,
+                    meme_borrow_index: pool.assets[1].borrowIndex,
                 },
             );           
         }
@@ -771,14 +743,16 @@ impl<
 
     // async fn update_liquidation_threshold(&mut self) -> Result<()> {
     //     let reader = Reader::new(self.config.reader, self.client.clone());
-    //     self.liquidation_threshold = reader.get_liquidation_health_factor(self.config.data_store).await?;
+    //     self.liquidation_threshold = reader.get_liquidation_margin_level(self.config.data_store).await?;
     //     info!("liquidation_threshold {:?}", self.liquidation_threshold);
     //     Ok(())
     // }
 
     fn update_position(
         &mut self, 
+        positionKey: Bytes32,
         account: Address, 
+        position_id: U256,
         pool: Bytes32, 
         base_collateral: U256, 
         base_debt_scaled: U256, 
@@ -788,53 +762,32 @@ impl<
         //remove position and remove borrower
         if base_collateral == U256::ZERO && meme_collateral == U256::ZERO && 
            base_debt_scaled == U256::ZERO && meme_debt_scaled == U256::ZERO {
-            if self.borrowers.contains_key(&account) {
-                let borrower = self.borrowers.get_mut(&account).unwrap();
-                borrower.positions.remove(&pool);
-                if borrower.positions.len() == 0 {
-                    self.borrowers.remove(&account);
-                }
+            if self.positions.contains_key(&positionKey) {
+                //let position = self.positions.get_mut(&positionKey).unwrap();
+                self.positions.remove(&positionKey);
             }
             return
         }
 
-        //insert position and insert borrower
-        if self.borrowers.contains_key(&account) {
-            let borrower = self.borrowers.get_mut(&account).unwrap();
-            borrower.positions.insert(
-                pool, 
-                Position {
-                    pool:pool,
-                    base_collateral:base_collateral,
-                    base_debt_scaled:base_debt_scaled,
-                    meme_collateral:meme_collateral,
-                    meme_debt_scaled:meme_debt_scaled,
-                }
-            );
-        } else {
-            self.borrowers.insert(
-                account,
-                Borrower {
-                    address: account,
-                    positions: HashMap::from([(
-                        pool, 
-                        Position {
-                            pool:pool,
-                            base_collateral:base_collateral,
-                            base_debt_scaled:base_debt_scaled,
-                            meme_collateral:meme_collateral,
-                            meme_debt_scaled:meme_debt_scaled,
-                        }
-                    )])
-                },
-            );
-        }
+        //insert position
+        self.positions.insert(
+            positionKey, 
+            Position {
+                account:account,
+                position_id:position_id,
+                pool:pool,
+                base_collateral:base_collateral,
+                base_debt_scaled:base_debt_scaled,
+                meme_collateral:meme_collateral,
+                meme_debt_scaled:meme_debt_scaled,
+            }
+        );
 
     }
 
 }
 
-fn hash_addresses_ordered(addr1: Address, addr2: Address) -> Bytes32 {
+fn hash_pool_key(addr1: Address, addr2: Address) -> Bytes32 {
     // Determine the order: the smaller address comes first
     let (first, second) = if addr1 < addr2 {
         (addr1, addr2)
@@ -844,6 +797,26 @@ fn hash_addresses_ordered(addr1: Address, addr2: Address) -> Bytes32 {
 
     let bytes1: [u8; 20] = first.into();  // Convert Address to a 20-byte array
     let bytes2: [u8; 20] = second.into();  // Convert Address to a 20-byte array
+
+    // Create a Keccak256 hasher
+    let mut hasher = Keccak256::new();
+
+    // Concatenate the addresses in the determined order
+    hasher.update(&bytes1);
+    hasher.update(&bytes2);
+
+    // Finalize the hash and convert to Bytes32
+    let hash_result = hasher.finalize();
+
+    // Convert the result to Bytes32
+    FixedBytes::try_from(hash_result.as_slice()).expect("Hash should be 32 bytes")
+
+}
+
+fn hash_position_key(account: Address, position_id: U256) -> Bytes32 {
+
+    let bytes1: [u8; 20] = account.into();  // Convert Address to a 20-byte array
+    let bytes2: [u8; 32] = position_id.to_be_bytes();  // Convert Address to a 20-byte array
 
     // Create a Keccak256 hasher
     let mut hasher = Keccak256::new();
@@ -872,26 +845,26 @@ fn hash_addresses_ordered(addr1: Address, addr2: Address) -> Bytes32 {
 //     U256::from_little_endian(&byte_array)
 // }
 
-// fn ray_mul(a: U256, b: U256) -> U256 {
-//     let precision: U512 = U512::from(10).pow(U512::from(27));
-//     let half_precision: U512 = U512::from(5)*U512::from(10).pow(U512::from(26));
-//     let a512 : U512 = U512::from(a);
-//     let b512 : U512 = U512::from(b);
-//     return U256::from_dec_str(&((a512*b512 + half_precision)/precision).to_string()).unwrap(); 
-// }
+fn ray_mul(a: U256, b: U256) -> U256 {
+    let precision: U512 = U512::from(10).pow(U512::from(27));
+    let half_precision: U512 = U512::from(5)*U512::from(10).pow(U512::from(26));
+    let a512 : U512 = U512::from(a);
+    let b512 : U512 = U512::from(b);
+    return U256::from_str(&((a512*b512 + half_precision)/precision).to_string()).unwrap(); 
+}
 
-// fn ray_div(a: U256, b: U256) -> U256 {
-//     let precision: U512 = U512::from(10).pow(U512::from(27));
-//     let a512 : U512 = U512::from(a);
-//     let b512 : U512 = U512::from(b);
-//     let two : U512 = U512::from(2);
+fn ray_div(a: U256, b: U256) -> U256 {
+    let precision: U512 = U512::from(10).pow(U512::from(27));
+    let a512 : U512 = U512::from(a);
+    let b512 : U512 = U512::from(b);
+    let two : U512 = U512::from(2);
 
-//     return U256::from_dec_str(&((a512*precision+ b512/two)/b512).to_string()).unwrap();
-// }
+    return U256::from_str(&((a512*precision+ b512/two)/b512).to_string()).unwrap();
+}
 
-// fn adjust_precision(a: U256, decimals: U256) -> U256 {
-//     let precision: U512 = U512::from(10).pow(U512::from(27));
-//     let a512 : U512 = U512::from(a);
-//     return U256::from_dec_str(&(a512*precision/U512::from(10).pow(U512::from(decimals))).to_string()).unwrap();
-// }
+fn adjust_precision(a: U256, decimals: U256) -> U256 {
+    let precision: U512 = U512::from(10).pow(U512::from(27));
+    let a512 : U512 = U512::from(a);
+    return U256::from_str(&(a512*precision/U512::from(10).pow(U512::from(decimals))).to_string()).unwrap();
+}
 

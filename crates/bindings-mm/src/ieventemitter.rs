@@ -442,7 +442,7 @@ interface IEventEmitter {
     function emitBorrow(address borrower, address baseToken, address memeToken, uint256 positionId, uint8 tokenIndex, uint256 borrowAmount, uint256 borrowRate, Event.Liquidation memory liquidation) external;
     function emitClaimFees(address underlyingAsset, uint256 scaledUnclaimedFee, uint256 liquidityIndex, uint256 unclaimedFee) external;
     function emitClose(address account, uint256 positionId) external;
-    function emitDeposit(address depositor, address baseToken, address memeToken, uint256 depositAmount, uint256 baseCollateral, uint256 baseDebtScaled, uint256 memeCollateral, uint256 memeDebtScaled) external;
+    function emitDeposit(address depositor, address baseToken, address memeToken, uint256 positionId, uint256 depositAmount, uint256 baseCollateral, uint256 baseDebtScaled, uint256 memeCollateral, uint256 memeDebtScaled) external;
     function emitLiquidation(address liquidator, address account, uint256 positionId, uint256 marginLevel, uint256 marginLevelLiquidationThreshold, uint256 totalCollateralUsd, uint256 totalDebtUsd, uint256 memePrice) external;
     function emitPoolCreated(address baseToken, address memeToken, address source, uint256 createdTimestamp, uint256 baseDecimals, uint256 memeDecimals) external;
     function emitPoolUpdated(address underlyingAsset, uint256 liquidityRate, uint256 borrowRate, uint256 liquidityIndex, uint256 borrowIndex) external;
@@ -628,6 +628,11 @@ interface IEventEmitter {
         "name": "memeToken",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "positionId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "depositAmount",
@@ -1703,9 +1708,9 @@ function emitClose(address account, uint256 positionId) external;
             }
         }
     };
-    /**Function with signature `emitDeposit(address,address,address,uint256,uint256,uint256,uint256,uint256)` and selector `0x89cad4d9`.
+    /**Function with signature `emitDeposit(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256)` and selector `0x119c6c83`.
 ```solidity
-function emitDeposit(address depositor, address baseToken, address memeToken, uint256 depositAmount, uint256 baseCollateral, uint256 baseDebtScaled, uint256 memeCollateral, uint256 memeDebtScaled) external;
+function emitDeposit(address depositor, address baseToken, address memeToken, uint256 positionId, uint256 depositAmount, uint256 baseCollateral, uint256 baseDebtScaled, uint256 memeCollateral, uint256 memeDebtScaled) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -1713,13 +1718,14 @@ function emitDeposit(address depositor, address baseToken, address memeToken, ui
         pub depositor: alloy::sol_types::private::Address,
         pub baseToken: alloy::sol_types::private::Address,
         pub memeToken: alloy::sol_types::private::Address,
+        pub positionId: alloy::sol_types::private::primitives::aliases::U256,
         pub depositAmount: alloy::sol_types::private::primitives::aliases::U256,
         pub baseCollateral: alloy::sol_types::private::primitives::aliases::U256,
         pub baseDebtScaled: alloy::sol_types::private::primitives::aliases::U256,
         pub memeCollateral: alloy::sol_types::private::primitives::aliases::U256,
         pub memeDebtScaled: alloy::sol_types::private::primitives::aliases::U256,
     }
-    ///Container type for the return parameters of the [`emitDeposit(address,address,address,uint256,uint256,uint256,uint256,uint256)`](emitDepositCall) function.
+    ///Container type for the return parameters of the [`emitDeposit(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256)`](emitDepositCall) function.
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
     pub struct emitDepositReturn {}
@@ -1742,12 +1748,14 @@ function emitDeposit(address depositor, address baseToken, address memeToken, ui
                 alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
             );
             #[doc(hidden)]
             type UnderlyingRustTuple<'a> = (
                 alloy::sol_types::private::Address,
                 alloy::sol_types::private::Address,
                 alloy::sol_types::private::Address,
+                alloy::sol_types::private::primitives::aliases::U256,
                 alloy::sol_types::private::primitives::aliases::U256,
                 alloy::sol_types::private::primitives::aliases::U256,
                 alloy::sol_types::private::primitives::aliases::U256,
@@ -1773,6 +1781,7 @@ function emitDeposit(address depositor, address baseToken, address memeToken, ui
                         value.depositor,
                         value.baseToken,
                         value.memeToken,
+                        value.positionId,
                         value.depositAmount,
                         value.baseCollateral,
                         value.baseDebtScaled,
@@ -1789,11 +1798,12 @@ function emitDeposit(address depositor, address baseToken, address memeToken, ui
                         depositor: tuple.0,
                         baseToken: tuple.1,
                         memeToken: tuple.2,
-                        depositAmount: tuple.3,
-                        baseCollateral: tuple.4,
-                        baseDebtScaled: tuple.5,
-                        memeCollateral: tuple.6,
-                        memeDebtScaled: tuple.7,
+                        positionId: tuple.3,
+                        depositAmount: tuple.4,
+                        baseCollateral: tuple.5,
+                        baseDebtScaled: tuple.6,
+                        memeCollateral: tuple.7,
+                        memeDebtScaled: tuple.8,
                     }
                 }
             }
@@ -1840,6 +1850,7 @@ function emitDeposit(address depositor, address baseToken, address memeToken, ui
                 alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
             );
             type Token<'a> = <Self::Parameters<
                 'a,
@@ -1849,8 +1860,8 @@ function emitDeposit(address depositor, address baseToken, address memeToken, ui
             type ReturnToken<'a> = <Self::ReturnTuple<
                 'a,
             > as alloy_sol_types::SolType>::Token<'a>;
-            const SIGNATURE: &'static str = "emitDeposit(address,address,address,uint256,uint256,uint256,uint256,uint256)";
-            const SELECTOR: [u8; 4] = [137u8, 202u8, 212u8, 217u8];
+            const SIGNATURE: &'static str = "emitDeposit(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256)";
+            const SELECTOR: [u8; 4] = [17u8, 156u8, 108u8, 131u8];
             #[inline]
             fn new<'a>(
                 tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
@@ -1869,6 +1880,9 @@ function emitDeposit(address depositor, address baseToken, address memeToken, ui
                     <alloy::sol_types::sol_data::Address as alloy_sol_types::SolType>::tokenize(
                         &self.memeToken,
                     ),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.positionId),
                     <alloy::sol_types::sol_data::Uint<
                         256,
                     > as alloy_sol_types::SolType>::tokenize(&self.depositAmount),
@@ -3232,6 +3246,7 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
         ///
         /// Prefer using `SolInterface` methods instead.
         pub const SELECTORS: &'static [[u8; 4usize]] = &[
+            [17u8, 156u8, 108u8, 131u8],
             [21u8, 247u8, 98u8, 213u8],
             [41u8, 42u8, 231u8, 34u8],
             [66u8, 255u8, 100u8, 165u8],
@@ -3239,7 +3254,6 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
             [90u8, 122u8, 55u8, 118u8],
             [124u8, 36u8, 218u8, 183u8],
             [130u8, 98u8, 0u8, 158u8],
-            [137u8, 202u8, 212u8, 217u8],
             [150u8, 222u8, 36u8, 127u8],
             [156u8, 132u8, 87u8, 146u8],
             [158u8, 212u8, 134u8, 235u8],
@@ -3307,6 +3321,19 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                 &[u8],
                 bool,
             ) -> alloy_sol_types::Result<IEventEmitterCalls>] = &[
+                {
+                    fn emitDeposit(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<IEventEmitterCalls> {
+                        <emitDepositCall as alloy_sol_types::SolCall>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(IEventEmitterCalls::emitDeposit)
+                    }
+                    emitDeposit
+                },
                 {
                     fn emitWithdraw(
                         data: &[u8],
@@ -3397,19 +3424,6 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                             .map(IEventEmitterCalls::emitRepay)
                     }
                     emitRepay
-                },
-                {
-                    fn emitDeposit(
-                        data: &[u8],
-                        validate: bool,
-                    ) -> alloy_sol_types::Result<IEventEmitterCalls> {
-                        <emitDepositCall as alloy_sol_types::SolCall>::abi_decode_raw(
-                                data,
-                                validate,
-                            )
-                            .map(IEventEmitterCalls::emitDeposit)
-                    }
-                    emitDeposit
                 },
                 {
                     fn emitSwap(
@@ -3848,6 +3862,7 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
             depositor: alloy::sol_types::private::Address,
             baseToken: alloy::sol_types::private::Address,
             memeToken: alloy::sol_types::private::Address,
+            positionId: alloy::sol_types::private::primitives::aliases::U256,
             depositAmount: alloy::sol_types::private::primitives::aliases::U256,
             baseCollateral: alloy::sol_types::private::primitives::aliases::U256,
             baseDebtScaled: alloy::sol_types::private::primitives::aliases::U256,
@@ -3859,6 +3874,7 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
                     depositor,
                     baseToken,
                     memeToken,
+                    positionId,
                     depositAmount,
                     baseCollateral,
                     baseDebtScaled,

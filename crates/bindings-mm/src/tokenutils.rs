@@ -57,22 +57,22 @@ pub mod TokenUtils {
     /// The creation / init bytecode of the contract.
     ///
     /// ```text
-    ///0x60556032600b8282823980515f1a607314602657634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220827459b814beb3a3c565419e72f0f19e98914148e5564425a986aefb752c084a64736f6c634300081c0033
+    ///0x60556032600b8282823980515f1a607314602657634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220fd2d7585729a8e3aa2ba36e5fa047e7c2b23291762055936711169b5fbd62ac464736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"`U`2`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`&WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \x82tY\xB8\x14\xBE\xB3\xA3\xC5eA\x9Er\xF0\xF1\x9E\x98\x91AH\xE5VD%\xA9\x86\xAE\xFBu,\x08JdsolcC\0\x08\x1C\x003",
+        b"`U`2`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`&WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \xFD-u\x85r\x9A\x8E:\xA2\xBA6\xE5\xFA\x04~|+#)\x17b\x05Y6q\x11i\xB5\xFB\xD6*\xC4dsolcC\0\x08\x1C\x003",
     );
     /// The runtime bytecode of the contract, as deployed on the network.
     ///
     /// ```text
-    ///0x730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220827459b814beb3a3c565419e72f0f19e98914148e5564425a986aefb752c084a64736f6c634300081c0033
+    ///0x730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220fd2d7585729a8e3aa2ba36e5fa047e7c2b23291762055936711169b5fbd62ac464736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static DEPLOYED_BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \x82tY\xB8\x14\xBE\xB3\xA3\xC5eA\x9Er\xF0\xF1\x9E\x98\x91AH\xE5VD%\xA9\x86\xAE\xFBu,\x08JdsolcC\0\x08\x1C\x003",
+        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \xFD-u\x85r\x9A\x8E:\xA2\xBA6\xE5\xFA\x04~|+#)\x17b\x05Y6q\x11i\xB5\xFB\xD6*\xC4dsolcC\0\x08\x1C\x003",
     );
     /**Event with signature `NativeTokenTransferReverted(string)` and selector `0x6c4e9d88878940a822d239187b8b00d62a80dce222d53bc5f1fb072d9c34b681`.
 ```solidity
