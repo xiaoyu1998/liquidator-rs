@@ -8,6 +8,7 @@ use bindings_mm::{
     reader::Reader,
     eventemitter::EventEmitter,
     exchangerouter::LiquidationUtils::LiquidationParams,
+    exchangerouter::ExchangeRouter,
     //shared_types::LiquidationParams,
     //ierc20::IERC20,
 };
@@ -32,7 +33,7 @@ use sha3::{Digest, Keccak256};
 
 use alloy::{
     contract as alloy_contract,
-    network::{EthereumWallet, Ethereum, Network},
+    network::{EthereumWallet, Ethereum, Network, TransactionBuilder},
     //signers::local::PrivateKeySigner,
     providers::{ProviderBuilder}, 
     sol_types::private::{Address, Uint},
@@ -193,7 +194,7 @@ impl<
     T: alloy_contract::private::Transport + ::core::clone::Clone,
     P: alloy_contract::private::Provider<T, N>  + 'static,
     N: alloy_contract::private::Network,
-> Strategy<Event, Action> for MmStrategy<T, P, N>{
+> Strategy<Event, Action<N>> for MmStrategy<T, P, N>{
     async fn sync_state(&mut self) -> Result<()> {
         info!("syncing state");
         info!("self.config.data_store {:?}", self.config.data_store);
@@ -208,7 +209,7 @@ impl<
         Ok(())
     }
 
-    async fn process_event(&mut self, event: Event) -> Vec<Action> {
+    async fn process_event(&mut self, event: Event) -> Vec<Action<N>> {
         match event {
             Event::NewTick(block) => self
                 .process_new_tick_event(block)
@@ -225,7 +226,7 @@ impl<
 > MmStrategy<T, P, N> {
 
     /// Process new block events, updating the internal state.
-    async fn process_new_tick_event(&mut self, event: NewTick) -> Option<Vec<Action>> {
+    async fn process_new_tick_event(&mut self, event: NewTick) -> Option<Vec<Action<N>>> {
         info!("received new tick: {:?}", event);
 
         self.update_pools()
@@ -241,14 +242,14 @@ impl<
         info!("Total position count: {}", self.positions.len());
         let underwaters = self.get_underwater_positions().await?;
 
-        let mut actions: Vec<Action> = Vec::new();
-        for (account, position_id, margin_level, collateral, debt) in underwaters {
+        let mut actions: Vec<Action<N>> = Vec::new();
+        for (account, position_id, _margin_level, _collateral, _debt) in underwaters {
             let action = async {
                 self.build_liquidation_tx(&account, position_id)
                     .await
                     .map_err(|e| {
                         error!("Error building liquidation: {}", e);
-                        None
+                        e
                     })
                     .ok()
                     .map(|tx| Action::SubmitTx(SubmitTxToMempool {
@@ -264,15 +265,20 @@ impl<
         }
 
         Some(actions)
+        //None
     }
 
-    async fn build_liquidation_tx(&self, account: &Address, position_id: U256) -> Result<<Ethereum as Network>::TransactionRequest> {
+    async fn build_liquidation_tx(&self, account: &Address, position_id: U256) -> Result<<N as Network>::TransactionRequest> {
         let exchangeRouter = ExchangeRouter::new(self.liquidator, self.client.clone());
-        let mut call = exchangeRouter.executeLiquidation(LiquidationParams{
+        let call_build = exchangeRouter.executeLiquidation(LiquidationParams{
             account: *account,
             positionId: position_id
         });
-        Ok(call.tx.set_chain_id(self.chain_id).clone())
+        
+        let mut tx = call_build.into_transaction_request();
+        tx.set_chain_id(self.chain_id);
+
+        Ok(tx)
     }
 
     // for all known borrowers, return a sorted set of those with health factor < liquidation_threshold
@@ -706,9 +712,6 @@ impl<
     // }
 
     async fn update_pools(&mut self) -> Result<()> {
-        // info!("self.config.reader {:?}", self.config.reader);
-        // let all_pools = self.reader.getPools_0(self.config.data_store.clone()).await?;
-
         let reader = Reader::new(self.config.reader.clone(), self.client.clone());
         let all_pools = reader.getPools_0(self.config.data_store.clone()).call().await.unwrap();
 
@@ -734,12 +737,12 @@ impl<
         Ok(())
     }
 
-    // async fn update_liquidation_threshold(&mut self) -> Result<()> {
-    //     let reader = Reader::new(self.config.reader, self.client.clone());
-    //     self.liquidation_threshold = reader.get_liquidation_margin_level(self.config.data_store).await?;
-    //     info!("liquidation_threshold {:?}", self.liquidation_threshold);
-    //     Ok(())
-    // }
+    async fn update_liquidation_threshold(&mut self) -> Result<()> {
+        let reader = Reader::new(self.config.reader, self.client.clone());
+        self.liquidation_threshold = reader.getMarginLevelThreshold(self.config.data_store).call().await.unwrap()._0;
+        info!("liquidation_threshold {:?}", self.liquidation_threshold);
+        Ok(())
+    }
 
     fn update_position(
         &mut self, 
@@ -756,7 +759,6 @@ impl<
         if base_collateral == U256::ZERO && meme_collateral == U256::ZERO && 
            base_debt_scaled == U256::ZERO && meme_debt_scaled == U256::ZERO {
             if self.positions.contains_key(&positionKey) {
-                //let position = self.positions.get_mut(&positionKey).unwrap();
                 self.positions.remove(&positionKey);
             }
             return

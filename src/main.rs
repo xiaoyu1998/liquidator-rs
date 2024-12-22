@@ -6,7 +6,7 @@ use artemis_core::engine::Engine;
 use artemis_core::types::{CollectorMap, ExecutorMap};
 use collectors::time_collector::TimeCollector;
 use alloy::{
-    network::EthereumWallet,
+    network::{EthereumWallet, Ethereum},
     signers::local::PrivateKeySigner,
     providers::ProviderBuilder, 
 };
@@ -84,7 +84,7 @@ async fn main() -> Result<()> {
     //let provider = ProviderBuilder::new().wallet(wallet.clone()).on_http(rpc);
 
     // // Set up engine.
-    let mut engine: Engine<Event, Action> = Engine::default();
+    let mut engine: Engine<Event, Action<Ethereum>> = Engine::default();
 
     // // Set up time collector.
     let time_collector = Box::new(TimeCollector::new(args.pool_interval_secs));
