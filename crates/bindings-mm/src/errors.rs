@@ -41,6 +41,7 @@ interface Errors {
     error InsufficientReverveForBorrow(uint256 amountToBorrow, uint256 availableReserve);
     error InsufficientReverveForWithdraw(uint256 amountToWithdraw, uint256 availableReserve);
     error InsufficientSwapAmount(uint256 lastVirtualLiquidity0, uint256 lastVirtualLiquidity1, uint256 adjustedVirtualLiquidity0, uint256 adjustedVirtualLiquidity1);
+    error InsufficientSwapCollateral(uint256 amountIn, uint256 collateral);
     error InsufficientUserBalance(uint256 balance, uint256 liquidity);
     error InvalidBorrowCapacity(uint256 borrowCapacity, uint256 MaxValidBorrowCapacity);
     error InvalidDecimals(uint256 decimals, uint256 MaxValidDecimals);
@@ -432,6 +433,22 @@ interface Errors {
   },
   {
     "type": "error",
+    "name": "InsufficientSwapCollateral",
+    "inputs": [
+      {
+        "name": "amountIn",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "collateral",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
     "name": "InsufficientUserBalance",
     "inputs": [
       {
@@ -816,22 +833,22 @@ pub mod Errors {
     /// The creation / init bytecode of the contract.
     ///
     /// ```text
-    ///0x60556032600b8282823980515f1a607314602657634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f5ffdfea264697066735822122008bea4a379e709d23a78776bd15231ffc90a20c510f940cc288ad39ac866da8164736f6c634300081c0033
+    ///0x60556032600b8282823980515f1a607314602657634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220a9b3bc7f718bc3ff789469ac8ab3725f45c2a5d11e81dc019bbe53ed4dbafe6d64736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"`U`2`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`&WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \x08\xBE\xA4\xA3y\xE7\t\xD2:xwk\xD1R1\xFF\xC9\n \xC5\x10\xF9@\xCC(\x8A\xD3\x9A\xC8f\xDA\x81dsolcC\0\x08\x1C\x003",
+        b"`U`2`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`&WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \xA9\xB3\xBC\x7Fq\x8B\xC3\xFFx\x94i\xAC\x8A\xB3r_E\xC2\xA5\xD1\x1E\x81\xDC\x01\x9B\xBES\xEDM\xBA\xFEmdsolcC\0\x08\x1C\x003",
     );
     /// The runtime bytecode of the contract, as deployed on the network.
     ///
     /// ```text
-    ///0x730000000000000000000000000000000000000000301460806040525f5ffdfea264697066735822122008bea4a379e709d23a78776bd15231ffc90a20c510f940cc288ad39ac866da8164736f6c634300081c0033
+    ///0x730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220a9b3bc7f718bc3ff789469ac8ab3725f45c2a5d11e81dc019bbe53ed4dbafe6d64736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static DEPLOYED_BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \x08\xBE\xA4\xA3y\xE7\t\xD2:xwk\xD1R1\xFF\xC9\n \xC5\x10\xF9@\xCC(\x8A\xD3\x9A\xC8f\xDA\x81dsolcC\0\x08\x1C\x003",
+        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \xA9\xB3\xBC\x7Fq\x8B\xC3\xFFx\x94i\xAC\x8A\xB3r_E\xC2\xA5\xD1\x1E\x81\xDC\x01\x9B\xBES\xEDM\xBA\xFEmdsolcC\0\x08\x1C\x003",
     );
     /**Custom error with signature `AccountNotMatch(address,address)` and selector `0x25c7157e`.
 ```solidity
@@ -3565,6 +3582,91 @@ error InsufficientSwapAmount(uint256 lastVirtualLiquidity0, uint256 lastVirtualL
             }
         }
     };
+    /**Custom error with signature `InsufficientSwapCollateral(uint256,uint256)` and selector `0x671abd07`.
+```solidity
+error InsufficientSwapCollateral(uint256 amountIn, uint256 collateral);
+```*/
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct InsufficientSwapCollateral {
+        pub amountIn: alloy::sol_types::private::primitives::aliases::U256,
+        pub collateral: alloy::sol_types::private::primitives::aliases::U256,
+    }
+    #[allow(
+        non_camel_case_types,
+        non_snake_case,
+        clippy::pub_underscore_fields,
+        clippy::style
+    )]
+    const _: () = {
+        use alloy::sol_types as alloy_sol_types;
+        #[doc(hidden)]
+        type UnderlyingSolTuple<'a> = (
+            alloy::sol_types::sol_data::Uint<256>,
+            alloy::sol_types::sol_data::Uint<256>,
+        );
+        #[doc(hidden)]
+        type UnderlyingRustTuple<'a> = (
+            alloy::sol_types::private::primitives::aliases::U256,
+            alloy::sol_types::private::primitives::aliases::U256,
+        );
+        #[cfg(test)]
+        #[allow(dead_code, unreachable_patterns)]
+        fn _type_assertion(
+            _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+        ) {
+            match _t {
+                alloy_sol_types::private::AssertTypeEq::<
+                    <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                >(_) => {}
+            }
+        }
+        #[automatically_derived]
+        #[doc(hidden)]
+        impl ::core::convert::From<InsufficientSwapCollateral>
+        for UnderlyingRustTuple<'_> {
+            fn from(value: InsufficientSwapCollateral) -> Self {
+                (value.amountIn, value.collateral)
+            }
+        }
+        #[automatically_derived]
+        #[doc(hidden)]
+        impl ::core::convert::From<UnderlyingRustTuple<'_>>
+        for InsufficientSwapCollateral {
+            fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                Self {
+                    amountIn: tuple.0,
+                    collateral: tuple.1,
+                }
+            }
+        }
+        #[automatically_derived]
+        impl alloy_sol_types::SolError for InsufficientSwapCollateral {
+            type Parameters<'a> = UnderlyingSolTuple<'a>;
+            type Token<'a> = <Self::Parameters<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            const SIGNATURE: &'static str = "InsufficientSwapCollateral(uint256,uint256)";
+            const SELECTOR: [u8; 4] = [103u8, 26u8, 189u8, 7u8];
+            #[inline]
+            fn new<'a>(
+                tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
+            ) -> Self {
+                tuple.into()
+            }
+            #[inline]
+            fn tokenize(&self) -> Self::Token<'_> {
+                (
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.amountIn),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.collateral),
+                )
+            }
+        }
+    };
     /**Custom error with signature `InsufficientUserBalance(uint256,uint256)` and selector `0x5f504d20`.
 ```solidity
 error InsufficientUserBalance(uint256 balance, uint256 liquidity);
@@ -5806,6 +5908,7 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
         InsufficientReverveForBorrow(InsufficientReverveForBorrow),
         InsufficientReverveForWithdraw(InsufficientReverveForWithdraw),
         InsufficientSwapAmount(InsufficientSwapAmount),
+        InsufficientSwapCollateral(InsufficientSwapCollateral),
         InsufficientUserBalance(InsufficientUserBalance),
         InvalidBorrowCapacity(InvalidBorrowCapacity),
         InvalidDecimals(InvalidDecimals),
@@ -5867,6 +5970,7 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
             [88u8, 197u8, 46u8, 77u8],
             [95u8, 80u8, 77u8, 32u8],
             [99u8, 49u8, 250u8, 177u8],
+            [103u8, 26u8, 189u8, 7u8],
             [105u8, 119u8, 202u8, 12u8],
             [108u8, 83u8, 5u8, 109u8],
             [115u8, 87u8, 217u8, 31u8],
@@ -5916,7 +6020,7 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
     impl alloy_sol_types::SolInterface for ErrorsErrors {
         const NAME: &'static str = "ErrorsErrors";
         const MIN_DATA_LENGTH: usize = 0usize;
-        const COUNT: usize = 66usize;
+        const COUNT: usize = 67usize;
         #[inline]
         fn selector(&self) -> [u8; 4] {
             match self {
@@ -6027,6 +6131,9 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                 }
                 Self::InsufficientSwapAmount(_) => {
                     <InsufficientSwapAmount as alloy_sol_types::SolError>::SELECTOR
+                }
+                Self::InsufficientSwapCollateral(_) => {
+                    <InsufficientSwapCollateral as alloy_sol_types::SolError>::SELECTOR
                 }
                 Self::InsufficientUserBalance(_) => {
                     <InsufficientUserBalance as alloy_sol_types::SolError>::SELECTOR
@@ -6431,6 +6538,19 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                             .map(ErrorsErrors::SingleTokenInOutSwapOnly)
                     }
                     SingleTokenInOutSwapOnly
+                },
+                {
+                    fn InsufficientSwapCollateral(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<ErrorsErrors> {
+                        <InsufficientSwapCollateral as alloy_sol_types::SolError>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(ErrorsErrors::InsufficientSwapCollateral)
+                    }
+                    InsufficientSwapCollateral
                 },
                 {
                     fn EmptyAddAmounts(
@@ -7179,6 +7299,11 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                         inner,
                     )
                 }
+                Self::InsufficientSwapCollateral(inner) => {
+                    <InsufficientSwapCollateral as alloy_sol_types::SolError>::abi_encoded_size(
+                        inner,
+                    )
+                }
                 Self::InsufficientUserBalance(inner) => {
                     <InsufficientUserBalance as alloy_sol_types::SolError>::abi_encoded_size(
                         inner,
@@ -7535,6 +7660,12 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                 }
                 Self::InsufficientSwapAmount(inner) => {
                     <InsufficientSwapAmount as alloy_sol_types::SolError>::abi_encode_raw(
+                        inner,
+                        out,
+                    )
+                }
+                Self::InsufficientSwapCollateral(inner) => {
+                    <InsufficientSwapCollateral as alloy_sol_types::SolError>::abi_encode_raw(
                         inner,
                         out,
                     )

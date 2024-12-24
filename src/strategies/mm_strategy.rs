@@ -79,21 +79,6 @@ fn get_deployment_config(deployment: Deployment, last_block_number: u64) -> Depl
     }
 }
 
-// #[derive(Clone, Debug, Serialize, Deserialize)]
-// pub struct Token {
-//     #[serde(rename = "address")]
-//     address: Address,
-
-//     #[serde(rename = "decimals")]
-//     decimals: u64,
-
-//     #[serde(rename = "oracle")]
-//     oracle: Address,
-
-//     #[serde(rename = "oracleDecimals")]
-//     oracle_decimals: u64,
-// }
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StateCache {
     last_block_number: u64,
@@ -407,22 +392,24 @@ impl<
                 return;
             });
 
-        // self.get_repay_logs(start_block.into(), latest_block)
-        //     .await?
-        //     .into_iter()
-        //     .for_each(|log| {
-        //         info!("repay {:?} {} {} {} {} {}", log.repayer, self.pools.get(hash_pool_key(log.baseToken, log.memeToken)).unwrap().symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
-        //         let user = log.repayer;
-        //         self.update_position(
-        //             user, 
-        //             hash_pool_key(log.baseToken, log.memeToken), 
-        //             log.baseCollateral, 
-        //             log.baseDebtScaled, 
-        //             log.memeCollateral, 
-        //             log.memeDebtScaled
-        //         );          
-        //         return;
-        //     });
+        self.get_repay_logs(start_block.into(), latest_block)
+            .await?
+            .into_iter()
+            .for_each(|log| {
+                info!("repay {:?} {} {} {} {} {}", log.repayer, self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
+                let user = log.repayer;
+                self.update_position(
+                    hash_position_key(user, log.positionId),
+                    user, 
+                    log.positionId,
+                    hash_pool_key(log.baseToken, log.memeToken), 
+                    log.baseCollateral, 
+                    log.baseDebtScaled, 
+                    log.memeCollateral, 
+                    log.memeDebtScaled
+                );          
+                return;
+            });
 
         // self.get_redeem_logs(start_block.into(), latest_block)
         //     .await?
@@ -434,22 +421,24 @@ impl<
         //         return;
         //     });
 
-        // self.get_swap_logs(start_block.into(), latest_block)
-        //     .await?
-        //     .into_iter()
-        //     .for_each(|log| {
-        //         info!("swapIn {:?} {} {} {} {} {}", log.account, self.pools.get(&hash_pool_key(log.tokenIn, log.tokenOut)).unwrap().symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
-        //         let user = log.account;
-        //         self.update_position(
-        //             user, 
-        //             hash_pool_key(log.tokenIn, log.tokenOut), 
-        //             log.baseCollateral, 
-        //             log.baseDebtScaled, 
-        //             log.memeCollateral, 
-        //             log.memeDebtScaled
-        //         );
-        //         return;
-        //     });
+        self.get_swap_logs(start_block.into(), latest_block)
+            .await?
+            .into_iter()
+            .for_each(|log| {
+                info!("swapIn {:?} {} {} {} {} {}", log.account, self.pools.get(&hash_pool_key(log.tokenIn, log.tokenOut)).unwrap().meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
+                let user = log.account;
+                self.update_position(
+                    hash_position_key(user, log.positionId),
+                    user, 
+                    log.positionId,
+                    hash_pool_key(log.tokenIn, log.tokenOut), 
+                    log.baseCollateral, 
+                    log.baseDebtScaled, 
+                    log.memeCollateral, 
+                    log.memeDebtScaled
+                );
+                return;
+            });
 
         // self.get_liquidation_logs(start_block.into(), latest_block)
         //     .await?
@@ -499,8 +488,8 @@ impl<
                 .query()
                 .await?
                 .into_iter()
-                .for_each(|(deposit,_)| {
-                    res.push(deposit);
+                .for_each(|(log, _)| {
+                    res.push(log);
                 });
         }
 
@@ -522,37 +511,37 @@ impl<
                 .query()
                 .await?
                 .into_iter()
-                .for_each(|(borrow,_)| {
-                    res.push(borrow);
+                .for_each(|(log,_)| {
+                    res.push(log);
                 });
         }
 
         Ok(res)
     }
 
-    // // fetch all repay events from the from_block to to_block
-    // async fn get_repay_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Repay>> {
-    //     let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
+    // fetch all repay events from the from_block to to_block
+    async fn get_repay_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Repay>> {
+        let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
 
-    //     let mut res = Vec::new();
-    //     for start_block in
-    //         (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
-    //     {
-    //         let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-    //         event_emitter.Repay_filter()
-    //             .from_block(start_block)
-    //             .to_block(end_block)
-    //             .address(ValueOrArray::Value(self.config.event_emitter))
-    //             .query()
-    //             .await?
-    //             .into_iter()
-    //             .for_each(|log| {
-    //                 res.push(log);
-    //             });
-    //     }
+        let mut res = Vec::new();
+        for start_block in
+            (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
+        {
+            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
+            event_emitter.Repay_filter()
+                .from_block(start_block)
+                .to_block(end_block)
+                .address(self.config.event_emitter)
+                .query()
+                .await?
+                .into_iter()
+                .for_each(|(log, _)| {
+                    res.push(log);
+                });
+        }
 
-    //     Ok(res)
-    // }
+        Ok(res)
+    }
 
     // // fetch all redeem events from the from_block to to_block
     // async fn get_redeem_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Redeem>> {
@@ -578,29 +567,29 @@ impl<
     //     Ok(res)
     // }
 
-    // // fetch all swap events from the from_block to to_block
-    // async fn get_swap_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Swap>> {
-    //     let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
+    // fetch all swap events from the from_block to to_block
+    async fn get_swap_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Swap>> {
+        let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
 
-    //     let mut res = Vec::new();
-    //     for start_block in
-    //         (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
-    //     {
-    //         let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-    //         event_emitter.Swap_filter()
-    //             .from_block(start_block)
-    //             .to_block(end_block)
-    //             .address(ValueOrArray::Value(self.config.event_emitter))
-    //             .query()
-    //             .await?
-    //             .into_iter()
-    //             .for_each(|log| {
-    //                 res.push(log);
-    //             });
-    //     }
+        let mut res = Vec::new();
+        for start_block in
+            (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
+        {
+            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
+            event_emitter.Swap_filter()
+                .from_block(start_block)
+                .to_block(end_block)
+                .address(self.config.event_emitter)
+                .query()
+                .await?
+                .into_iter()
+                .for_each(|(log,_)| {
+                    res.push(log);
+                });
+        }
 
-    //     Ok(res)
-    // }
+        Ok(res)
+    }
 
     // // fetch all liquidation events from the from_block to to_block
     // async fn get_liquidation_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<Liquidation>> {
