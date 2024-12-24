@@ -47,6 +47,7 @@ struct DeploymentConfig {
     data_store: Address,
     reader: Address,
     event_emitter: Address,
+    exchange_router: Address,
     last_block_number: u64,
 }
 
@@ -65,13 +66,14 @@ pub const RETRY_DURATION_IN_SECS: i64 = 60;
 fn get_deployment_config(deployment: Deployment, last_block_number: u64) -> DeploymentConfig {
 
     let file = File::open(DEPLOYED_ADDRESSES).unwrap();
-    let up_contracts: HashMap<String, Address> = serde_json::from_reader(file).unwrap();
+    let mm_contracts: HashMap<String, Address> = serde_json::from_reader(file).unwrap();
 
     match deployment {
         Deployment::LOCALNET => DeploymentConfig {
-            data_store: *up_contracts.get("DataStore#DataStore").unwrap(),
-            reader: *up_contracts.get("Reader#Reader").unwrap(),
-            event_emitter: *up_contracts.get("EventEmitter#EventEmitter").unwrap(),
+            data_store: *mm_contracts.get("DataStore#DataStore").unwrap(),
+            reader: *mm_contracts.get("Reader#Reader").unwrap(),
+            event_emitter: *mm_contracts.get("EventEmitter#EventEmitter").unwrap(),
+            exchange_router: *mm_contracts.get("ExchangeRouter#ExchangeRouter").unwrap(),
             last_block_number: last_block_number,
         }
     }
@@ -139,8 +141,6 @@ pub struct MmStrategy<T, P, N = alloy_contract::private::Ethereum>
     liquidator: Address,
     liquidation_threshold: U256,
      _network_transport: ::core::marker::PhantomData<(N, T)>,
-    //reader: Reader::ReaderInstance<T, P, N>,
-    //event_emitter: EventEmitter::EventEmitterInstance<T, P, N>,
 }
 
 impl<   
@@ -167,27 +167,9 @@ impl<
             liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
             liquidation_threshold: U256::ZERO,
             _network_transport: ::core::marker::PhantomData,
-            //reader:Reader::new(deployment_config.reader.clone(), client.clone()),
-            //event_emitter:EventEmitter::new(deployment_config.event_emitter, client.clone()),
         }
     }
 }
-
-// #[derive(Clone, Debug, Serialize, Deserialize)]
-// pub struct Asset {
-//     token: Address,
-//     amount: U256,
-// }
-
-// #[derive(Clone, Debug, Serialize, Deserialize)]
-// struct LiquidationOpportunity {
-//     borrower: Address,
-//     profit: I256,
-//     collaterals: Vec<Asset>,
-//     debts: Vec<Asset>,
-//     uniswap_fee: u32,
-//     gas_fee_usd: U256,
-// }
 
 #[async_trait]
 impl<   
@@ -269,7 +251,7 @@ impl<
     }
 
     async fn build_liquidation_tx(&self, account: &Address, position_id: U256) -> Result<<N as Network>::TransactionRequest> {
-        let exchangeRouter = ExchangeRouter::new(self.liquidator, self.client.clone());
+        let exchangeRouter = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
         let call_build = exchangeRouter.executeLiquidation(LiquidationParams{
             account: *account,
             positionId: position_id
@@ -352,49 +334,6 @@ impl<
         //underwater_positions.sort_by(|a, b| a.1.cmp(&b.1));
         Some(underwater_positions)
     }
-
-//     async fn get_liquidation_profit(
-//         &self,
-//         borrower: &Borrower,
-// //        margin_level: &U256,
-//         user_total_collateral_usd: &U256,
-//         user_total_debt_usd: &U256,
-//     ) -> Result<LiquidationOpportunity> {
-//         let mut profit: U256 = U256::ZERO;
-//         if user_total_collateral_usd > user_total_debt_usd {
-//             profit = user_total_collateral_usd - user_total_debt_usd;
-//         }
-
-//         let eth_price = self.pools.get(&self.config.eth).unwrap().price;
-//         let mut op = LiquidationOpportunity {
-//             borrower: borrower.address,
-//             profit: I256::from_dec_str(&ray_div( profit, eth_price).to_string())?,
-//             collaterals: Vec::new(),
-//             debts: Vec::new(),
-//             uniswap_fee: 3000,
-//             gas_fee_usd: U256::ZERO 
-//         };
-//         for (_, position) in &borrower.positions {
-//             if position.collateral > U256::ZERO {
-//                 op.collaterals.push(Asset{
-//                     token: position.pool.clone(), 
-//                     amount: position.collateral, 
-//                 });
-//             }
-//             if position.debt_scaled > U256::ZERO {
-//                 op.debts.push(Asset{
-//                     token: position.pool.clone(), 
-//                     amount: position.debt_scaled, 
-//                 });
-//             }
-//         }
-//         info!(
-//             "op {:?} ", op
-//         );
-
-
-//         Ok(op)
-//     }
 
     // load borrower state cache from file if exists
     fn load_cache(&mut self) -> Result<()> {
@@ -827,18 +766,6 @@ fn hash_position_key(account: Address, position_id: U256) -> Bytes32 {
     FixedBytes::try_from(hash_result.as_slice()).expect("Hash should be 32 bytes")
 
 }
-
-// fn convert_alloy_to_ethers(alloy_uint: Uint<256, 4>) -> U256 {
-//     // Convert the alloy Uint<256, 4> into a byte array (assuming little-endian format)
-//     let bytes = alloy_uint.to_bytes();  // You may need to adjust this based on the actual API
-//     let mut byte_array = [0u8; 32];  // U256 is 32 bytes
-    
-//     // Copy the relevant bytes into the byte_array (assumes that `bytes` is 32 bytes or less)
-//     byte_array[0..bytes.len()].copy_from_slice(&bytes);
-    
-//     // Convert the byte array to a U256
-//     U256::from_little_endian(&byte_array)
-// }
 
 fn ray_mul(a: U256, b: U256) -> U256 {
     let precision: U512 = U512::from(10).pow(U512::from(27));
