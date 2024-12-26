@@ -44,6 +44,9 @@ pub struct Args {
     #[arg(long)]
     pub deployment: Deployment,
 
+    #[arg(long)]
+    pub total_profit: u128,    
+
     // #[arg(long)]
     // pub liquidator_address: String,
 
@@ -100,6 +103,7 @@ async fn main() -> Result<()> {
         args.deployment,
         //args.liquidator_address,
         args.last_block_number,
+        args.total_profit,
     );
     engine.add_strategy(Box::new(strategy));
 

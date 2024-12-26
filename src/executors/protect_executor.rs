@@ -1,4 +1,4 @@
-use std::{sync::Arc};
+use std::{ops::Mul, sync::Arc};
 use tracing::info;
 
 use anyhow::{Context, Result};
@@ -44,40 +44,42 @@ impl<
     /// Send a transaction to the mempool.
     async fn execute(&self, mut action: SubmitTxToMempool<N>) -> Result<()> {
         info!("Executing tx {:?}", action.tx);
-        // let gas_usage_result = self
-        //     .client
-        //     .estimate_gas(&action.tx)
-        //     .await
-        //     .context("Error estimating gas usage: {}");
+        let gas_usage_result = self
+            .client
+            .estimate_gas(&action.tx)
+            .await
+            .context("Error estimating gas usage: {}");
 
-        // info!("Gas Usage {:?}", gas_usage_result);
-        // let gas_usage = gas_usage_result?;
+        info!("Gas Usage {:?}", gas_usage_result);
+        let gas_usage = gas_usage_result?;
 
         let bid_gas_price;
-        // if let Some(gas_bid_info) = action.gas_bid_info {
-        //     // Just use estimated gas price but throw if its too low
-        //     bid_gas_price = self
-        //         .client
-        //         .get_gas_price()
-        //         .await
-        //         .context("Error getting gas price: {}")?;
-        //     let estimated_cost = bid_gas_price.mul(gas_usage);
-        //     if estimated_cost > gas_bid_info.total_profit {
-        //         anyhow::bail!("Estimated cost of tx is greater than total profit");
-        //     }
-        //     info!(
-        //         "Gas bid info: {:?}, estimated cost: {}, bid gas price: {}",
-        //         gas_bid_info, estimated_cost, bid_gas_price
-        //     );
-        // } else {
+        if let Some(gas_bid_info) = action.gas_bid_info {
+            // Just use estimated gas price but throw if its too low
             bid_gas_price = self
                 .client
                 .get_gas_price()
                 .await
                 .context("Error getting gas price: {}")?;
-        // }
+            let estimated_cost = bid_gas_price.mul(gas_usage as u128);
+            info!(
+                "Gas bid info: {:?}, estimated cost: {}, bid gas price: {}",
+                gas_bid_info, estimated_cost, bid_gas_price
+            );
+            if estimated_cost > gas_bid_info.total_profit {
+                anyhow::bail!("Estimated cost of tx is greater than total profit");
+            }
+        } else {
+            bid_gas_price = self
+                .client
+                .get_gas_price()
+                .await
+                .context("Error getting gas price: {}")?;
+        }
+        info!("bid_gas_price {:?}", bid_gas_price);
         action.tx.set_gas_price(bid_gas_price);
-        //action.tx.gas_price = Some(bid_gas_price.into());
+        action.tx.set_gas_limit(gas_usage);
+        info!("gas limit {:?}", action.tx.gas_limit().unwrap());
         let _ = self.sender_client.send_transaction(action.tx).await?;
         Ok(())
     }

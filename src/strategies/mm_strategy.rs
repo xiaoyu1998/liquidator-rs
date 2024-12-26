@@ -46,6 +46,7 @@ struct DeploymentConfig {
     event_emitter: Address,
     exchange_router: Address,
     last_block_number: u64,
+    total_profit: u128
 }
 
 #[derive(Debug, Clone, Parser, ValueEnum )]
@@ -60,7 +61,7 @@ pub const LOG_BLOCK_RANGE: u64 = 1024;
 pub const MULTICALL_CHUNK_SIZE: usize = 100;
 pub const RETRY_DURATION_IN_SECS: i64 = 60;
 
-fn get_deployment_config(deployment: Deployment, last_block_number: u64) -> DeploymentConfig {
+fn get_deployment_config(deployment: Deployment, last_block_number: u64, total_profit:u128) -> DeploymentConfig {
 
     let file = File::open(DEPLOYED_ADDRESSES).unwrap();
     let mm_contracts: HashMap<String, Address> = serde_json::from_reader(file).unwrap();
@@ -72,6 +73,7 @@ fn get_deployment_config(deployment: Deployment, last_block_number: u64) -> Depl
             event_emitter: *mm_contracts.get("EventEmitter#EventEmitter").unwrap(),
             exchange_router: *mm_contracts.get("ExchangeRouter#ExchangeRouter").unwrap(),
             last_block_number: last_block_number,
+            total_profit: total_profit,
         }
     }
 }
@@ -136,8 +138,9 @@ impl<
         deployment: Deployment,
         //liquidator_address: String,
         last_block_number: u64,
+        total_profit: u128
     ) -> Self {
-        let deployment_config = get_deployment_config(deployment, last_block_number);
+        let deployment_config = get_deployment_config(deployment, last_block_number, total_profit);
         Self {
             client,
             last_block_number: last_block_number,
@@ -218,7 +221,7 @@ impl<
                     .ok()
                     .map(|tx| Action::SubmitTx(SubmitTxToMempool {
                         tx,
-                        gas_bid_info: Some(GasBidInfo{total_profit:U256::ZERO, bid_percentage:0}),
+                        gas_bid_info: Some(GasBidInfo{total_profit:self.config.total_profit, bid_percentage:0}),
                     }))
             }
             .await;
