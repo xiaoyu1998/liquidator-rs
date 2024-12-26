@@ -1,8 +1,8 @@
 use crate::collectors::time_collector::NewTick;
 use artemis_core::executors::mempool_executor::SubmitTxToMempool;
-use alloy::{
-    contract as alloy_contract,
-};
+// use alloy::{
+//     contract as alloy_contract,
+// };
 
 /// Core Event enum for the current strategy.
 #[derive(Debug, Clone)]

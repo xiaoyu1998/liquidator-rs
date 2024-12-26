@@ -1,24 +1,23 @@
 use super::types::Config;
 use crate::collectors::time_collector::NewTick;
-use anyhow::{anyhow, Result};
+use anyhow::{Result};
 use artemis_core::executors::mempool_executor::{GasBidInfo, SubmitTxToMempool};
 use artemis_core::types::Strategy;
 use async_trait::async_trait;
 use bindings_mm::{
     reader::Reader,
-    eventemitter::EventEmitter,
+    eventemitter::{EventEmitter},
     exchangerouter::LiquidationUtils::LiquidationParams,
     exchangerouter::ExchangeRouter,
     //shared_types::LiquidationParams,
     //ierc20::IERC20,
 };
-use std::future::IntoFuture;
+// use std::future::IntoFuture;
 // use bindings_liquidator::{
 //     liquidator::{Liquidator, LiquidationParams, Asset},
 // };
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap};
-use std::hash::{Hash, Hasher};
 use std::fs::File;
 use std::iter::zip;
 use std::str::FromStr;
@@ -33,10 +32,8 @@ use sha3::{Digest, Keccak256};
 
 use alloy::{
     contract as alloy_contract,
-    network::{EthereumWallet, Ethereum, Network, TransactionBuilder},
-    //signers::local::PrivateKeySigner,
-    providers::{ProviderBuilder}, 
-    sol_types::private::{Address, Uint},
+    network::{ Network, TransactionBuilder},
+    sol_types::private::{Address},
     primitives::{FixedBytes, U256, U512},
 };
 
@@ -123,8 +120,8 @@ pub struct MmStrategy<T, P, N = alloy_contract::private::Ethereum>
     //sents: HashMap<Address, DateTime<Utc>>,
     chain_id: u64,
     config: DeploymentConfig,
-    liquidator: Address,
-    liquidation_threshold: U256,
+    //liquidator: Address,
+    margin_levle_threshold: U256,
      _network_transport: ::core::marker::PhantomData<(N, T)>,
 }
 
@@ -137,7 +134,7 @@ impl<
         client: Arc<P>,
         config: Config,
         deployment: Deployment,
-        liquidator_address: String,
+        //liquidator_address: String,
         last_block_number: u64,
     ) -> Self {
         let deployment_config = get_deployment_config(deployment, last_block_number);
@@ -149,8 +146,8 @@ impl<
             //sents: HashMap::new(),
             chain_id: config.chain_id,
             config: deployment_config,
-            liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
-            liquidation_threshold: U256::ZERO,
+            //liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
+            margin_levle_threshold: U256::ZERO,
             _network_transport: ::core::marker::PhantomData,
         }
     }
@@ -236,8 +233,8 @@ impl<
     }
 
     async fn build_liquidation_tx(&self, account: &Address, position_id: U256) -> Result<<N as Network>::TransactionRequest> {
-        let exchangeRouter = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
-        let call_build = exchangeRouter.executeLiquidation(LiquidationParams{
+        let exchange_router = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
+        let call_build = exchange_router.executeLiquidation(LiquidationParams{
             account: *account,
             positionId: position_id
         });
@@ -248,7 +245,7 @@ impl<
         Ok(tx)
     }
 
-    // for all known borrowers, return a sorted set of those with health factor < liquidation_threshold
+    // for all known borrowers, return a sorted set of those with health factor < margin_levle_threshold
     async fn get_underwater_positions(&mut self) -> Option<Vec<(Address, U256, U256, U256, U256)>> {
         let mut underwater_positions = Vec::new();
 
@@ -266,7 +263,7 @@ impl<
                 let pool = self.pools.get(&position.pool).unwrap();
 
                 let price = pool.price;
-                let price_decimals = pool.price_decimals;
+                //let price_decimals = pool.price_decimals;
 
                 //meme
                 let base_borrow_index = pool.base_borrow_index;
@@ -292,8 +289,8 @@ impl<
             }).collect();
 
             for (position, (margin_level, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
-                //info!("account {:?} {} {}", borrower.address, margin_level, self.liquidation_threshold);
-                if margin_level < self.liquidation_threshold {
+                info!("account {:?} {} {}", position.account, margin_level, self.margin_levle_threshold);
+                if margin_level < self.margin_levle_threshold {
                     // //prevent resend tx
                     // let now: DateTime<Utc> = Utc::now();
                     // match self.sents.get(&borrower.address) {
@@ -353,7 +350,7 @@ impl<
             start_block, latest_block
         );
 
-        //self.update_liquidation_threshold().await?;
+        self.update_margin_levle_threshold().await?;
         self.get_deposit_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
@@ -411,15 +408,24 @@ impl<
                 return;
             });
 
-        // self.get_redeem_logs(start_block.into(), latest_block)
-        //     .await?
-        //     .into_iter()
-        //     .for_each(|log| {
-        //         info!("redeem {:?} {} {} {} {} {}", log.redeemer, self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
-        //         let user = log.redeemer;
-        //         self.update_position(user, hash_pool_key(log.baseToken, log.memeToken), log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);        
-        //         return;
-        //     });
+        self.get_withdraw_logs(start_block.into(), latest_block)
+            .await?
+            .into_iter()
+            .for_each(|log| {
+                info!("redeem {:?} {} {} {} {} {}", log.withdrawer, self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
+                let user = log.withdrawer;
+                self.update_position(
+                    hash_position_key(user, log.positionId),
+                    user, 
+                    log.positionId,
+                    hash_pool_key(log.baseToken, log.memeToken), 
+                    log.baseCollateral, 
+                    log.baseDebtScaled, 
+                    log.memeCollateral, 
+                    log.memeDebtScaled
+                ); 
+                return;
+            });
 
         self.get_swap_logs(start_block.into(), latest_block)
             .await?
@@ -440,24 +446,45 @@ impl<
                 return;
             });
 
-        // self.get_liquidation_logs(start_block.into(), latest_block)
+        // self.get_logs(start_block.into(), latest_block, EventEmitterInstance<T, P, N>::Liquidation_filter)
         //     .await?
         //     .into_iter()
         //     .for_each(|log| {
         //         info!("liquidation {:?}", log.account);
         //         let user = log.account;
-        //         self.borrowers.remove(&user);
+        //         self.positions.remove(&hash_position_key(user log.positionId));
         //         return;
         //     });
-        // self.get_close_logs(start_block.into(), latest_block)
+
+        // self.get_logs(start_block.into(), latest_block, EventEmitterInstance<T, P, N>::Close_filter)
         //     .await?
         //     .into_iter()
         //     .for_each(|log| {
         //         info!("close {:?}", log.account);
         //         let user = log.account;
-        //         self.borrowers.remove(&user);
+        //         self.positions.remove(&hash_position_key(user log.positionId));
         //         return;
         //     });
+
+        self.get_liquidation_logs(start_block.into(), latest_block)
+            .await?
+            .into_iter()
+            .for_each(|log| {
+                info!("liquidation {:?}", log.account);
+                let user = log.account;
+                self.positions.remove(&hash_position_key(user, log.positionId));
+                return;
+            });
+
+        self.get_close_logs(start_block.into(), latest_block)
+            .await?
+            .into_iter()
+            .for_each(|log| {
+                info!("close {:?}", log.account);
+                let user = log.account;
+                self.positions.remove(&hash_position_key(user, log.positionId));
+                return;
+            });
 
         // write state cache to file
         let cache = StateCache {
@@ -543,29 +570,29 @@ impl<
         Ok(res)
     }
 
-    // // fetch all redeem events from the from_block to to_block
-    // async fn get_redeem_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Redeem>> {
-    //     let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
+    // fetch all redeem events from the from_block to to_block
+    async fn get_withdraw_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Withdraw>> {
+        let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
 
-    //     let mut res = Vec::new();
-    //     for start_block in
-    //         (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
-    //     {
-    //         let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-    //         event_emitter.redeem_filter()
-    //             .from_block(start_block)
-    //             .to_block(end_block)
-    //             .address(ValueOrArray::Value(self.config.event_emitter))
-    //             .query()
-    //             .await?
-    //             .into_iter()
-    //             .for_each(|log| {
-    //                 res.push(log);
-    //             });
-    //     }
+        let mut res = Vec::new();
+        for start_block in
+            (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
+        {
+            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
+            event_emitter.Withdraw_filter()
+                .from_block(start_block)
+                .to_block(end_block)
+                .address(self.config.event_emitter)
+                .query()
+                .await?
+                .into_iter()
+                .for_each(|(log,_)|{
+                    res.push(log);
+                });
+        }
 
-    //     Ok(res)
-    // }
+        Ok(res)
+    }
 
     // fetch all swap events from the from_block to to_block
     async fn get_swap_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Swap>> {
@@ -591,53 +618,85 @@ impl<
         Ok(res)
     }
 
+    // async fn get_logs<F,E>(
+    //     &self,
+    //     from_block: u64,
+    //     to_block: u64,
+    //     filter_fn: F,
+    // ) -> Result<Vec<EventEmitter:E>> 
+    // where
+    //     F:Fn(&EventEmitter::EventEmitterInstance<T, P, N>) -> EventEmitter:E,
+    // {
+    //     let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
+
+    //     let mut res = Vec::new();
+    //     for start_block in (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize) {
+    //         let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
+    //         filter_fn(&event_emitter)
+    //             .from_block(start_block)
+    //             .to_block(end_block)
+    //             .address(self.config.event_emitter)
+    //             .query()
+    //             .await?
+    //             .into_iter()
+    //             .for_each(|(log, _)| {
+    //                 res.push(log);
+    //             });
+    //     }
+
+    //     Ok(res)
+    // }
+
+
     // // fetch all liquidation events from the from_block to to_block
-    // async fn get_liquidation_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<Liquidation>> {
-    //     let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
+    async fn get_liquidation_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Liquidation>> {
+        let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
 
-    //     let mut res = Vec::new();
-    //     for start_block in
-    //         (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
-    //     {
-    //         let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-    //         event_emitter.liquidation_filter()
-    //             .from_block(start_block)
-    //             .to_block(end_block)
-    //             .address(ValueOrArray::Value(self.config.event_emitter))
-    //             .query()
-    //             .await?
-    //             .into_iter()
-    //             .for_each(|log| {
-    //                 res.push(log);
-    //             });
-    //     }
+        let mut res = Vec::new();
+        for start_block in
+            (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
+        {
+            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
+            event_emitter.Liquidation_filter()
+                .from_block(start_block)
+                .to_block(end_block)
+                .address(self.config.event_emitter)
+                .query()
+                .await?
+                .into_iter()
+                .for_each(|(log,_)|{
+                    res.push(log);
+                });
+        }
 
-    //     Ok(res)
-    // }
+        Ok(res)
+    }
 
-    // // fetch all close events from the from_block to to_block
-    // async fn get_close_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<Close>> {
-    //     let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
+    // fetch all close events from the from_block to to_block
+    async fn get_close_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Close>> {
+        let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
 
-    //     let mut res = Vec::new();
-    //     for start_block in
-    //         (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
-    //     {
-    //         let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-    //         event_emitter.close_filter()
-    //             .from_block(start_block)
-    //             .to_block(end_block)
-    //             .address(ValueOrArray::Value(self.config.event_emitter))
-    //             .query()
-    //             .await?
-    //             .into_iter()
-    //             .for_each(|log| {
-    //                 res.push(log);
-    //             });
-    //     }
+        let mut res = Vec::new();
+        for start_block in
+            (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
+        {
+            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
+            event_emitter.Close_filter()
+                .from_block(start_block)
+                .to_block(end_block)
+                .address(self.config.event_emitter)
+                .query()
+                .await?
+                .into_iter()
+                .for_each(|(log,_)|{
+                    res.push(log);
+                });
+        }
 
-    //     Ok(res)
-    // }
+        Ok(res)
+    }
+
+
 
     async fn update_pools(&mut self) -> Result<()> {
         let reader = Reader::new(self.config.reader.clone(), self.client.clone());
@@ -665,16 +724,16 @@ impl<
         Ok(())
     }
 
-    async fn update_liquidation_threshold(&mut self) -> Result<()> {
+    async fn update_margin_levle_threshold(&mut self) -> Result<()> {
         let reader = Reader::new(self.config.reader, self.client.clone());
-        self.liquidation_threshold = reader.getMarginLevelThreshold(self.config.data_store).call().await.unwrap()._0;
-        info!("liquidation_threshold {:?}", self.liquidation_threshold);
+        self.margin_levle_threshold = reader.getMarginLevelThreshold(self.config.data_store).call().await.unwrap()._0;
+        info!("margin_levle_threshold {:?}", self.margin_levle_threshold);
         Ok(())
     }
 
     fn update_position(
         &mut self, 
-        positionKey: Bytes32,
+        position_key: Bytes32,
         account: Address, 
         position_id: U256,
         pool: Bytes32, 
@@ -686,15 +745,15 @@ impl<
         //remove position and remove borrower
         if base_collateral == U256::ZERO && meme_collateral == U256::ZERO && 
            base_debt_scaled == U256::ZERO && meme_debt_scaled == U256::ZERO {
-            if self.positions.contains_key(&positionKey) {
-                self.positions.remove(&positionKey);
+            if self.positions.contains_key(&position_key) {
+                self.positions.remove(&position_key);
             }
             return
         }
 
         //insert position
         self.positions.insert(
-            positionKey, 
+            position_key, 
             Position {
                 account:account,
                 position_id:position_id,

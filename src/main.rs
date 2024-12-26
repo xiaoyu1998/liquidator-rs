@@ -1,6 +1,5 @@
 use anyhow::Result;
 use clap::Parser;
-use std::str::FromStr;
 
 use artemis_core::engine::Engine;
 use artemis_core::types::{CollectorMap, ExecutorMap};
@@ -45,8 +44,8 @@ pub struct Args {
     #[arg(long)]
     pub deployment: Deployment,
 
-    #[arg(long)]
-    pub liquidator_address: String,
+    // #[arg(long)]
+    // pub liquidator_address: String,
 
     #[arg(long)]
     pub chain_id: u64,
@@ -99,7 +98,7 @@ async fn main() -> Result<()> {
         Arc::new(provider.clone()),
         config,
         args.deployment,
-        args.liquidator_address,
+        //args.liquidator_address,
         args.last_block_number,
     );
     engine.add_strategy(Box::new(strategy));

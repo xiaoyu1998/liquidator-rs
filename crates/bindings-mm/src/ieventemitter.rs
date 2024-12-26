@@ -449,7 +449,7 @@ interface IEventEmitter {
     function emitRemove(address remover, address baseToken, address memeToken, uint256 liquidity, address to, uint256 amount0, uint256 amount1) external;
     function emitRepay(address repayer, address baseToken, address memeToken, uint256 positionId, uint8 tokenIndex, uint256 repayAmount, Event.Liquidation memory liquidation) external;
     function emitSwap(address account, address tokenIn, address tokenOut, uint256 positionId, uint256 amountIn, uint256 amountOut, uint256 fee, Event.Liquidation memory liquidation) external;
-    function emitWithdraw(address withdrawer, address baseToken, address memeToken, uint256 withdrawAmount, address to, uint256 baseCollateral, uint256 baseDebtScaled, uint256 memeCollateral, uint256 memeDebtScaled) external;
+    function emitWithdraw(address withdrawer, address baseToken, address memeToken, uint256 positionId, uint256 withdrawAmount, address to, uint256 baseCollateral, uint256 baseDebtScaled, uint256 memeCollateral, uint256 memeDebtScaled) external;
 }
 ```
 
@@ -978,6 +978,11 @@ interface IEventEmitter {
         "name": "memeToken",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "positionId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "withdrawAmount",
@@ -3032,9 +3037,9 @@ function emitSwap(address account, address tokenIn, address tokenOut, uint256 po
             }
         }
     };
-    /**Function with signature `emitWithdraw(address,address,address,uint256,address,uint256,uint256,uint256,uint256)` and selector `0x15f762d5`.
+    /**Function with signature `emitWithdraw(address,address,address,uint256,uint256,address,uint256,uint256,uint256,uint256)` and selector `0x82fcd8ca`.
 ```solidity
-function emitWithdraw(address withdrawer, address baseToken, address memeToken, uint256 withdrawAmount, address to, uint256 baseCollateral, uint256 baseDebtScaled, uint256 memeCollateral, uint256 memeDebtScaled) external;
+function emitWithdraw(address withdrawer, address baseToken, address memeToken, uint256 positionId, uint256 withdrawAmount, address to, uint256 baseCollateral, uint256 baseDebtScaled, uint256 memeCollateral, uint256 memeDebtScaled) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -3042,6 +3047,7 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
         pub withdrawer: alloy::sol_types::private::Address,
         pub baseToken: alloy::sol_types::private::Address,
         pub memeToken: alloy::sol_types::private::Address,
+        pub positionId: alloy::sol_types::private::primitives::aliases::U256,
         pub withdrawAmount: alloy::sol_types::private::primitives::aliases::U256,
         pub to: alloy::sol_types::private::Address,
         pub baseCollateral: alloy::sol_types::private::primitives::aliases::U256,
@@ -3049,7 +3055,7 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
         pub memeCollateral: alloy::sol_types::private::primitives::aliases::U256,
         pub memeDebtScaled: alloy::sol_types::private::primitives::aliases::U256,
     }
-    ///Container type for the return parameters of the [`emitWithdraw(address,address,address,uint256,address,uint256,uint256,uint256,uint256)`](emitWithdrawCall) function.
+    ///Container type for the return parameters of the [`emitWithdraw(address,address,address,uint256,uint256,address,uint256,uint256,uint256,uint256)`](emitWithdrawCall) function.
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
     pub struct emitWithdrawReturn {}
@@ -3068,6 +3074,7 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                 alloy::sol_types::sol_data::Address,
                 alloy::sol_types::sol_data::Address,
                 alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Address,
                 alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
@@ -3079,6 +3086,7 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                 alloy::sol_types::private::Address,
                 alloy::sol_types::private::Address,
                 alloy::sol_types::private::Address,
+                alloy::sol_types::private::primitives::aliases::U256,
                 alloy::sol_types::private::primitives::aliases::U256,
                 alloy::sol_types::private::Address,
                 alloy::sol_types::private::primitives::aliases::U256,
@@ -3105,6 +3113,7 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                         value.withdrawer,
                         value.baseToken,
                         value.memeToken,
+                        value.positionId,
                         value.withdrawAmount,
                         value.to,
                         value.baseCollateral,
@@ -3122,12 +3131,13 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                         withdrawer: tuple.0,
                         baseToken: tuple.1,
                         memeToken: tuple.2,
-                        withdrawAmount: tuple.3,
-                        to: tuple.4,
-                        baseCollateral: tuple.5,
-                        baseDebtScaled: tuple.6,
-                        memeCollateral: tuple.7,
-                        memeDebtScaled: tuple.8,
+                        positionId: tuple.3,
+                        withdrawAmount: tuple.4,
+                        to: tuple.5,
+                        baseCollateral: tuple.6,
+                        baseDebtScaled: tuple.7,
+                        memeCollateral: tuple.8,
+                        memeDebtScaled: tuple.9,
                     }
                 }
             }
@@ -3170,6 +3180,7 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                 alloy::sol_types::sol_data::Address,
                 alloy::sol_types::sol_data::Address,
                 alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Address,
                 alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
@@ -3184,8 +3195,8 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
             type ReturnToken<'a> = <Self::ReturnTuple<
                 'a,
             > as alloy_sol_types::SolType>::Token<'a>;
-            const SIGNATURE: &'static str = "emitWithdraw(address,address,address,uint256,address,uint256,uint256,uint256,uint256)";
-            const SELECTOR: [u8; 4] = [21u8, 247u8, 98u8, 213u8];
+            const SIGNATURE: &'static str = "emitWithdraw(address,address,address,uint256,uint256,address,uint256,uint256,uint256,uint256)";
+            const SELECTOR: [u8; 4] = [130u8, 252u8, 216u8, 202u8];
             #[inline]
             fn new<'a>(
                 tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
@@ -3204,6 +3215,9 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                     <alloy::sol_types::sol_data::Address as alloy_sol_types::SolType>::tokenize(
                         &self.memeToken,
                     ),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.positionId),
                     <alloy::sol_types::sol_data::Uint<
                         256,
                     > as alloy_sol_types::SolType>::tokenize(&self.withdrawAmount),
@@ -3262,13 +3276,13 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
         pub const SELECTORS: &'static [[u8; 4usize]] = &[
             [17u8, 156u8, 108u8, 131u8],
             [17u8, 204u8, 178u8, 29u8],
-            [21u8, 247u8, 98u8, 213u8],
             [41u8, 42u8, 231u8, 34u8],
             [66u8, 255u8, 100u8, 165u8],
             [85u8, 172u8, 132u8, 186u8],
             [90u8, 122u8, 55u8, 118u8],
             [124u8, 36u8, 218u8, 183u8],
             [130u8, 98u8, 0u8, 158u8],
+            [130u8, 252u8, 216u8, 202u8],
             [156u8, 132u8, 87u8, 146u8],
             [158u8, 212u8, 134u8, 235u8],
             [234u8, 52u8, 165u8, 119u8],
@@ -3362,19 +3376,6 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                     emitSwap
                 },
                 {
-                    fn emitWithdraw(
-                        data: &[u8],
-                        validate: bool,
-                    ) -> alloy_sol_types::Result<IEventEmitterCalls> {
-                        <emitWithdrawCall as alloy_sol_types::SolCall>::abi_decode_raw(
-                                data,
-                                validate,
-                            )
-                            .map(IEventEmitterCalls::emitWithdraw)
-                    }
-                    emitWithdraw
-                },
-                {
                     fn emitRemove(
                         data: &[u8],
                         validate: bool,
@@ -3451,6 +3452,19 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                             .map(IEventEmitterCalls::emitRepay)
                     }
                     emitRepay
+                },
+                {
+                    fn emitWithdraw(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<IEventEmitterCalls> {
+                        <emitWithdrawCall as alloy_sol_types::SolCall>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(IEventEmitterCalls::emitWithdraw)
+                    }
+                    emitWithdraw
                 },
                 {
                     fn emitClaimFees(
@@ -4039,6 +4053,7 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
             withdrawer: alloy::sol_types::private::Address,
             baseToken: alloy::sol_types::private::Address,
             memeToken: alloy::sol_types::private::Address,
+            positionId: alloy::sol_types::private::primitives::aliases::U256,
             withdrawAmount: alloy::sol_types::private::primitives::aliases::U256,
             to: alloy::sol_types::private::Address,
             baseCollateral: alloy::sol_types::private::primitives::aliases::U256,
@@ -4051,6 +4066,7 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
                     withdrawer,
                     baseToken,
                     memeToken,
+                    positionId,
                     withdrawAmount,
                     to,
                     baseCollateral,

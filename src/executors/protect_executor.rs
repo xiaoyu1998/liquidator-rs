@@ -1,4 +1,4 @@
-use std::{ops::Mul, sync::Arc};
+use std::{sync::Arc};
 use tracing::info;
 
 use anyhow::{Context, Result};
@@ -44,14 +44,14 @@ impl<
     /// Send a transaction to the mempool.
     async fn execute(&self, mut action: SubmitTxToMempool<N>) -> Result<()> {
         info!("Executing tx {:?}", action.tx);
-        let gas_usage_result = self
-            .client
-            .estimate_gas(&action.tx)
-            .await
-            .context("Error estimating gas usage: {}");
+        // let gas_usage_result = self
+        //     .client
+        //     .estimate_gas(&action.tx)
+        //     .await
+        //     .context("Error estimating gas usage: {}");
 
-        info!("Gas Usage {:?}", gas_usage_result);
-        let gas_usage = gas_usage_result?;
+        // info!("Gas Usage {:?}", gas_usage_result);
+        // let gas_usage = gas_usage_result?;
 
         let bid_gas_price;
         // if let Some(gas_bid_info) = action.gas_bid_info {
@@ -78,7 +78,7 @@ impl<
         // }
         action.tx.set_gas_price(bid_gas_price);
         //action.tx.gas_price = Some(bid_gas_price.into());
-        self.sender_client.send_transaction(action.tx).await?;
+        let _ = self.sender_client.send_transaction(action.tx).await?;
         Ok(())
     }
 }
