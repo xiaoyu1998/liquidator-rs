@@ -1,6 +1,5 @@
 /target
 out/
-borrowers.json
 ._.*
 crates/liquidator-contract/node_modules
 crates/liquidator-contract/cache
