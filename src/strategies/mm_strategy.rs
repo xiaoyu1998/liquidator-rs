@@ -211,6 +211,7 @@ impl<
 
         let mut actions: Vec<Action<N>> = Vec::new();
         for (account, position_id, _margin_level, _collateral, _debt) in underwaters {
+            info!("underwater: {:?} position_id:{} ", account, position_id);
             let action = async {
                 self.build_liquidation_tx(&account, position_id)
                     .await
@@ -354,6 +355,8 @@ impl<
         );
 
         self.update_margin_levle_threshold().await?;
+
+        //info!("get_deposit_logs");
         self.get_deposit_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
@@ -372,7 +375,8 @@ impl<
                 );
                 return;
             });
-
+        
+        //info!("get_borrow_logs");
         self.get_borrow_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
@@ -496,6 +500,7 @@ impl<
             positions: self.positions.clone(),
             //sents: self.sents.clone(),
         };
+
         self.last_block_number = latest_block;
         let file = File::create(STATE_CACHE_FILE)?;
         serde_json::to_writer_pretty(file, &cache)?;
