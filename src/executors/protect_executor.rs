@@ -44,6 +44,7 @@ impl<
     /// Send a transaction to the mempool.
     async fn execute(&self, mut action: SubmitTxToMempool<N>) -> Result<()> {
         info!("Executing tx {:?}", action.tx);
+        //action.tx.set_from(self.client.default_signer_address());
         let gas_usage_result = self
             .client
             .estimate_gas(&action.tx)

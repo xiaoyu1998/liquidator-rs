@@ -1,85 +1,18 @@
 {
-  "last_block_number": 20546737,
+  "last_block_number": 53,
   "pools": {
-    "0x9611be54b997951cbbd83743e60cad39aa585bd400481d377e65cbf62bdae3ec": {
-      "price": "0x33b2e3c9fd0803ce8000000",
+    "0xe1289e380d0b8b166e2480e84642488f3cac974d409ee3d08f687c11ea52b897": {
+      "price": "0x204437a29ef503a78fc00000",
       "price_decimals": "0x1b",
-      "base_token": "0x29b31150fff343fb6cd5c6947a7ad8672b7cc76a",
+      "base_token": "0x95401dc811bb5740090279ba06cfa8fcf6113778",
       "base_symbol": "USDT",
       "base_token_decimals": "0x6",
-      "base_borrow_index": "0x33b2e3c9fd0803ce8000000",
-      "meme_token": "0xfb7f3bc7dc8aef90db685c24b5556e3a59fd216c",
-      "meme_symbol": "aa",
-      "meme_token_decimals": "0x12",
-      "meme_borrow_index": "0x33b2e3c9fd0803ce8000000"
-    },
-    "0xbf983dc3ed4d94560249907af67490dfcc6a76c7986ba8eb6a7a07f1226db01b": {
-      "price": "0x1d1d9c228a6209277bc80000",
-      "price_decimals": "0x1b",
-      "base_token": "0x29b31150fff343fb6cd5c6947a7ad8672b7cc76a",
-      "base_symbol": "USDT",
-      "base_token_decimals": "0x6",
-      "base_borrow_index": "0x33b2e489a1800b046a53d72",
-      "meme_token": "0xb1a50d9b3d01bc5fef7883278e6db91422542717",
+      "base_borrow_index": "0x33b2e400367b573610b0874",
+      "meme_token": "0x998abeb3e57409262ae5b751f60747921b33613e",
       "meme_symbol": "UNI",
       "meme_token_decimals": "0x12",
       "meme_borrow_index": "0x33b2e3c9fd0803ce8000000"
-    },
-    "0x0ab22eafcfba5b5bd169b515174f27b45130f31ac96a136af0fc72314112a042": {
-      "price": "0x2250f414a7dbfdbdff74b5141",
-      "price_decimals": "0x1b",
-      "base_token": "0x29b31150fff343fb6cd5c6947a7ad8672b7cc76a",
-      "base_symbol": "USDT",
-      "base_token_decimals": "0x6",
-      "base_borrow_index": "0x33b2e594f4fecd350a7d35b",
-      "meme_token": "0x66b6975bd9bf3081dc824cce49e3f4a2e9c93711",
-      "meme_symbol": "ceshi5",
-      "meme_token_decimals": "0x12",
-      "meme_borrow_index": "0x33b2e3c9fd0803ce8000000"
-    },
-    "0xd10e7443528f86f4116ba2234ddf842af148f710d119de88418b1b0a43cac1e2": {
-      "price": "0x4a4981e58d5e86d2c04debd",
-      "price_decimals": "0x1b",
-      "base_token": "0x29b31150fff343fb6cd5c6947a7ad8672b7cc76a",
-      "base_symbol": "USDT",
-      "base_token_decimals": "0x6",
-      "base_borrow_index": "0x33b775e677b188f9bf61791",
-      "meme_token": "0x1b4aa9f71f736ae593b08649f23a4c2620d60b4c",
-      "meme_symbol": "ceshi4",
-      "meme_token_decimals": "0x12",
-      "meme_borrow_index": "0x33b2e3c9fd0803ce8000000"
-    },
-    "0xa368434cc1f9d615003a0ac2ae64f7d611bd5c6f36861e74291f5a4243c12536": {
-      "price": "0x9fd6c5599bc6da99f2021356",
-      "price_decimals": "0x1b",
-      "base_token": "0x29b31150fff343fb6cd5c6947a7ad8672b7cc76a",
-      "base_symbol": "USDT",
-      "base_token_decimals": "0x6",
-      "base_borrow_index": "0x33b2fa1ec907acd4bf8d435",
-      "meme_token": "0xee0d192b896faa775464879ae7558196fdf081f9",
-      "meme_symbol": "ceshi3",
-      "meme_token_decimals": "0x12",
-      "meme_borrow_index": "0x33b30c2cb01426f458ac82e"
     }
   },
-  "positions": {
-    "0xc79e984d50d31511b0daca01f799d52141396360290f06a7f41e990c21671d1f": {
-      "account": "0x90518217d485843b87e2aca5af4af0ef928eeebd",
-      "position_id": "0x1",
-      "pool": "0xa368434cc1f9d615003a0ac2ae64f7d611bd5c6f36861e74291f5a4243c12536",
-      "base_collateral": "0x0",
-      "base_debt_scaled": "0x2540be400",
-      "meme_collateral": "0x60ec29501f909e6db8",
-      "meme_debt_scaled": "0x0"
-    },
-    "0x0cb30b4c01fc6fa233938012efc6390e7f4a4453704eb4642179a734a27ea619": {
-      "account": "0xe87069a64c32e3bf7a40b2ce2778995533359074",
-      "position_id": "0x2",
-      "pool": "0xd10e7443528f86f4116ba2234ddf842af148f710d119de88418b1b0a43cac1e2",
-      "base_collateral": "0x309a3893a",
-      "base_debt_scaled": "0x193b29658",
-      "meme_collateral": "0x0",
-      "meme_debt_scaled": "0x9ed5542dcc4448dbd7"
-    }
-  }
+  "positions": {}
 }

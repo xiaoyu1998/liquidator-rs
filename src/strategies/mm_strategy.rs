@@ -122,7 +122,7 @@ pub struct MmStrategy<T, P, N = alloy_contract::private::Ethereum>
     //sents: HashMap<Address, DateTime<Utc>>,
     chain_id: u64,
     config: DeploymentConfig,
-    //liquidator: Address,
+    liquidator: Address,
     margin_levle_threshold: U256,
      _network_transport: ::core::marker::PhantomData<(N, T)>,
 }
@@ -136,7 +136,7 @@ impl<
         client: Arc<P>,
         config: Config,
         deployment: Deployment,
-        //liquidator_address: String,
+        liquidator_address: Address,
         last_block_number: u64,
         total_profit: u128
     ) -> Self {
@@ -149,7 +149,7 @@ impl<
             //sents: HashMap::new(),
             chain_id: config.chain_id,
             config: deployment_config,
-            //liquidator: Address::from_str(&liquidator_address).expect("invalid liquidator address"),
+            liquidator: liquidator_address,
             margin_levle_threshold: U256::ZERO,
             _network_transport: ::core::marker::PhantomData,
         }
@@ -245,6 +245,7 @@ impl<
         
         let mut tx = call_build.into_transaction_request();
         tx.set_chain_id(self.chain_id);
+        tx.set_from(self.liquidator);
 
         Ok(tx)
     }

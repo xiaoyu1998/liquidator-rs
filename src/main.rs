@@ -79,7 +79,8 @@ async fn main() -> Result<()> {
 
     // Set up alloy provider.
     let signer: PrivateKeySigner = args.private_key.parse().expect("should parse private key");
-    let wallet = EthereumWallet::from(signer);
+    let wallet = EthereumWallet::from(signer.clone());
+    let liquidator = signer.address();
 
     let rpc = (&args.rpc).parse()?;
     let provider = ProviderBuilder::new().with_cached_nonce_management().wallet(wallet.clone()).on_http(rpc);
@@ -101,7 +102,7 @@ async fn main() -> Result<()> {
         Arc::new(provider.clone()),
         config,
         args.deployment,
-        //args.liquidator_address,
+        liquidator,
         args.last_block_number,
         args.total_profit,
     );
