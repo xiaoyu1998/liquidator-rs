@@ -3,7 +3,7 @@
 
 ```solidity
 library InterestUtils {
-    struct CalculateInterestRatesParams { uint256 totalPoolBalance; uint256 totalDebt; }
+    struct CalculateInterestRatesParams { uint256 totalPoolBalance; uint256 totalDebt; uint256 totalPoolBalanceBase; }
 }
 ```*/
 #[allow(
@@ -16,13 +16,14 @@ pub mod InterestUtils {
     use super::*;
     use alloy::sol_types as alloy_sol_types;
     /**```solidity
-struct CalculateInterestRatesParams { uint256 totalPoolBalance; uint256 totalDebt; }
+struct CalculateInterestRatesParams { uint256 totalPoolBalance; uint256 totalDebt; uint256 totalPoolBalanceBase; }
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
     pub struct CalculateInterestRatesParams {
         pub totalPoolBalance: alloy::sol_types::private::primitives::aliases::U256,
         pub totalDebt: alloy::sol_types::private::primitives::aliases::U256,
+        pub totalPoolBalanceBase: alloy::sol_types::private::primitives::aliases::U256,
     }
     #[allow(
         non_camel_case_types,
@@ -36,9 +37,11 @@ struct CalculateInterestRatesParams { uint256 totalPoolBalance; uint256 totalDeb
         type UnderlyingSolTuple<'a> = (
             alloy::sol_types::sol_data::Uint<256>,
             alloy::sol_types::sol_data::Uint<256>,
+            alloy::sol_types::sol_data::Uint<256>,
         );
         #[doc(hidden)]
         type UnderlyingRustTuple<'a> = (
+            alloy::sol_types::private::primitives::aliases::U256,
             alloy::sol_types::private::primitives::aliases::U256,
             alloy::sol_types::private::primitives::aliases::U256,
         );
@@ -58,7 +61,7 @@ struct CalculateInterestRatesParams { uint256 totalPoolBalance; uint256 totalDeb
         impl ::core::convert::From<CalculateInterestRatesParams>
         for UnderlyingRustTuple<'_> {
             fn from(value: CalculateInterestRatesParams) -> Self {
-                (value.totalPoolBalance, value.totalDebt)
+                (value.totalPoolBalance, value.totalDebt, value.totalPoolBalanceBase)
             }
         }
         #[automatically_derived]
@@ -69,6 +72,7 @@ struct CalculateInterestRatesParams { uint256 totalPoolBalance; uint256 totalDeb
                 Self {
                     totalPoolBalance: tuple.0,
                     totalDebt: tuple.1,
+                    totalPoolBalanceBase: tuple.2,
                 }
             }
         }
@@ -88,6 +92,9 @@ struct CalculateInterestRatesParams { uint256 totalPoolBalance; uint256 totalDeb
                     <alloy::sol_types::sol_data::Uint<
                         256,
                     > as alloy_sol_types::SolType>::tokenize(&self.totalDebt),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.totalPoolBalanceBase),
                 )
             }
             #[inline]
@@ -162,7 +169,7 @@ struct CalculateInterestRatesParams { uint256 totalPoolBalance; uint256 totalDeb
             #[inline]
             fn eip712_root_type() -> alloy_sol_types::private::Cow<'static, str> {
                 alloy_sol_types::private::Cow::Borrowed(
-                    "CalculateInterestRatesParams(uint256 totalPoolBalance,uint256 totalDebt)",
+                    "CalculateInterestRatesParams(uint256 totalPoolBalance,uint256 totalDebt,uint256 totalPoolBalanceBase)",
                 )
             }
             #[inline]
@@ -188,6 +195,12 @@ struct CalculateInterestRatesParams { uint256 totalPoolBalance; uint256 totalDeb
                         256,
                     > as alloy_sol_types::SolType>::eip712_data_word(&self.totalDebt)
                         .0,
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::eip712_data_word(
+                            &self.totalPoolBalanceBase,
+                        )
+                        .0,
                 ]
                     .concat()
             }
@@ -206,6 +219,11 @@ struct CalculateInterestRatesParams { uint256 totalPoolBalance; uint256 totalDeb
                         256,
                     > as alloy_sol_types::EventTopic>::topic_preimage_length(
                         &rust.totalDebt,
+                    )
+                    + <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::EventTopic>::topic_preimage_length(
+                        &rust.totalPoolBalanceBase,
                     )
             }
             #[inline]
@@ -226,6 +244,12 @@ struct CalculateInterestRatesParams { uint256 totalPoolBalance; uint256 totalDeb
                     256,
                 > as alloy_sol_types::EventTopic>::encode_topic_preimage(
                     &rust.totalDebt,
+                    out,
+                );
+                <alloy::sol_types::sol_data::Uint<
+                    256,
+                > as alloy_sol_types::EventTopic>::encode_topic_preimage(
+                    &rust.totalPoolBalanceBase,
                     out,
                 );
             }
@@ -380,6 +404,7 @@ library InterestUtils {
     struct CalculateInterestRatesParams {
         uint256 totalPoolBalance;
         uint256 totalDebt;
+        uint256 totalPoolBalanceBase;
     }
 }
 
@@ -411,6 +436,11 @@ interface IPoolInterestRateStrategy {
           },
           {
             "name": "totalDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalPoolBalanceBase",
             "type": "uint256",
             "internalType": "uint256"
           }
@@ -509,7 +539,7 @@ pub mod IPoolInterestRateStrategy {
     pub static DEPLOYED_BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
         b"",
     );
-    /**Function with signature `calculateInterestRates((uint256,uint256))` and selector `0x4329759a`.
+    /**Function with signature `calculateInterestRates((uint256,uint256,uint256))` and selector `0xfdd63ecf`.
 ```solidity
 function calculateInterestRates(InterestUtils.CalculateInterestRatesParams memory params) external view returns (uint256);
 ```*/
@@ -518,7 +548,7 @@ function calculateInterestRates(InterestUtils.CalculateInterestRatesParams memor
     pub struct calculateInterestRatesCall {
         pub params: <InterestUtils::CalculateInterestRatesParams as alloy::sol_types::SolType>::RustType,
     }
-    ///Container type for the return parameters of the [`calculateInterestRates((uint256,uint256))`](calculateInterestRatesCall) function.
+    ///Container type for the return parameters of the [`calculateInterestRates((uint256,uint256,uint256))`](calculateInterestRatesCall) function.
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
     pub struct calculateInterestRatesReturn {
@@ -613,8 +643,8 @@ function calculateInterestRates(InterestUtils.CalculateInterestRatesParams memor
             type ReturnToken<'a> = <Self::ReturnTuple<
                 'a,
             > as alloy_sol_types::SolType>::Token<'a>;
-            const SIGNATURE: &'static str = "calculateInterestRates((uint256,uint256))";
-            const SELECTOR: [u8; 4] = [67u8, 41u8, 117u8, 154u8];
+            const SIGNATURE: &'static str = "calculateInterestRates((uint256,uint256,uint256))";
+            const SELECTOR: [u8; 4] = [253u8, 214u8, 62u8, 207u8];
             #[inline]
             fn new<'a>(
                 tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
@@ -1159,10 +1189,10 @@ function getRatebase() external view returns (uint256);
         /// Prefer using `SolInterface` methods instead.
         pub const SELECTORS: &'static [[u8; 4usize]] = &[
             [45u8, 217u8, 3u8, 123u8],
-            [67u8, 41u8, 117u8, 154u8],
             [117u8, 0u8, 91u8, 176u8],
             [135u8, 240u8, 64u8, 157u8],
             [168u8, 96u8, 46u8, 134u8],
+            [253u8, 214u8, 62u8, 207u8],
         ];
     }
     #[automatically_derived]
@@ -1223,19 +1253,6 @@ function getRatebase() external view returns (uint256);
                     getRateSlope1
                 },
                 {
-                    fn calculateInterestRates(
-                        data: &[u8],
-                        validate: bool,
-                    ) -> alloy_sol_types::Result<IPoolInterestRateStrategyCalls> {
-                        <calculateInterestRatesCall as alloy_sol_types::SolCall>::abi_decode_raw(
-                                data,
-                                validate,
-                            )
-                            .map(IPoolInterestRateStrategyCalls::calculateInterestRates)
-                    }
-                    calculateInterestRates
-                },
-                {
                     fn getRateSlope2(
                         data: &[u8],
                         validate: bool,
@@ -1273,6 +1290,19 @@ function getRatebase() external view returns (uint256);
                             .map(IPoolInterestRateStrategyCalls::getOptimalUsageRatio)
                     }
                     getOptimalUsageRatio
+                },
+                {
+                    fn calculateInterestRates(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<IPoolInterestRateStrategyCalls> {
+                        <calculateInterestRatesCall as alloy_sol_types::SolCall>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(IPoolInterestRateStrategyCalls::calculateInterestRates)
+                    }
+                    calculateInterestRates
                 },
             ];
             let Ok(idx) = Self::SELECTORS.binary_search(&selector) else {
