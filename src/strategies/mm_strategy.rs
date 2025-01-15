@@ -168,8 +168,8 @@ impl<
         info!("self.config.reader {:?}", self.config.reader);
         info!("self.config.event_emitter {:?}", self.config.event_emitter);
                 
-        self.update_pools().await?;
         self.load_cache()?;
+        self.update_pools().await?;
         self.update_state().await?;
 
         info!("done syncing state");
