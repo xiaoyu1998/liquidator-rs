@@ -10,6 +10,7 @@ interface Keys {
     function LIQUIDATION_FEE() external view returns (bytes32);
     function MARGIN_LEVELL_THRESHOLD() external view returns (bytes32);
     function MAX_BORROW_RATE() external view returns (bytes32);
+    function MAX_DEPOSIT_RATE() external view returns (bytes32);
     function POOL() external view returns (bytes32);
     function POOL_LIST() external view returns (bytes32);
     function POSITION() external view returns (bytes32);
@@ -17,6 +18,7 @@ interface Keys {
     function REENTRANCY_GUARD_STATUS() external view returns (bytes32);
     function SHORT_LIQUIDITY_THRESHOLD() external view returns (bytes32);
     function TOKEN_BASE() external view returns (bytes32);
+    function TRADABLE_DEBT_MULTIPIER_FACTOR() external view returns (bytes32);
     function TREASURY() external view returns (bytes32);
     function WNT() external view returns (bytes32);
 }
@@ -106,6 +108,19 @@ interface Keys {
   {
     "type": "function",
     "name": "MAX_BORROW_RATE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_DEPOSIT_RATE",
     "inputs": [],
     "outputs": [
       {
@@ -209,6 +224,19 @@ interface Keys {
   },
   {
     "type": "function",
+    "name": "TRADABLE_DEBT_MULTIPIER_FACTOR",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "TREASURY",
     "inputs": [],
     "outputs": [
@@ -247,22 +275,22 @@ pub mod Keys {
     /// The creation / init bytecode of the contract.
     ///
     /// ```text
-    ///0x610538610034600b8282823980515f1a607314602857634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe7300000000000000000000000000000000000000003014608060405260043610610106575f3560e01c8063769af85d1161009e5780639bfe0ccf1161006e5780639bfe0ccf1461017c578063b182733014610184578063b8b4a5431461018c578063cea63f5d14610194575f5ffd5b8063769af85d1461015c5780637a0c5ebf146101645780637bf43e471461016c578063993f545014610174575f5ffd5b806335bf7457116100d957806335bf74571461013c57806336fef13d146101445780636714ddd51461014c5780637535d24614610154575f5ffd5b8063041429b81461010a5780632ccfe1eb146101245780632d2c55651461012c578063355ac59614610134575b5f5ffd5b61011261019c565b60405190815260200160405180910390f35b6101126101ee565b61011261022f565b61011261025b565b610112610287565b6101126102b4565b6101126102ea565b61011261032b565b610112610353565b610112610381565b6101126103b4565b6101126103db565b61011261041c565b61011261045d565b610112610490565b6101126104c1565b6040516020016101d5906020808252601590820152741050d0d3d5539517d413d4d2551253d397d31254d5605a1b604082015260600190565b6040516020818303038152906040528051906020012081565b6040516020016101d59060208082526019908201527f53484f52545f4c49515549444954595f5448524553484f4c4400000000000000604082015260600190565b6040516020016101d590602080825260089082015267545245415355525960c01b604082015260600190565b6040516020016101d5906020808252600890820152672827a9a4aa24a7a760c11b604082015260600190565b6040516020016101d5906020808252600990820152681413d3d317d31254d560ba1b604082015260600190565b6040516020016101d5906020808252601290820152712222a12a2fa9a0a322aa2cafa320a1aa27a960711b604082015260600190565b6040516020016101d5906020808252601e908201527f44454641554c545f494e5445524553545f524154455f53545241544547590000604082015260600190565b6040516020016101d5906020808252600490820152631413d3d360e21b604082015260600190565b6040516020016101d5906020808252600a9082015269544f4b454e5f4241534560b01b604082015260600190565b6040516020016101d5906020808252600f908201526e4d41585f424f52524f575f5241544560881b604082015260600190565b6040516020016101d59060208082526003908201526215d39560ea1b604082015260600190565b6040516020016101d5906020808252601a908201527f44454641554c545f504f4f4c5f434f4e46494755524154494f4e000000000000604082015260600190565b6040516020016101d59060208082526017908201527f5245454e5452414e43595f47554152445f535441545553000000000000000000604082015260600190565b6040516020016101d5906020808252600f908201526e4c49515549444154494f4e5f46454560881b604082015260600190565b6040516020016101d5906020808252600d908201526c1413d4d2551253d397d31254d5609a1b604082015260600190565b6040516020016101d59060208082526017908201527f4d415247494e5f4c4556454c4c5f5448524553484f4c4400000000000000000060408201526060019056fea2646970667358221220f309bc282a58879b7559454a904b2e54c868a3e13124b3b458054a66579e49b764736f6c634300081c0033
+    ///0x6105d3610034600b8282823980515f1a607314602857634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040526004361061011c575f3560e01c80637535d246116100a9578063993f545011610079578063993f54501461019a5780639bfe0ccf146101a2578063b1827330146101aa578063b8b4a543146101b2578063cea63f5d146101ba575f5ffd5b80637535d2461461017a578063769af85d146101825780637a0c5ebf1461018a5780637bf43e4714610192575f5ffd5b806335bf7457116100ef57806335bf74571461015257806336fef13d1461015a5780633d49adda146101625780633fe6e1901461016a5780636714ddd514610172575f5ffd5b8063041429b8146101205780632ccfe1eb1461013a5780632d2c556514610142578063355ac5961461014a575b5f5ffd5b6101286101c2565b60405190815260200160405180910390f35b610128610214565b610128610255565b610128610281565b6101286102ad565b6101286102da565b610128610310565b610128610351565b610128610385565b6101286103c6565b6101286103ee565b61012861041c565b61012861044f565b610128610476565b6101286104b7565b6101286104f8565b61012861052b565b61012861055c565b6040516020016101fb906020808252601590820152741050d0d3d5539517d413d4d2551253d397d31254d5605a1b604082015260600190565b6040516020818303038152906040528051906020012081565b6040516020016101fb9060208082526019908201527f53484f52545f4c49515549444954595f5448524553484f4c4400000000000000604082015260600190565b6040516020016101fb90602080825260089082015267545245415355525960c01b604082015260600190565b6040516020016101fb906020808252600890820152672827a9a4aa24a7a760c11b604082015260600190565b6040516020016101fb906020808252600990820152681413d3d317d31254d560ba1b604082015260600190565b6040516020016101fb906020808252601290820152712222a12a2fa9a0a322aa2cafa320a1aa27a960711b604082015260600190565b6040516020016101fb906020808252601e908201527f5452414441424c455f444542545f4d554c5449504945525f464143544f520000604082015260600190565b6040516020016101fb9060208082526010908201526f4d41585f4445504f5349545f5241544560801b604082015260600190565b6040516020016101fb906020808252601e908201527f44454641554c545f494e5445524553545f524154455f53545241544547590000604082015260600190565b6040516020016101fb906020808252600490820152631413d3d360e21b604082015260600190565b6040516020016101fb906020808252600a9082015269544f4b454e5f4241534560b01b604082015260600190565b6040516020016101fb906020808252600f908201526e4d41585f424f52524f575f5241544560881b604082015260600190565b6040516020016101fb9060208082526003908201526215d39560ea1b604082015260600190565b6040516020016101fb906020808252601a908201527f44454641554c545f504f4f4c5f434f4e46494755524154494f4e000000000000604082015260600190565b6040516020016101fb9060208082526017908201527f5245454e5452414e43595f47554152445f535441545553000000000000000000604082015260600190565b6040516020016101fb906020808252600f908201526e4c49515549444154494f4e5f46454560881b604082015260600190565b6040516020016101fb906020808252600d908201526c1413d4d2551253d397d31254d5609a1b604082015260600190565b6040516020016101fb9060208082526017908201527f4d415247494e5f4c4556454c4c5f5448524553484f4c4400000000000000000060408201526060019056fea26469706673582212206b44d2b2ab2dbf9c471f0ec0b6bde717f1bd864af26eb372c962179a90026aa664736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"a\x058a\x004`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`(WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\x046\x10a\x01\x06W_5`\xE0\x1C\x80cv\x9A\xF8]\x11a\0\x9EW\x80c\x9B\xFE\x0C\xCF\x11a\0nW\x80c\x9B\xFE\x0C\xCF\x14a\x01|W\x80c\xB1\x82s0\x14a\x01\x84W\x80c\xB8\xB4\xA5C\x14a\x01\x8CW\x80c\xCE\xA6?]\x14a\x01\x94W__\xFD[\x80cv\x9A\xF8]\x14a\x01\\W\x80cz\x0C^\xBF\x14a\x01dW\x80c{\xF4>G\x14a\x01lW\x80c\x99?TP\x14a\x01tW__\xFD[\x80c5\xBFtW\x11a\0\xD9W\x80c5\xBFtW\x14a\x01<W\x80c6\xFE\xF1=\x14a\x01DW\x80cg\x14\xDD\xD5\x14a\x01LW\x80cu5\xD2F\x14a\x01TW__\xFD[\x80c\x04\x14)\xB8\x14a\x01\nW\x80c,\xCF\xE1\xEB\x14a\x01$W\x80c-,Ue\x14a\x01,W\x80c5Z\xC5\x96\x14a\x014W[__\xFD[a\x01\x12a\x01\x9CV[`@Q\x90\x81R` \x01`@Q\x80\x91\x03\x90\xF3[a\x01\x12a\x01\xEEV[a\x01\x12a\x02/V[a\x01\x12a\x02[V[a\x01\x12a\x02\x87V[a\x01\x12a\x02\xB4V[a\x01\x12a\x02\xEAV[a\x01\x12a\x03+V[a\x01\x12a\x03SV[a\x01\x12a\x03\x81V[a\x01\x12a\x03\xB4V[a\x01\x12a\x03\xDBV[a\x01\x12a\x04\x1CV[a\x01\x12a\x04]V[a\x01\x12a\x04\x90V[a\x01\x12a\x04\xC1V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x15\x90\x82\x01Rt\x10P\xD0\xD3\xD5S\x95\x17\xD4\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`Z\x1B`@\x82\x01R``\x01\x90V[`@Q` \x81\x83\x03\x03\x81R\x90`@R\x80Q\x90` \x01 \x81V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x19\x90\x82\x01R\x7FSHORT_LIQUIDITY_THRESHOLD\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x08\x90\x82\x01RgTREASURY`\xC0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x08\x90\x82\x01Rg('\xA9\xA4\xAA$\xA7\xA7`\xC1\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\t\x90\x82\x01Rh\x14\x13\xD3\xD3\x17\xD3\x12T\xD5`\xBA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x12\x90\x82\x01Rq\"\"\xA1*/\xA9\xA0\xA3\"\xAA,\xAF\xA3 \xA1\xAA'\xA9`q\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x1E\x90\x82\x01R\x7FDEFAULT_INTEREST_RATE_STRATEGY\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x04\x90\x82\x01Rc\x14\x13\xD3\xD3`\xE2\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\n\x90\x82\x01RiTOKEN_BASE`\xB0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x0F\x90\x82\x01RnMAX_BORROW_RATE`\x88\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x03\x90\x82\x01Rb\x15\xD3\x95`\xEA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x1A\x90\x82\x01R\x7FDEFAULT_POOL_CONFIGURATION\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x17\x90\x82\x01R\x7FREENTRANCY_GUARD_STATUS\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x0F\x90\x82\x01RnLIQUIDATION_FEE`\x88\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\r\x90\x82\x01Rl\x14\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`\x9A\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x17\x90\x82\x01R\x7FMARGIN_LEVELL_THRESHOLD\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V\xFE\xA2dipfsX\"\x12 \xF3\t\xBC(*X\x87\x9BuYEJ\x90K.T\xC8h\xA3\xE11$\xB3\xB4X\x05JfW\x9EI\xB7dsolcC\0\x08\x1C\x003",
+        b"a\x05\xD3a\x004`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`(WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\x046\x10a\x01\x1CW_5`\xE0\x1C\x80cu5\xD2F\x11a\0\xA9W\x80c\x99?TP\x11a\0yW\x80c\x99?TP\x14a\x01\x9AW\x80c\x9B\xFE\x0C\xCF\x14a\x01\xA2W\x80c\xB1\x82s0\x14a\x01\xAAW\x80c\xB8\xB4\xA5C\x14a\x01\xB2W\x80c\xCE\xA6?]\x14a\x01\xBAW__\xFD[\x80cu5\xD2F\x14a\x01zW\x80cv\x9A\xF8]\x14a\x01\x82W\x80cz\x0C^\xBF\x14a\x01\x8AW\x80c{\xF4>G\x14a\x01\x92W__\xFD[\x80c5\xBFtW\x11a\0\xEFW\x80c5\xBFtW\x14a\x01RW\x80c6\xFE\xF1=\x14a\x01ZW\x80c=I\xAD\xDA\x14a\x01bW\x80c?\xE6\xE1\x90\x14a\x01jW\x80cg\x14\xDD\xD5\x14a\x01rW__\xFD[\x80c\x04\x14)\xB8\x14a\x01 W\x80c,\xCF\xE1\xEB\x14a\x01:W\x80c-,Ue\x14a\x01BW\x80c5Z\xC5\x96\x14a\x01JW[__\xFD[a\x01(a\x01\xC2V[`@Q\x90\x81R` \x01`@Q\x80\x91\x03\x90\xF3[a\x01(a\x02\x14V[a\x01(a\x02UV[a\x01(a\x02\x81V[a\x01(a\x02\xADV[a\x01(a\x02\xDAV[a\x01(a\x03\x10V[a\x01(a\x03QV[a\x01(a\x03\x85V[a\x01(a\x03\xC6V[a\x01(a\x03\xEEV[a\x01(a\x04\x1CV[a\x01(a\x04OV[a\x01(a\x04vV[a\x01(a\x04\xB7V[a\x01(a\x04\xF8V[a\x01(a\x05+V[a\x01(a\x05\\V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x15\x90\x82\x01Rt\x10P\xD0\xD3\xD5S\x95\x17\xD4\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`Z\x1B`@\x82\x01R``\x01\x90V[`@Q` \x81\x83\x03\x03\x81R\x90`@R\x80Q\x90` \x01 \x81V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x19\x90\x82\x01R\x7FSHORT_LIQUIDITY_THRESHOLD\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x08\x90\x82\x01RgTREASURY`\xC0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x08\x90\x82\x01Rg('\xA9\xA4\xAA$\xA7\xA7`\xC1\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\t\x90\x82\x01Rh\x14\x13\xD3\xD3\x17\xD3\x12T\xD5`\xBA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x12\x90\x82\x01Rq\"\"\xA1*/\xA9\xA0\xA3\"\xAA,\xAF\xA3 \xA1\xAA'\xA9`q\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x1E\x90\x82\x01R\x7FTRADABLE_DEBT_MULTIPIER_FACTOR\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x10\x90\x82\x01RoMAX_DEPOSIT_RATE`\x80\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x1E\x90\x82\x01R\x7FDEFAULT_INTEREST_RATE_STRATEGY\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x04\x90\x82\x01Rc\x14\x13\xD3\xD3`\xE2\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\n\x90\x82\x01RiTOKEN_BASE`\xB0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x0F\x90\x82\x01RnMAX_BORROW_RATE`\x88\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x03\x90\x82\x01Rb\x15\xD3\x95`\xEA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x1A\x90\x82\x01R\x7FDEFAULT_POOL_CONFIGURATION\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x17\x90\x82\x01R\x7FREENTRANCY_GUARD_STATUS\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x0F\x90\x82\x01RnLIQUIDATION_FEE`\x88\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\r\x90\x82\x01Rl\x14\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`\x9A\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x17\x90\x82\x01R\x7FMARGIN_LEVELL_THRESHOLD\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V\xFE\xA2dipfsX\"\x12 kD\xD2\xB2\xAB-\xBF\x9CG\x1F\x0E\xC0\xB6\xBD\xE7\x17\xF1\xBD\x86J\xF2n\xB3r\xC9b\x17\x9A\x90\x02j\xA6dsolcC\0\x08\x1C\x003",
     );
     /// The runtime bytecode of the contract, as deployed on the network.
     ///
     /// ```text
-    ///0x7300000000000000000000000000000000000000003014608060405260043610610106575f3560e01c8063769af85d1161009e5780639bfe0ccf1161006e5780639bfe0ccf1461017c578063b182733014610184578063b8b4a5431461018c578063cea63f5d14610194575f5ffd5b8063769af85d1461015c5780637a0c5ebf146101645780637bf43e471461016c578063993f545014610174575f5ffd5b806335bf7457116100d957806335bf74571461013c57806336fef13d146101445780636714ddd51461014c5780637535d24614610154575f5ffd5b8063041429b81461010a5780632ccfe1eb146101245780632d2c55651461012c578063355ac59614610134575b5f5ffd5b61011261019c565b60405190815260200160405180910390f35b6101126101ee565b61011261022f565b61011261025b565b610112610287565b6101126102b4565b6101126102ea565b61011261032b565b610112610353565b610112610381565b6101126103b4565b6101126103db565b61011261041c565b61011261045d565b610112610490565b6101126104c1565b6040516020016101d5906020808252601590820152741050d0d3d5539517d413d4d2551253d397d31254d5605a1b604082015260600190565b6040516020818303038152906040528051906020012081565b6040516020016101d59060208082526019908201527f53484f52545f4c49515549444954595f5448524553484f4c4400000000000000604082015260600190565b6040516020016101d590602080825260089082015267545245415355525960c01b604082015260600190565b6040516020016101d5906020808252600890820152672827a9a4aa24a7a760c11b604082015260600190565b6040516020016101d5906020808252600990820152681413d3d317d31254d560ba1b604082015260600190565b6040516020016101d5906020808252601290820152712222a12a2fa9a0a322aa2cafa320a1aa27a960711b604082015260600190565b6040516020016101d5906020808252601e908201527f44454641554c545f494e5445524553545f524154455f53545241544547590000604082015260600190565b6040516020016101d5906020808252600490820152631413d3d360e21b604082015260600190565b6040516020016101d5906020808252600a9082015269544f4b454e5f4241534560b01b604082015260600190565b6040516020016101d5906020808252600f908201526e4d41585f424f52524f575f5241544560881b604082015260600190565b6040516020016101d59060208082526003908201526215d39560ea1b604082015260600190565b6040516020016101d5906020808252601a908201527f44454641554c545f504f4f4c5f434f4e46494755524154494f4e000000000000604082015260600190565b6040516020016101d59060208082526017908201527f5245454e5452414e43595f47554152445f535441545553000000000000000000604082015260600190565b6040516020016101d5906020808252600f908201526e4c49515549444154494f4e5f46454560881b604082015260600190565b6040516020016101d5906020808252600d908201526c1413d4d2551253d397d31254d5609a1b604082015260600190565b6040516020016101d59060208082526017908201527f4d415247494e5f4c4556454c4c5f5448524553484f4c4400000000000000000060408201526060019056fea2646970667358221220f309bc282a58879b7559454a904b2e54c868a3e13124b3b458054a66579e49b764736f6c634300081c0033
+    ///0x730000000000000000000000000000000000000000301460806040526004361061011c575f3560e01c80637535d246116100a9578063993f545011610079578063993f54501461019a5780639bfe0ccf146101a2578063b1827330146101aa578063b8b4a543146101b2578063cea63f5d146101ba575f5ffd5b80637535d2461461017a578063769af85d146101825780637a0c5ebf1461018a5780637bf43e4714610192575f5ffd5b806335bf7457116100ef57806335bf74571461015257806336fef13d1461015a5780633d49adda146101625780633fe6e1901461016a5780636714ddd514610172575f5ffd5b8063041429b8146101205780632ccfe1eb1461013a5780632d2c556514610142578063355ac5961461014a575b5f5ffd5b6101286101c2565b60405190815260200160405180910390f35b610128610214565b610128610255565b610128610281565b6101286102ad565b6101286102da565b610128610310565b610128610351565b610128610385565b6101286103c6565b6101286103ee565b61012861041c565b61012861044f565b610128610476565b6101286104b7565b6101286104f8565b61012861052b565b61012861055c565b6040516020016101fb906020808252601590820152741050d0d3d5539517d413d4d2551253d397d31254d5605a1b604082015260600190565b6040516020818303038152906040528051906020012081565b6040516020016101fb9060208082526019908201527f53484f52545f4c49515549444954595f5448524553484f4c4400000000000000604082015260600190565b6040516020016101fb90602080825260089082015267545245415355525960c01b604082015260600190565b6040516020016101fb906020808252600890820152672827a9a4aa24a7a760c11b604082015260600190565b6040516020016101fb906020808252600990820152681413d3d317d31254d560ba1b604082015260600190565b6040516020016101fb906020808252601290820152712222a12a2fa9a0a322aa2cafa320a1aa27a960711b604082015260600190565b6040516020016101fb906020808252601e908201527f5452414441424c455f444542545f4d554c5449504945525f464143544f520000604082015260600190565b6040516020016101fb9060208082526010908201526f4d41585f4445504f5349545f5241544560801b604082015260600190565b6040516020016101fb906020808252601e908201527f44454641554c545f494e5445524553545f524154455f53545241544547590000604082015260600190565b6040516020016101fb906020808252600490820152631413d3d360e21b604082015260600190565b6040516020016101fb906020808252600a9082015269544f4b454e5f4241534560b01b604082015260600190565b6040516020016101fb906020808252600f908201526e4d41585f424f52524f575f5241544560881b604082015260600190565b6040516020016101fb9060208082526003908201526215d39560ea1b604082015260600190565b6040516020016101fb906020808252601a908201527f44454641554c545f504f4f4c5f434f4e46494755524154494f4e000000000000604082015260600190565b6040516020016101fb9060208082526017908201527f5245454e5452414e43595f47554152445f535441545553000000000000000000604082015260600190565b6040516020016101fb906020808252600f908201526e4c49515549444154494f4e5f46454560881b604082015260600190565b6040516020016101fb906020808252600d908201526c1413d4d2551253d397d31254d5609a1b604082015260600190565b6040516020016101fb9060208082526017908201527f4d415247494e5f4c4556454c4c5f5448524553484f4c4400000000000000000060408201526060019056fea26469706673582212206b44d2b2ab2dbf9c471f0ec0b6bde717f1bd864af26eb372c962179a90026aa664736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static DEPLOYED_BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\x046\x10a\x01\x06W_5`\xE0\x1C\x80cv\x9A\xF8]\x11a\0\x9EW\x80c\x9B\xFE\x0C\xCF\x11a\0nW\x80c\x9B\xFE\x0C\xCF\x14a\x01|W\x80c\xB1\x82s0\x14a\x01\x84W\x80c\xB8\xB4\xA5C\x14a\x01\x8CW\x80c\xCE\xA6?]\x14a\x01\x94W__\xFD[\x80cv\x9A\xF8]\x14a\x01\\W\x80cz\x0C^\xBF\x14a\x01dW\x80c{\xF4>G\x14a\x01lW\x80c\x99?TP\x14a\x01tW__\xFD[\x80c5\xBFtW\x11a\0\xD9W\x80c5\xBFtW\x14a\x01<W\x80c6\xFE\xF1=\x14a\x01DW\x80cg\x14\xDD\xD5\x14a\x01LW\x80cu5\xD2F\x14a\x01TW__\xFD[\x80c\x04\x14)\xB8\x14a\x01\nW\x80c,\xCF\xE1\xEB\x14a\x01$W\x80c-,Ue\x14a\x01,W\x80c5Z\xC5\x96\x14a\x014W[__\xFD[a\x01\x12a\x01\x9CV[`@Q\x90\x81R` \x01`@Q\x80\x91\x03\x90\xF3[a\x01\x12a\x01\xEEV[a\x01\x12a\x02/V[a\x01\x12a\x02[V[a\x01\x12a\x02\x87V[a\x01\x12a\x02\xB4V[a\x01\x12a\x02\xEAV[a\x01\x12a\x03+V[a\x01\x12a\x03SV[a\x01\x12a\x03\x81V[a\x01\x12a\x03\xB4V[a\x01\x12a\x03\xDBV[a\x01\x12a\x04\x1CV[a\x01\x12a\x04]V[a\x01\x12a\x04\x90V[a\x01\x12a\x04\xC1V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x15\x90\x82\x01Rt\x10P\xD0\xD3\xD5S\x95\x17\xD4\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`Z\x1B`@\x82\x01R``\x01\x90V[`@Q` \x81\x83\x03\x03\x81R\x90`@R\x80Q\x90` \x01 \x81V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x19\x90\x82\x01R\x7FSHORT_LIQUIDITY_THRESHOLD\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x08\x90\x82\x01RgTREASURY`\xC0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x08\x90\x82\x01Rg('\xA9\xA4\xAA$\xA7\xA7`\xC1\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\t\x90\x82\x01Rh\x14\x13\xD3\xD3\x17\xD3\x12T\xD5`\xBA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x12\x90\x82\x01Rq\"\"\xA1*/\xA9\xA0\xA3\"\xAA,\xAF\xA3 \xA1\xAA'\xA9`q\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x1E\x90\x82\x01R\x7FDEFAULT_INTEREST_RATE_STRATEGY\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x04\x90\x82\x01Rc\x14\x13\xD3\xD3`\xE2\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\n\x90\x82\x01RiTOKEN_BASE`\xB0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x0F\x90\x82\x01RnMAX_BORROW_RATE`\x88\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x03\x90\x82\x01Rb\x15\xD3\x95`\xEA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x1A\x90\x82\x01R\x7FDEFAULT_POOL_CONFIGURATION\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x17\x90\x82\x01R\x7FREENTRANCY_GUARD_STATUS\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x0F\x90\x82\x01RnLIQUIDATION_FEE`\x88\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\r\x90\x82\x01Rl\x14\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`\x9A\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xD5\x90` \x80\x82R`\x17\x90\x82\x01R\x7FMARGIN_LEVELL_THRESHOLD\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V\xFE\xA2dipfsX\"\x12 \xF3\t\xBC(*X\x87\x9BuYEJ\x90K.T\xC8h\xA3\xE11$\xB3\xB4X\x05JfW\x9EI\xB7dsolcC\0\x08\x1C\x003",
+        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R`\x046\x10a\x01\x1CW_5`\xE0\x1C\x80cu5\xD2F\x11a\0\xA9W\x80c\x99?TP\x11a\0yW\x80c\x99?TP\x14a\x01\x9AW\x80c\x9B\xFE\x0C\xCF\x14a\x01\xA2W\x80c\xB1\x82s0\x14a\x01\xAAW\x80c\xB8\xB4\xA5C\x14a\x01\xB2W\x80c\xCE\xA6?]\x14a\x01\xBAW__\xFD[\x80cu5\xD2F\x14a\x01zW\x80cv\x9A\xF8]\x14a\x01\x82W\x80cz\x0C^\xBF\x14a\x01\x8AW\x80c{\xF4>G\x14a\x01\x92W__\xFD[\x80c5\xBFtW\x11a\0\xEFW\x80c5\xBFtW\x14a\x01RW\x80c6\xFE\xF1=\x14a\x01ZW\x80c=I\xAD\xDA\x14a\x01bW\x80c?\xE6\xE1\x90\x14a\x01jW\x80cg\x14\xDD\xD5\x14a\x01rW__\xFD[\x80c\x04\x14)\xB8\x14a\x01 W\x80c,\xCF\xE1\xEB\x14a\x01:W\x80c-,Ue\x14a\x01BW\x80c5Z\xC5\x96\x14a\x01JW[__\xFD[a\x01(a\x01\xC2V[`@Q\x90\x81R` \x01`@Q\x80\x91\x03\x90\xF3[a\x01(a\x02\x14V[a\x01(a\x02UV[a\x01(a\x02\x81V[a\x01(a\x02\xADV[a\x01(a\x02\xDAV[a\x01(a\x03\x10V[a\x01(a\x03QV[a\x01(a\x03\x85V[a\x01(a\x03\xC6V[a\x01(a\x03\xEEV[a\x01(a\x04\x1CV[a\x01(a\x04OV[a\x01(a\x04vV[a\x01(a\x04\xB7V[a\x01(a\x04\xF8V[a\x01(a\x05+V[a\x01(a\x05\\V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x15\x90\x82\x01Rt\x10P\xD0\xD3\xD5S\x95\x17\xD4\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`Z\x1B`@\x82\x01R``\x01\x90V[`@Q` \x81\x83\x03\x03\x81R\x90`@R\x80Q\x90` \x01 \x81V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x19\x90\x82\x01R\x7FSHORT_LIQUIDITY_THRESHOLD\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x08\x90\x82\x01RgTREASURY`\xC0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x08\x90\x82\x01Rg('\xA9\xA4\xAA$\xA7\xA7`\xC1\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\t\x90\x82\x01Rh\x14\x13\xD3\xD3\x17\xD3\x12T\xD5`\xBA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x12\x90\x82\x01Rq\"\"\xA1*/\xA9\xA0\xA3\"\xAA,\xAF\xA3 \xA1\xAA'\xA9`q\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x1E\x90\x82\x01R\x7FTRADABLE_DEBT_MULTIPIER_FACTOR\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x10\x90\x82\x01RoMAX_DEPOSIT_RATE`\x80\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x1E\x90\x82\x01R\x7FDEFAULT_INTEREST_RATE_STRATEGY\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x04\x90\x82\x01Rc\x14\x13\xD3\xD3`\xE2\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\n\x90\x82\x01RiTOKEN_BASE`\xB0\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x0F\x90\x82\x01RnMAX_BORROW_RATE`\x88\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x03\x90\x82\x01Rb\x15\xD3\x95`\xEA\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x1A\x90\x82\x01R\x7FDEFAULT_POOL_CONFIGURATION\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x17\x90\x82\x01R\x7FREENTRANCY_GUARD_STATUS\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x0F\x90\x82\x01RnLIQUIDATION_FEE`\x88\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\r\x90\x82\x01Rl\x14\x13\xD4\xD2U\x12S\xD3\x97\xD3\x12T\xD5`\x9A\x1B`@\x82\x01R``\x01\x90V[`@Q` \x01a\x01\xFB\x90` \x80\x82R`\x17\x90\x82\x01R\x7FMARGIN_LEVELL_THRESHOLD\0\0\0\0\0\0\0\0\0`@\x82\x01R``\x01\x90V\xFE\xA2dipfsX\"\x12 kD\xD2\xB2\xAB-\xBF\x9CG\x1F\x0E\xC0\xB6\xBD\xE7\x17\xF1\xBD\x86J\xF2n\xB3r\xC9b\x17\x9A\x90\x02j\xA6dsolcC\0\x08\x1C\x003",
     );
     /**Function with signature `ACCOUNT_POSITION_LIST()` and selector `0x041429b8`.
 ```solidity
@@ -1092,6 +1120,128 @@ function MAX_BORROW_RATE() external view returns (bytes32);
             > as alloy_sol_types::SolType>::Token<'a>;
             const SIGNATURE: &'static str = "MAX_BORROW_RATE()";
             const SELECTOR: [u8; 4] = [122u8, 12u8, 94u8, 191u8];
+            #[inline]
+            fn new<'a>(
+                tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
+            ) -> Self {
+                tuple.into()
+            }
+            #[inline]
+            fn tokenize(&self) -> Self::Token<'_> {
+                ()
+            }
+            #[inline]
+            fn abi_decode_returns(
+                data: &[u8],
+                validate: bool,
+            ) -> alloy_sol_types::Result<Self::Return> {
+                <Self::ReturnTuple<
+                    '_,
+                > as alloy_sol_types::SolType>::abi_decode_sequence(data, validate)
+                    .map(Into::into)
+            }
+        }
+    };
+    /**Function with signature `MAX_DEPOSIT_RATE()` and selector `0x3fe6e190`.
+```solidity
+function MAX_DEPOSIT_RATE() external view returns (bytes32);
+```*/
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct MAX_DEPOSIT_RATECall {}
+    ///Container type for the return parameters of the [`MAX_DEPOSIT_RATE()`](MAX_DEPOSIT_RATECall) function.
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct MAX_DEPOSIT_RATEReturn {
+        pub _0: alloy::sol_types::private::FixedBytes<32>,
+    }
+    #[allow(
+        non_camel_case_types,
+        non_snake_case,
+        clippy::pub_underscore_fields,
+        clippy::style
+    )]
+    const _: () = {
+        use alloy::sol_types as alloy_sol_types;
+        {
+            #[doc(hidden)]
+            type UnderlyingSolTuple<'a> = ();
+            #[doc(hidden)]
+            type UnderlyingRustTuple<'a> = ();
+            #[cfg(test)]
+            #[allow(dead_code, unreachable_patterns)]
+            fn _type_assertion(
+                _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+            ) {
+                match _t {
+                    alloy_sol_types::private::AssertTypeEq::<
+                        <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                    >(_) => {}
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<MAX_DEPOSIT_RATECall>
+            for UnderlyingRustTuple<'_> {
+                fn from(value: MAX_DEPOSIT_RATECall) -> Self {
+                    ()
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<UnderlyingRustTuple<'_>>
+            for MAX_DEPOSIT_RATECall {
+                fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                    Self {}
+                }
+            }
+        }
+        {
+            #[doc(hidden)]
+            type UnderlyingSolTuple<'a> = (alloy::sol_types::sol_data::FixedBytes<32>,);
+            #[doc(hidden)]
+            type UnderlyingRustTuple<'a> = (alloy::sol_types::private::FixedBytes<32>,);
+            #[cfg(test)]
+            #[allow(dead_code, unreachable_patterns)]
+            fn _type_assertion(
+                _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+            ) {
+                match _t {
+                    alloy_sol_types::private::AssertTypeEq::<
+                        <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                    >(_) => {}
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<MAX_DEPOSIT_RATEReturn>
+            for UnderlyingRustTuple<'_> {
+                fn from(value: MAX_DEPOSIT_RATEReturn) -> Self {
+                    (value._0,)
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<UnderlyingRustTuple<'_>>
+            for MAX_DEPOSIT_RATEReturn {
+                fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                    Self { _0: tuple.0 }
+                }
+            }
+        }
+        #[automatically_derived]
+        impl alloy_sol_types::SolCall for MAX_DEPOSIT_RATECall {
+            type Parameters<'a> = ();
+            type Token<'a> = <Self::Parameters<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            type Return = MAX_DEPOSIT_RATEReturn;
+            type ReturnTuple<'a> = (alloy::sol_types::sol_data::FixedBytes<32>,);
+            type ReturnToken<'a> = <Self::ReturnTuple<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            const SIGNATURE: &'static str = "MAX_DEPOSIT_RATE()";
+            const SELECTOR: [u8; 4] = [63u8, 230u8, 225u8, 144u8];
             #[inline]
             fn new<'a>(
                 tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
@@ -1948,6 +2098,128 @@ function TOKEN_BASE() external view returns (bytes32);
             }
         }
     };
+    /**Function with signature `TRADABLE_DEBT_MULTIPIER_FACTOR()` and selector `0x3d49adda`.
+```solidity
+function TRADABLE_DEBT_MULTIPIER_FACTOR() external view returns (bytes32);
+```*/
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct TRADABLE_DEBT_MULTIPIER_FACTORCall {}
+    ///Container type for the return parameters of the [`TRADABLE_DEBT_MULTIPIER_FACTOR()`](TRADABLE_DEBT_MULTIPIER_FACTORCall) function.
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct TRADABLE_DEBT_MULTIPIER_FACTORReturn {
+        pub _0: alloy::sol_types::private::FixedBytes<32>,
+    }
+    #[allow(
+        non_camel_case_types,
+        non_snake_case,
+        clippy::pub_underscore_fields,
+        clippy::style
+    )]
+    const _: () = {
+        use alloy::sol_types as alloy_sol_types;
+        {
+            #[doc(hidden)]
+            type UnderlyingSolTuple<'a> = ();
+            #[doc(hidden)]
+            type UnderlyingRustTuple<'a> = ();
+            #[cfg(test)]
+            #[allow(dead_code, unreachable_patterns)]
+            fn _type_assertion(
+                _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+            ) {
+                match _t {
+                    alloy_sol_types::private::AssertTypeEq::<
+                        <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                    >(_) => {}
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<TRADABLE_DEBT_MULTIPIER_FACTORCall>
+            for UnderlyingRustTuple<'_> {
+                fn from(value: TRADABLE_DEBT_MULTIPIER_FACTORCall) -> Self {
+                    ()
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<UnderlyingRustTuple<'_>>
+            for TRADABLE_DEBT_MULTIPIER_FACTORCall {
+                fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                    Self {}
+                }
+            }
+        }
+        {
+            #[doc(hidden)]
+            type UnderlyingSolTuple<'a> = (alloy::sol_types::sol_data::FixedBytes<32>,);
+            #[doc(hidden)]
+            type UnderlyingRustTuple<'a> = (alloy::sol_types::private::FixedBytes<32>,);
+            #[cfg(test)]
+            #[allow(dead_code, unreachable_patterns)]
+            fn _type_assertion(
+                _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+            ) {
+                match _t {
+                    alloy_sol_types::private::AssertTypeEq::<
+                        <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                    >(_) => {}
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<TRADABLE_DEBT_MULTIPIER_FACTORReturn>
+            for UnderlyingRustTuple<'_> {
+                fn from(value: TRADABLE_DEBT_MULTIPIER_FACTORReturn) -> Self {
+                    (value._0,)
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<UnderlyingRustTuple<'_>>
+            for TRADABLE_DEBT_MULTIPIER_FACTORReturn {
+                fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                    Self { _0: tuple.0 }
+                }
+            }
+        }
+        #[automatically_derived]
+        impl alloy_sol_types::SolCall for TRADABLE_DEBT_MULTIPIER_FACTORCall {
+            type Parameters<'a> = ();
+            type Token<'a> = <Self::Parameters<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            type Return = TRADABLE_DEBT_MULTIPIER_FACTORReturn;
+            type ReturnTuple<'a> = (alloy::sol_types::sol_data::FixedBytes<32>,);
+            type ReturnToken<'a> = <Self::ReturnTuple<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            const SIGNATURE: &'static str = "TRADABLE_DEBT_MULTIPIER_FACTOR()";
+            const SELECTOR: [u8; 4] = [61u8, 73u8, 173u8, 218u8];
+            #[inline]
+            fn new<'a>(
+                tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
+            ) -> Self {
+                tuple.into()
+            }
+            #[inline]
+            fn tokenize(&self) -> Self::Token<'_> {
+                ()
+            }
+            #[inline]
+            fn abi_decode_returns(
+                data: &[u8],
+                validate: bool,
+            ) -> alloy_sol_types::Result<Self::Return> {
+                <Self::ReturnTuple<
+                    '_,
+                > as alloy_sol_types::SolType>::abi_decode_sequence(data, validate)
+                    .map(Into::into)
+            }
+        }
+    };
     /**Function with signature `TREASURY()` and selector `0x2d2c5565`.
 ```solidity
 function TREASURY() external view returns (bytes32);
@@ -2193,6 +2465,7 @@ function WNT() external view returns (bytes32);
         LIQUIDATION_FEE(LIQUIDATION_FEECall),
         MARGIN_LEVELL_THRESHOLD(MARGIN_LEVELL_THRESHOLDCall),
         MAX_BORROW_RATE(MAX_BORROW_RATECall),
+        MAX_DEPOSIT_RATE(MAX_DEPOSIT_RATECall),
         POOL(POOLCall),
         POOL_LIST(POOL_LISTCall),
         POSITION(POSITIONCall),
@@ -2200,6 +2473,7 @@ function WNT() external view returns (bytes32);
         REENTRANCY_GUARD_STATUS(REENTRANCY_GUARD_STATUSCall),
         SHORT_LIQUIDITY_THRESHOLD(SHORT_LIQUIDITY_THRESHOLDCall),
         TOKEN_BASE(TOKEN_BASECall),
+        TRADABLE_DEBT_MULTIPIER_FACTOR(TRADABLE_DEBT_MULTIPIER_FACTORCall),
         TREASURY(TREASURYCall),
         WNT(WNTCall),
     }
@@ -2218,6 +2492,8 @@ function WNT() external view returns (bytes32);
             [53u8, 90u8, 197u8, 150u8],
             [53u8, 191u8, 116u8, 87u8],
             [54u8, 254u8, 241u8, 61u8],
+            [61u8, 73u8, 173u8, 218u8],
+            [63u8, 230u8, 225u8, 144u8],
             [103u8, 20u8, 221u8, 213u8],
             [117u8, 53u8, 210u8, 70u8],
             [118u8, 154u8, 248u8, 93u8],
@@ -2234,7 +2510,7 @@ function WNT() external view returns (bytes32);
     impl alloy_sol_types::SolInterface for KeysCalls {
         const NAME: &'static str = "KeysCalls";
         const MIN_DATA_LENGTH: usize = 0usize;
-        const COUNT: usize = 16usize;
+        const COUNT: usize = 18usize;
         #[inline]
         fn selector(&self) -> [u8; 4] {
             match self {
@@ -2259,6 +2535,9 @@ function WNT() external view returns (bytes32);
                 Self::MAX_BORROW_RATE(_) => {
                     <MAX_BORROW_RATECall as alloy_sol_types::SolCall>::SELECTOR
                 }
+                Self::MAX_DEPOSIT_RATE(_) => {
+                    <MAX_DEPOSIT_RATECall as alloy_sol_types::SolCall>::SELECTOR
+                }
                 Self::POOL(_) => <POOLCall as alloy_sol_types::SolCall>::SELECTOR,
                 Self::POOL_LIST(_) => {
                     <POOL_LISTCall as alloy_sol_types::SolCall>::SELECTOR
@@ -2275,6 +2554,9 @@ function WNT() external view returns (bytes32);
                 }
                 Self::TOKEN_BASE(_) => {
                     <TOKEN_BASECall as alloy_sol_types::SolCall>::SELECTOR
+                }
+                Self::TRADABLE_DEBT_MULTIPIER_FACTOR(_) => {
+                    <TRADABLE_DEBT_MULTIPIER_FACTORCall as alloy_sol_types::SolCall>::SELECTOR
                 }
                 Self::TREASURY(_) => <TREASURYCall as alloy_sol_types::SolCall>::SELECTOR,
                 Self::WNT(_) => <WNTCall as alloy_sol_types::SolCall>::SELECTOR,
@@ -2376,6 +2658,32 @@ function WNT() external view returns (bytes32);
                             .map(KeysCalls::DEBT_SAFETY_FACTOR)
                     }
                     DEBT_SAFETY_FACTOR
+                },
+                {
+                    fn TRADABLE_DEBT_MULTIPIER_FACTOR(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<KeysCalls> {
+                        <TRADABLE_DEBT_MULTIPIER_FACTORCall as alloy_sol_types::SolCall>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(KeysCalls::TRADABLE_DEBT_MULTIPIER_FACTOR)
+                    }
+                    TRADABLE_DEBT_MULTIPIER_FACTOR
+                },
+                {
+                    fn MAX_DEPOSIT_RATE(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<KeysCalls> {
+                        <MAX_DEPOSIT_RATECall as alloy_sol_types::SolCall>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(KeysCalls::MAX_DEPOSIT_RATE)
+                    }
+                    MAX_DEPOSIT_RATE
                 },
                 {
                     fn DEFAULT_INTEREST_RATE_STRATEGY(
@@ -2556,6 +2864,11 @@ function WNT() external view returns (bytes32);
                         inner,
                     )
                 }
+                Self::MAX_DEPOSIT_RATE(inner) => {
+                    <MAX_DEPOSIT_RATECall as alloy_sol_types::SolCall>::abi_encoded_size(
+                        inner,
+                    )
+                }
                 Self::POOL(inner) => {
                     <POOLCall as alloy_sol_types::SolCall>::abi_encoded_size(inner)
                 }
@@ -2582,6 +2895,11 @@ function WNT() external view returns (bytes32);
                 }
                 Self::TOKEN_BASE(inner) => {
                     <TOKEN_BASECall as alloy_sol_types::SolCall>::abi_encoded_size(inner)
+                }
+                Self::TRADABLE_DEBT_MULTIPIER_FACTOR(inner) => {
+                    <TRADABLE_DEBT_MULTIPIER_FACTORCall as alloy_sol_types::SolCall>::abi_encoded_size(
+                        inner,
+                    )
                 }
                 Self::TREASURY(inner) => {
                     <TREASURYCall as alloy_sol_types::SolCall>::abi_encoded_size(inner)
@@ -2636,6 +2954,12 @@ function WNT() external view returns (bytes32);
                         out,
                     )
                 }
+                Self::MAX_DEPOSIT_RATE(inner) => {
+                    <MAX_DEPOSIT_RATECall as alloy_sol_types::SolCall>::abi_encode_raw(
+                        inner,
+                        out,
+                    )
+                }
                 Self::POOL(inner) => {
                     <POOLCall as alloy_sol_types::SolCall>::abi_encode_raw(inner, out)
                 }
@@ -2671,6 +2995,12 @@ function WNT() external view returns (bytes32);
                 }
                 Self::TOKEN_BASE(inner) => {
                     <TOKEN_BASECall as alloy_sol_types::SolCall>::abi_encode_raw(
+                        inner,
+                        out,
+                    )
+                }
+                Self::TRADABLE_DEBT_MULTIPIER_FACTOR(inner) => {
+                    <TRADABLE_DEBT_MULTIPIER_FACTORCall as alloy_sol_types::SolCall>::abi_encode_raw(
                         inner,
                         out,
                     )
@@ -2898,6 +3228,12 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
         ) -> alloy_contract::SolCallBuilder<T, &P, MAX_BORROW_RATECall, N> {
             self.call_builder(&MAX_BORROW_RATECall {})
         }
+        ///Creates a new call builder for the [`MAX_DEPOSIT_RATE`] function.
+        pub fn MAX_DEPOSIT_RATE(
+            &self,
+        ) -> alloy_contract::SolCallBuilder<T, &P, MAX_DEPOSIT_RATECall, N> {
+            self.call_builder(&MAX_DEPOSIT_RATECall {})
+        }
         ///Creates a new call builder for the [`POOL`] function.
         pub fn POOL(&self) -> alloy_contract::SolCallBuilder<T, &P, POOLCall, N> {
             self.call_builder(&POOLCall {})
@@ -2937,6 +3273,20 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
             &self,
         ) -> alloy_contract::SolCallBuilder<T, &P, TOKEN_BASECall, N> {
             self.call_builder(&TOKEN_BASECall {})
+        }
+        ///Creates a new call builder for the [`TRADABLE_DEBT_MULTIPIER_FACTOR`] function.
+        pub fn TRADABLE_DEBT_MULTIPIER_FACTOR(
+            &self,
+        ) -> alloy_contract::SolCallBuilder<
+            T,
+            &P,
+            TRADABLE_DEBT_MULTIPIER_FACTORCall,
+            N,
+        > {
+            self.call_builder(
+                &TRADABLE_DEBT_MULTIPIER_FACTORCall {
+                },
+            )
         }
         ///Creates a new call builder for the [`TREASURY`] function.
         pub fn TREASURY(
