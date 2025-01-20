@@ -91,6 +91,7 @@ pub struct Position {
     account: Address,
     position_id: U256,
     pool: Bytes32,
+    meme_symbol: String,
     base_collateral: U256,
     base_debt_scaled: U256,
     meme_collateral: U256,
@@ -362,13 +363,15 @@ impl<
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("deposit {:?} {} {} {} {} {}", log.depositor, self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);  
+                let meme_symbol = self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol.clone();
+                info!("deposit {:?} {} {} {} {} {}", log.depositor, meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);  
                 let user = log.depositor;      
                 self.update_position(
                     hash_position_key(user, log.positionId),
                     user, 
                     log.positionId,
                     hash_pool_key(log.baseToken, log.memeToken), 
+                    meme_symbol,
                     log.baseCollateral, 
                     log.baseDebtScaled, 
                     log.memeCollateral, 
@@ -382,13 +385,15 @@ impl<
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("borrow {:?} {} {} {} {} {}", log.borrower, self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
+                let meme_symbol = self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol.clone();
+                info!("borrow {:?} {} {} {} {} {}", log.borrower, meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
                 let user = log.borrower;
                 self.update_position(
                     hash_position_key(user, log.positionId),
                     user, 
                     log.positionId,
                     hash_pool_key(log.baseToken, log.memeToken), 
+                    meme_symbol,
                     log.baseCollateral, 
                     log.baseDebtScaled, 
                     log.memeCollateral, 
@@ -401,13 +406,15 @@ impl<
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("repay {:?} {} {} {} {} {}", log.repayer, self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
+                let meme_symbol = self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol.clone();
+                info!("repay {:?} {} {} {} {} {}", log.repayer, meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
                 let user = log.repayer;
                 self.update_position(
                     hash_position_key(user, log.positionId),
                     user, 
                     log.positionId,
                     hash_pool_key(log.baseToken, log.memeToken), 
+                    meme_symbol,
                     log.baseCollateral, 
                     log.baseDebtScaled, 
                     log.memeCollateral, 
@@ -420,13 +427,15 @@ impl<
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("redeem {:?} {} {} {} {} {}", log.withdrawer, self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
+                let meme_symbol = self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol.clone();
+                info!("withdraw {:?} {} {} {} {} {}", log.withdrawer, meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
                 let user = log.withdrawer;
                 self.update_position(
                     hash_position_key(user, log.positionId),
                     user, 
                     log.positionId,
                     hash_pool_key(log.baseToken, log.memeToken), 
+                    meme_symbol,
                     log.baseCollateral, 
                     log.baseDebtScaled, 
                     log.memeCollateral, 
@@ -439,13 +448,15 @@ impl<
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("swapIn {:?} {} {} {} {} {}", log.account, self.pools.get(&hash_pool_key(log.tokenIn, log.tokenOut)).unwrap().meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
+                let meme_symbol = self.pools.get(&hash_pool_key(log.tokenIn, log.tokenOut)).unwrap().meme_symbol.clone();
+                info!("swapIn {:?} {} {} {} {} {}", log.account, meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
                 let user = log.account;
                 self.update_position(
                     hash_position_key(user, log.positionId),
                     user, 
                     log.positionId,
                     hash_pool_key(log.tokenIn, log.tokenOut), 
+                    meme_symbol,
                     log.baseCollateral, 
                     log.baseDebtScaled, 
                     log.memeCollateral, 
@@ -454,31 +465,11 @@ impl<
                 return;
             });
 
-        // self.get_logs(start_block.into(), latest_block, EventEmitterInstance<T, P, N>::Liquidation_filter)
-        //     .await?
-        //     .into_iter()
-        //     .for_each(|log| {
-        //         info!("liquidation {:?}", log.account);
-        //         let user = log.account;
-        //         self.positions.remove(&hash_position_key(user log.positionId));
-        //         return;
-        //     });
-
-        // self.get_logs(start_block.into(), latest_block, EventEmitterInstance<T, P, N>::Close_filter)
-        //     .await?
-        //     .into_iter()
-        //     .for_each(|log| {
-        //         info!("close {:?}", log.account);
-        //         let user = log.account;
-        //         self.positions.remove(&hash_position_key(user log.positionId));
-        //         return;
-        //     });
-
         self.get_liquidation_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("liquidation {:?}", log.account);
+                info!("liquidation {:?} {}", log.account, log.positionId);
                 let user = log.account;
                 self.positions.remove(&hash_position_key(user, log.positionId));
                 return;
@@ -488,7 +479,7 @@ impl<
             .await?
             .into_iter()
             .for_each(|log| {
-                info!("close {:?}", log.account);
+                info!("close {:?} {}", log.account, log.positionId);
                 let user = log.account;
                 self.positions.remove(&hash_position_key(user, log.positionId));
                 return;
@@ -712,7 +703,7 @@ impl<
         let all_pools = reader.getPools_0(self.config.data_store.clone()).call().await.unwrap();
 
         for pool in all_pools._0.iter() {
-            info!("pool {:?} {} {} ", pool.assets[0].token, pool.assets[1].symbol, pool.price);
+            info!("pool {:?} {} {} ", pool.assets[1].token, pool.assets[1].symbol, pool.price);
             self.pools.insert(
                 hash_pool_key(pool.assets[0].token, pool.assets[1].token),
                 Pool {
@@ -746,6 +737,7 @@ impl<
         account: Address, 
         position_id: U256,
         pool: Bytes32, 
+        meme_symbol: String,
         base_collateral: U256, 
         base_debt_scaled: U256, 
         meme_collateral: U256, 
@@ -767,6 +759,7 @@ impl<
                 account:account,
                 position_id:position_id,
                 pool:pool,
+                meme_symbol:meme_symbol,
                 base_collateral:base_collateral,
                 base_debt_scaled:base_debt_scaled,
                 meme_collateral:meme_collateral,
