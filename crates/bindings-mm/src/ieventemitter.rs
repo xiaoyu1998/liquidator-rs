@@ -446,6 +446,7 @@ interface IEventEmitter {
     function emitLiquidation(address liquidator, address account, uint256 positionId, uint256 marginLevel, uint256 marginLevelLiquidationThreshold, uint256 totalCollateralUsd, uint256 totalDebtUsd, uint256 memePrice) external;
     function emitPoolCreated(address baseToken, address memeToken, address source, uint256 createdTimestamp, uint256 baseDecimals, uint256 memeDecimals) external;
     function emitPoolUpdated(address underlyingAsset, uint256 liquidityRate, uint256 borrowRate, uint256 liquidityIndex, uint256 borrowIndex) external;
+    function emitPosition(address account, uint256 actionType, address baseToken, address memeToken, uint256 positionId, uint256 baseCollateral, uint256 baseDebtScaled, uint256 memeCollateral, uint256 memeDebtScaled) external;
     function emitRemove(address remover, address baseToken, address memeToken, uint256 liquidity, address to, uint256 amount0, uint256 amount1) external;
     function emitRepay(address repayer, address baseToken, address memeToken, uint256 positionId, uint8 tokenIndex, uint256 repayAmount, Event.Liquidation memory liquidation) external;
     function emitSwap(address account, address tokenIn, address tokenOut, uint256 positionId, uint256 amountIn, uint256 amountOut, uint256 fee, Event.Liquidation memory liquidation) external;
@@ -775,6 +776,59 @@ interface IEventEmitter {
       },
       {
         "name": "borrowIndex",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "emitPosition",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "actionType",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "baseToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "memeToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "positionId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "baseCollateral",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "baseDebtScaled",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "memeCollateral",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "memeDebtScaled",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -2470,6 +2524,210 @@ function emitPoolUpdated(address underlyingAsset, uint256 liquidityRate, uint256
             }
         }
     };
+    /**Function with signature `emitPosition(address,uint256,address,address,uint256,uint256,uint256,uint256,uint256)` and selector `0x09cd7ba2`.
+```solidity
+function emitPosition(address account, uint256 actionType, address baseToken, address memeToken, uint256 positionId, uint256 baseCollateral, uint256 baseDebtScaled, uint256 memeCollateral, uint256 memeDebtScaled) external;
+```*/
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct emitPositionCall {
+        pub account: alloy::sol_types::private::Address,
+        pub actionType: alloy::sol_types::private::primitives::aliases::U256,
+        pub baseToken: alloy::sol_types::private::Address,
+        pub memeToken: alloy::sol_types::private::Address,
+        pub positionId: alloy::sol_types::private::primitives::aliases::U256,
+        pub baseCollateral: alloy::sol_types::private::primitives::aliases::U256,
+        pub baseDebtScaled: alloy::sol_types::private::primitives::aliases::U256,
+        pub memeCollateral: alloy::sol_types::private::primitives::aliases::U256,
+        pub memeDebtScaled: alloy::sol_types::private::primitives::aliases::U256,
+    }
+    ///Container type for the return parameters of the [`emitPosition(address,uint256,address,address,uint256,uint256,uint256,uint256,uint256)`](emitPositionCall) function.
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct emitPositionReturn {}
+    #[allow(
+        non_camel_case_types,
+        non_snake_case,
+        clippy::pub_underscore_fields,
+        clippy::style
+    )]
+    const _: () = {
+        use alloy::sol_types as alloy_sol_types;
+        {
+            #[doc(hidden)]
+            type UnderlyingSolTuple<'a> = (
+                alloy::sol_types::sol_data::Address,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Address,
+                alloy::sol_types::sol_data::Address,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+            );
+            #[doc(hidden)]
+            type UnderlyingRustTuple<'a> = (
+                alloy::sol_types::private::Address,
+                alloy::sol_types::private::primitives::aliases::U256,
+                alloy::sol_types::private::Address,
+                alloy::sol_types::private::Address,
+                alloy::sol_types::private::primitives::aliases::U256,
+                alloy::sol_types::private::primitives::aliases::U256,
+                alloy::sol_types::private::primitives::aliases::U256,
+                alloy::sol_types::private::primitives::aliases::U256,
+                alloy::sol_types::private::primitives::aliases::U256,
+            );
+            #[cfg(test)]
+            #[allow(dead_code, unreachable_patterns)]
+            fn _type_assertion(
+                _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+            ) {
+                match _t {
+                    alloy_sol_types::private::AssertTypeEq::<
+                        <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                    >(_) => {}
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<emitPositionCall> for UnderlyingRustTuple<'_> {
+                fn from(value: emitPositionCall) -> Self {
+                    (
+                        value.account,
+                        value.actionType,
+                        value.baseToken,
+                        value.memeToken,
+                        value.positionId,
+                        value.baseCollateral,
+                        value.baseDebtScaled,
+                        value.memeCollateral,
+                        value.memeDebtScaled,
+                    )
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<UnderlyingRustTuple<'_>> for emitPositionCall {
+                fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                    Self {
+                        account: tuple.0,
+                        actionType: tuple.1,
+                        baseToken: tuple.2,
+                        memeToken: tuple.3,
+                        positionId: tuple.4,
+                        baseCollateral: tuple.5,
+                        baseDebtScaled: tuple.6,
+                        memeCollateral: tuple.7,
+                        memeDebtScaled: tuple.8,
+                    }
+                }
+            }
+        }
+        {
+            #[doc(hidden)]
+            type UnderlyingSolTuple<'a> = ();
+            #[doc(hidden)]
+            type UnderlyingRustTuple<'a> = ();
+            #[cfg(test)]
+            #[allow(dead_code, unreachable_patterns)]
+            fn _type_assertion(
+                _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+            ) {
+                match _t {
+                    alloy_sol_types::private::AssertTypeEq::<
+                        <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                    >(_) => {}
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<emitPositionReturn> for UnderlyingRustTuple<'_> {
+                fn from(value: emitPositionReturn) -> Self {
+                    ()
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<UnderlyingRustTuple<'_>> for emitPositionReturn {
+                fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                    Self {}
+                }
+            }
+        }
+        #[automatically_derived]
+        impl alloy_sol_types::SolCall for emitPositionCall {
+            type Parameters<'a> = (
+                alloy::sol_types::sol_data::Address,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Address,
+                alloy::sol_types::sol_data::Address,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
+            );
+            type Token<'a> = <Self::Parameters<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            type Return = emitPositionReturn;
+            type ReturnTuple<'a> = ();
+            type ReturnToken<'a> = <Self::ReturnTuple<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            const SIGNATURE: &'static str = "emitPosition(address,uint256,address,address,uint256,uint256,uint256,uint256,uint256)";
+            const SELECTOR: [u8; 4] = [9u8, 205u8, 123u8, 162u8];
+            #[inline]
+            fn new<'a>(
+                tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
+            ) -> Self {
+                tuple.into()
+            }
+            #[inline]
+            fn tokenize(&self) -> Self::Token<'_> {
+                (
+                    <alloy::sol_types::sol_data::Address as alloy_sol_types::SolType>::tokenize(
+                        &self.account,
+                    ),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.actionType),
+                    <alloy::sol_types::sol_data::Address as alloy_sol_types::SolType>::tokenize(
+                        &self.baseToken,
+                    ),
+                    <alloy::sol_types::sol_data::Address as alloy_sol_types::SolType>::tokenize(
+                        &self.memeToken,
+                    ),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.positionId),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.baseCollateral),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.baseDebtScaled),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.memeCollateral),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.memeDebtScaled),
+                )
+            }
+            #[inline]
+            fn abi_decode_returns(
+                data: &[u8],
+                validate: bool,
+            ) -> alloy_sol_types::Result<Self::Return> {
+                <Self::ReturnTuple<
+                    '_,
+                > as alloy_sol_types::SolType>::abi_decode_sequence(data, validate)
+                    .map(Into::into)
+            }
+        }
+    };
     /**Function with signature `emitRemove(address,address,address,uint256,address,uint256,uint256)` and selector `0x292ae722`.
 ```solidity
 function emitRemove(address remover, address baseToken, address memeToken, uint256 liquidity, address to, uint256 amount0, uint256 amount1) external;
@@ -3260,6 +3518,7 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
         emitLiquidation(emitLiquidationCall),
         emitPoolCreated(emitPoolCreatedCall),
         emitPoolUpdated(emitPoolUpdatedCall),
+        emitPosition(emitPositionCall),
         emitRemove(emitRemoveCall),
         emitRepay(emitRepayCall),
         emitSwap(emitSwapCall),
@@ -3274,6 +3533,7 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
         ///
         /// Prefer using `SolInterface` methods instead.
         pub const SELECTORS: &'static [[u8; 4usize]] = &[
+            [9u8, 205u8, 123u8, 162u8],
             [17u8, 156u8, 108u8, 131u8],
             [17u8, 204u8, 178u8, 29u8],
             [41u8, 42u8, 231u8, 34u8],
@@ -3292,7 +3552,7 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
     impl alloy_sol_types::SolInterface for IEventEmitterCalls {
         const NAME: &'static str = "IEventEmitterCalls";
         const MIN_DATA_LENGTH: usize = 64usize;
-        const COUNT: usize = 12usize;
+        const COUNT: usize = 13usize;
         #[inline]
         fn selector(&self) -> [u8; 4] {
             match self {
@@ -3317,6 +3577,9 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                 }
                 Self::emitPoolUpdated(_) => {
                     <emitPoolUpdatedCall as alloy_sol_types::SolCall>::SELECTOR
+                }
+                Self::emitPosition(_) => {
+                    <emitPositionCall as alloy_sol_types::SolCall>::SELECTOR
                 }
                 Self::emitRemove(_) => {
                     <emitRemoveCall as alloy_sol_types::SolCall>::SELECTOR
@@ -3349,6 +3612,19 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                 &[u8],
                 bool,
             ) -> alloy_sol_types::Result<IEventEmitterCalls>] = &[
+                {
+                    fn emitPosition(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<IEventEmitterCalls> {
+                        <emitPositionCall as alloy_sol_types::SolCall>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(IEventEmitterCalls::emitPosition)
+                    }
+                    emitPosition
+                },
                 {
                     fn emitDeposit(
                         data: &[u8],
@@ -3553,6 +3829,11 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                         inner,
                     )
                 }
+                Self::emitPosition(inner) => {
+                    <emitPositionCall as alloy_sol_types::SolCall>::abi_encoded_size(
+                        inner,
+                    )
+                }
                 Self::emitRemove(inner) => {
                     <emitRemoveCall as alloy_sol_types::SolCall>::abi_encoded_size(inner)
                 }
@@ -3613,6 +3894,12 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                 }
                 Self::emitPoolUpdated(inner) => {
                     <emitPoolUpdatedCall as alloy_sol_types::SolCall>::abi_encode_raw(
+                        inner,
+                        out,
+                    )
+                }
+                Self::emitPosition(inner) => {
+                    <emitPositionCall as alloy_sol_types::SolCall>::abi_encode_raw(
                         inner,
                         out,
                     )
@@ -3973,6 +4260,33 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
                     borrowRate,
                     liquidityIndex,
                     borrowIndex,
+                },
+            )
+        }
+        ///Creates a new call builder for the [`emitPosition`] function.
+        pub fn emitPosition(
+            &self,
+            account: alloy::sol_types::private::Address,
+            actionType: alloy::sol_types::private::primitives::aliases::U256,
+            baseToken: alloy::sol_types::private::Address,
+            memeToken: alloy::sol_types::private::Address,
+            positionId: alloy::sol_types::private::primitives::aliases::U256,
+            baseCollateral: alloy::sol_types::private::primitives::aliases::U256,
+            baseDebtScaled: alloy::sol_types::private::primitives::aliases::U256,
+            memeCollateral: alloy::sol_types::private::primitives::aliases::U256,
+            memeDebtScaled: alloy::sol_types::private::primitives::aliases::U256,
+        ) -> alloy_contract::SolCallBuilder<T, &P, emitPositionCall, N> {
+            self.call_builder(
+                &emitPositionCall {
+                    account,
+                    actionType,
+                    baseToken,
+                    memeToken,
+                    positionId,
+                    baseCollateral,
+                    baseDebtScaled,
+                    memeCollateral,
+                    memeDebtScaled,
                 },
             )
         }

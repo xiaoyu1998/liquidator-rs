@@ -18,6 +18,7 @@ use bindings_mm::{
 // };
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap};
+use std::error::Error; 
 use std::fs::File;
 use std::iter::zip;
 use std::str::FromStr;
@@ -29,6 +30,10 @@ use super::types::{Action, Event};
 //use alloy_primitives::{Address, Uint, String};
 use sha3::{Digest, Keccak256};
 //use alloy::contract as alloy_contract;
+
+use tracing::warn;
+
+use tokio::sync::Mutex;
 
 use alloy::{
     contract as alloy_contract,
@@ -54,12 +59,55 @@ pub enum Deployment {
     LOCALNET
 }
 
+#[derive(Debug, PartialEq)]
+enum ActionType {
+    Deposit,
+    Borrow,
+    Repay,
+    Withdraw,
+    Swap,
+    Liquidation,
+    Closed,
+}
+
+impl ActionType {
+    fn from_u256(value: U256) -> Option<ActionType> {
+        match value.try_into().unwrap() {
+            0 => Some(ActionType::Deposit),
+            1 => Some(ActionType::Borrow),
+            2 => Some(ActionType::Repay),
+            3 => Some(ActionType::Withdraw),
+            4 => Some(ActionType::Swap),
+            5 => Some(ActionType::Liquidation),
+            6 => Some(ActionType::Closed),
+            _ => None,
+        }
+    }
+
+    fn to_string(&self) -> &str {
+        match *self {
+            ActionType::Deposit => "Deposit",
+            ActionType::Borrow => "Borrow",
+            ActionType::Repay => "Repay",
+            ActionType::Withdraw => "Withdraw",
+            ActionType::Swap => "Swap",
+            ActionType::Liquidation => "Liquidation",
+            ActionType::Closed => "Closed",
+        }
+    }
+}
+
 // admin stuff
 pub const DEPLOYED_ADDRESSES: &str = "deployments/deployed_addresses.json";
 pub const STATE_CACHE_FILE: &str = "borrowers.json";
 pub const LOG_BLOCK_RANGE: u64 = 1024;
-pub const MULTICALL_CHUNK_SIZE: usize = 100;
+pub const MULTICALL_CHUNK_SIZE: usize = 1000;
 pub const RETRY_DURATION_IN_SECS: i64 = 60;
+pub const UPDATE_ALL_POOLS_TICKS: u64 = 5;
+pub const CALC_ALL_POSITIONS_TICKS: u64 = 5;
+pub const ACTIVITY_LEVEL_DECREASE_TICKS: u64 = 500;
+pub const ACTIVITY_LEVEL_START: u64 = 100;
+pub const POSITION_MONITOR_MARGIN_LEVEL_THRESOLD: u64 = 130;
 
 fn get_deployment_config(deployment: Deployment, last_block_number: u64, total_profit:u128) -> DeploymentConfig {
 
@@ -96,6 +144,7 @@ pub struct Position {
     base_debt_scaled: U256,
     meme_collateral: U256,
     meme_debt_scaled: U256,
+    margin_level: U256,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -110,6 +159,7 @@ pub struct Pool {
     meme_symbol: String,
     meme_token_decimals: U256,
     meme_borrow_index: U256,
+    activity_level: u64,
 }
 
 #[derive(Debug)]
@@ -120,11 +170,14 @@ pub struct MmStrategy<T, P, N = alloy_contract::private::Ethereum>
     last_block_number: u64,
     pools: HashMap<Bytes32, Pool>,
     positions: HashMap<Bytes32, Position>,
+    positions_critical: Vec<Position>,
+    positions_all: Vec<Position>,
     //sents: HashMap<Address, DateTime<Utc>>,
     chain_id: u64,
     config: DeploymentConfig,
     liquidator: Address,
     margin_levle_threshold: U256,
+    tick_counter: u64,
      _network_transport: ::core::marker::PhantomData<(N, T)>,
 }
 
@@ -146,12 +199,15 @@ impl<
             client,
             last_block_number: last_block_number,
             positions: HashMap::new(),
+            positions_critical: Vec::new(),
+            positions_all: Vec::new(),
             pools: HashMap::new(),
             //sents: HashMap::new(),
             chain_id: config.chain_id,
             config: deployment_config,
             liquidator: liquidator_address,
             margin_levle_threshold: U256::ZERO,
+            tick_counter: 0,
             _network_transport: ::core::marker::PhantomData,
         }
     }
@@ -210,6 +266,8 @@ impl<
         info!("Total position count: {}", self.positions.len());
         let underwaters = self.get_underwater_positions().await?;
 
+        self.tick_counter += 1;
+
         let mut actions: Vec<Action<N>> = Vec::new();
         for (account, position_id, _margin_level, _collateral, _debt) in underwaters {
             info!("underwater: {:?} position_id:{} ", account, position_id);
@@ -251,76 +309,75 @@ impl<
         Ok(tx)
     }
 
-    // for all known borrowers, return a sorted set of those with health factor < margin_levle_threshold
-    async fn get_underwater_positions(&mut self) -> Option<Vec<(Address, U256, U256, U256, U256)>> {
-        let mut underwater_positions = Vec::new();
+ async fn get_underwater_positions(&mut self) -> Option<Vec<(Address, U256, U256, U256, U256)>> {
+        let mut underwater_positions = Vec::new();  // Mutex protects shared state
 
-        let positions: Vec<&Position> = self
-            .positions
-            .values()
-            .filter(|p| p.base_debt_scaled > U256::ZERO || p.meme_debt_scaled > U256::ZERO)
-            .collect();
+        let positions : &mut Vec<Position> = if self.tick_counter % CALC_ALL_POSITIONS_TICKS == 0 {
+            self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
+            &mut self.positions_all
+        } else {
+            &mut self.positions_critical
+        };
 
-        for chunk in positions.chunks(MULTICALL_CHUNK_SIZE) {
-            let result: Vec<(U256, U256, U256)> = chunk.iter().map(|position| {
-                let mut user_total_collateral_usd = U256::ZERO;
-                let mut user_total_debt_usd = U256::ZERO;
+        for position in positions.iter_mut() {
+            let mut user_total_collateral_usd = U256::ZERO;
+            let mut user_total_debt_usd = U256::ZERO;
 
-                let pool = self.pools.get(&position.pool).unwrap();
-
-                let price = pool.price;
-                //let price_decimals = pool.price_decimals;
-
-                //meme
-                let base_borrow_index = pool.base_borrow_index;
-                let base_debt = ray_mul(position.base_debt_scaled, base_borrow_index);
-                let base_decimals = pool.base_token_decimals;
-                user_total_collateral_usd += adjust_precision(position.base_collateral, base_decimals);
-                user_total_debt_usd += adjust_precision(base_debt, base_decimals); 
-
-                let meme_borrow_index = pool.meme_borrow_index;
-                let meme_debt = ray_mul(position.meme_debt_scaled, meme_borrow_index);
-                let meme_decimals = pool.meme_token_decimals;
-                user_total_collateral_usd += ray_mul(price, adjust_precision(position.meme_collateral, meme_decimals));
-                user_total_debt_usd += ray_mul(price, adjust_precision(meme_debt, meme_decimals)); 
-
-
-                let margin_level = if user_total_debt_usd == U256::ZERO {
-                    U256::MAX
-                } else {
-                    ray_div(user_total_collateral_usd, user_total_debt_usd) 
-                };
-
-                (margin_level, user_total_collateral_usd, user_total_debt_usd) 
-            }).collect();
-
-            for (position, (margin_level, user_total_collateral_usd, user_total_debt_usd)) in zip(chunk, result) {
-                info!("account {:?} {} {}", position.account, margin_level, self.margin_levle_threshold);
-                if margin_level < self.margin_levle_threshold {
-                    // //prevent resend tx
-                    // let now: DateTime<Utc> = Utc::now();
-                    // match self.sents.get(&borrower.address) {
-                    //     Some(&sent_time) => {
-                    //         let duration: Duration = now - sent_time;
-                    //         if duration.num_seconds() < RETRY_DURATION_IN_SECS {
-                    //             continue;
-                    //         }
-                    //     },
-                    //     None => {}
-                    // }
-
-                    // info!(
-                    //     "Found underwater borrower {:?} -  healthFactor: {} - user_total_collateral_usd: {} - user_total_debt_usd: {}",
-                    //     borrower.address, margin_level, user_total_collateral_usd, user_total_debt_usd
-                    // );
-                    underwater_positions.push((position.account, position.position_id, margin_level, user_total_collateral_usd, user_total_debt_usd));
+            // Check if the pool exists before processing
+            let pool = match self.pools.get(&position.pool) {
+                Some(pool) => pool,
+                None => {
+                    info!("No pool found for position {:?}", position.pool);
+                    continue; // Skip this position
                 }
+            };
+
+            let price = pool.price;
+            let base_borrow_index = pool.base_borrow_index;
+            let base_debt = ray_mul(position.base_debt_scaled, base_borrow_index);
+            let base_decimals = pool.base_token_decimals;
+            user_total_collateral_usd += adjust_precision(position.base_collateral, base_decimals);
+            user_total_debt_usd += adjust_precision(base_debt, base_decimals);
+
+            let meme_borrow_index = pool.meme_borrow_index;
+            let meme_debt = ray_mul(position.meme_debt_scaled, meme_borrow_index);
+            let meme_decimals = pool.meme_token_decimals;
+            user_total_collateral_usd += ray_mul(price, adjust_precision(position.meme_collateral, meme_decimals));
+            user_total_debt_usd += ray_mul(price, adjust_precision(meme_debt, meme_decimals));
+
+            let margin_level = if user_total_debt_usd == U256::ZERO {
+                U256::MAX
+            } else {
+                ray_div(user_total_collateral_usd, user_total_debt_usd)
+            };
+
+            // Update the margin_level in position
+            position.margin_level = margin_level;
+
+            if margin_level < self.margin_levle_threshold {
+                underwater_positions.push((
+                    position.account,
+                    position.position_id,
+                    margin_level,
+                    user_total_collateral_usd,
+                    user_total_debt_usd,
+                ));
             }
         }
+        
 
-        // sort positions by health factor
-        //underwater_positions.sort_by(|a, b| a.1.cmp(&b.1));
-        Some(underwater_positions)
+        // Process positions on every 5th tick
+        if self.tick_counter % 5 == 0 {
+            self.positions_all.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
+            self.positions_critical = self.positions_all.iter()
+                .filter(|p| p.margin_level < U256::from(POSITION_MONITOR_MARGIN_LEVEL_THRESOLD))
+                .cloned()
+                .collect();
+        } else {
+            self.positions_critical.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
+        }
+
+        Some(underwater_positions)  
     }
 
     // load borrower state cache from file if exists
@@ -358,130 +415,62 @@ impl<
 
         self.update_margin_levle_threshold().await?;
 
-        //info!("get_deposit_logs");
-        self.get_deposit_logs(start_block.into(), latest_block)
+        self.get_position_logs(start_block.into(), latest_block)
             .await?
             .into_iter()
             .for_each(|log| {
-                let meme_symbol = self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol.clone();
-                info!("deposit {:?} {} {} {} {} {}", log.depositor, meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);  
-                let user = log.depositor;      
-                self.update_position(
-                    hash_position_key(user, log.positionId),
-                    user, 
-                    log.positionId,
-                    hash_pool_key(log.baseToken, log.memeToken), 
-                    meme_symbol,
-                    log.baseCollateral, 
-                    log.baseDebtScaled, 
-                    log.memeCollateral, 
-                    log.memeDebtScaled
-                );
-                return;
-            });
-        
-        //info!("get_borrow_logs");
-        self.get_borrow_logs(start_block.into(), latest_block)
-            .await?
-            .into_iter()
-            .for_each(|log| {
-                let meme_symbol = self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol.clone();
-                info!("borrow {:?} {} {} {} {} {}", log.borrower, meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
-                let user = log.borrower;
-                self.update_position(
-                    hash_position_key(user, log.positionId),
-                    user, 
-                    log.positionId,
-                    hash_pool_key(log.baseToken, log.memeToken), 
-                    meme_symbol,
-                    log.baseCollateral, 
-                    log.baseDebtScaled, 
-                    log.memeCollateral, 
-                    log.memeDebtScaled
-                );
-                return;
-            });
+                let pool_key = hash_pool_key(log.baseToken, log.memeToken);
 
-        self.get_repay_logs(start_block.into(), latest_block)
-            .await?
-            .into_iter()
-            .for_each(|log| {
-                let meme_symbol = self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol.clone();
-                info!("repay {:?} {} {} {} {} {}", log.repayer, meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled);   
-                let user = log.repayer;
-                self.update_position(
-                    hash_position_key(user, log.positionId),
-                    user, 
-                    log.positionId,
-                    hash_pool_key(log.baseToken, log.memeToken), 
-                    meme_symbol,
-                    log.baseCollateral, 
-                    log.baseDebtScaled, 
-                    log.memeCollateral, 
-                    log.memeDebtScaled
-                );          
-                return;
-            });
+                // Check if the pool exists, and set meme_symbol accordingly
+                let meme_symbol = if let Some(pool) = self.pools.get(&pool_key) {
+                    pool.meme_symbol.clone()  // If the pool exists, get the meme_symbol
+                } else {
+                    "".to_string()  // If the pool doesn't exist, set meme_symbol to an empty string
+                };
 
-        self.get_withdraw_logs(start_block.into(), latest_block)
-            .await?
-            .into_iter()
-            .for_each(|log| {
-                let meme_symbol = self.pools.get(&hash_pool_key(log.baseToken, log.memeToken)).unwrap().meme_symbol.clone();
-                info!("withdraw {:?} {} {} {} {} {}", log.withdrawer, meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
-                let user = log.withdrawer;
-                self.update_position(
-                    hash_position_key(user, log.positionId),
-                    user, 
-                    log.positionId,
-                    hash_pool_key(log.baseToken, log.memeToken), 
-                    meme_symbol,
-                    log.baseCollateral, 
-                    log.baseDebtScaled, 
-                    log.memeCollateral, 
-                    log.memeDebtScaled
+                info!("{} {:?} {} {} {} {} {}", 
+                    ActionType::from_u256(log.actionType).map_or("Unknown".to_string(), |action| action.to_string().into()), 
+                    log.account, meme_symbol, 
+                    log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled
                 ); 
-                return;
-            });
 
-        self.get_swap_logs(start_block.into(), latest_block)
-            .await?
-            .into_iter()
-            .for_each(|log| {
-                let meme_symbol = self.pools.get(&hash_pool_key(log.tokenIn, log.tokenOut)).unwrap().meme_symbol.clone();
-                info!("swapIn {:?} {} {} {} {} {}", log.account, meme_symbol, log.baseCollateral, log.baseDebtScaled, log.memeCollateral, log.memeDebtScaled); 
-                let user = log.account;
+                // Insert or update the pool's activity_level to 100
+                if let Some(existing_pool) = self.pools.get_mut(&pool_key) {
+                    existing_pool.activity_level = 100;  // Update existing pool's activity level
+                } else {
+                    let new_pool = Pool {
+                        price: U256::ZERO,  // Set to a default value, update later as needed
+                        price_decimals: U256::ZERO,  // Set to a default value
+                        base_token: log.baseToken,
+                        base_symbol: "".to_string(),  // Replace with actual base symbol
+                        base_token_decimals: U256::ZERO,  // Set to a default value
+                        base_borrow_index: U256::ZERO,  // Set to a default value
+                        meme_token: log.memeToken,
+                        meme_symbol: "".to_string(),
+                        meme_token_decimals: U256::ZERO,  // Set to a default value
+                        meme_borrow_index: U256::ZERO,  // Set to a default value
+                        activity_level: 100,  // Set activity_level to 100 when the pool is new
+                    };
+                    self.pools.insert(pool_key, new_pool);
+                } 
+
+                let user = log.account; 
+                if ActionType::from_u256(log.actionType).map_or(false, |action| action == ActionType::Liquidation) || 
+                   ActionType::from_u256(log.actionType).map_or(false, |action| action == ActionType::Closed) {
+                    self.positions.remove(&hash_position_key(user, log.positionId)); 
+                    return;
+                }     
                 self.update_position(
                     hash_position_key(user, log.positionId),
                     user, 
                     log.positionId,
-                    hash_pool_key(log.tokenIn, log.tokenOut), 
+                    hash_pool_key(log.baseToken, log.memeToken), 
                     meme_symbol,
                     log.baseCollateral, 
                     log.baseDebtScaled, 
                     log.memeCollateral, 
                     log.memeDebtScaled
                 );
-                return;
-            });
-
-        self.get_liquidation_logs(start_block.into(), latest_block)
-            .await?
-            .into_iter()
-            .for_each(|log| {
-                info!("liquidation {:?} {}", log.account, log.positionId);
-                let user = log.account;
-                self.positions.remove(&hash_position_key(user, log.positionId));
-                return;
-            });
-
-        self.get_close_logs(start_block.into(), latest_block)
-            .await?
-            .into_iter()
-            .for_each(|log| {
-                info!("close {:?} {}", log.account, log.positionId);
-                let user = log.account;
-                self.positions.remove(&hash_position_key(user, log.positionId));
                 return;
             });
 
@@ -500,15 +489,15 @@ impl<
         Ok(())
     }
 
-    // fetch all deposit events from the from_block to to_block
-    async fn get_deposit_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Deposit>> {
+        // fetch all position events from the from_block to to_block
+    async fn get_position_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Position>> {
         let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
         let mut res = Vec::new();
         for start_block in
             (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
         {
             let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-            event_emitter.Deposit_filter()  
+            event_emitter.Position_filter()  
                 .from_block(start_block)
                 .to_block(end_block)
                 .address(self.config.event_emitter)
@@ -523,190 +512,51 @@ impl<
         Ok(res)
     }
 
-    // fetch all borrow events from the from_block to to_block
-    async fn get_borrow_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Borrow>> {
-        let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
-        let mut res = Vec::new();
-        for start_block in
-            (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
-        {
-            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-            event_emitter.Borrow_filter()
-                .from_block(start_block)
-                .to_block(end_block)
-                .address(self.config.event_emitter)
-                .query()
-                .await?
-                .into_iter()
-                .for_each(|(log,_)| {
-                    res.push(log);
-                });
+    fn insert_or_update_pool(&mut self, pool: Pool) {
+        let pool_id = hash_pool_key(pool.base_token, pool.meme_token);
+
+        // If the pool doesn't exist, insert it
+        if !self.pools.contains_key(&pool_id) {
+            info!("Inserting new pool: {:?}", pool_id);
+            self.pools.insert(pool_id, pool);
+        } else {
+            // If it exists, update the pool while keeping the existing activity_level
+            if let Some(existing_pool) = self.pools.get_mut(&pool_id) {
+                existing_pool.price = pool.price;
+                existing_pool.price_decimals = pool.price_decimals;
+                existing_pool.base_token = pool.base_token;
+                existing_pool.base_symbol = pool.base_symbol;
+                existing_pool.base_token_decimals = pool.base_token_decimals;
+                existing_pool.base_borrow_index = pool.base_borrow_index;
+                existing_pool.meme_token = pool.meme_token;
+                existing_pool.meme_symbol = pool.meme_symbol;
+                existing_pool.meme_token_decimals = pool.meme_token_decimals;
+                existing_pool.meme_borrow_index = pool.meme_borrow_index;
+
+                // The activity_level remains unchanged
+                info!("Updated existing pool, keeping activity_level: {:?}", pool_id);
+            }
         }
-
-        Ok(res)
     }
-
-    // fetch all repay events from the from_block to to_block
-    async fn get_repay_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Repay>> {
-        let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
-
-        let mut res = Vec::new();
-        for start_block in
-            (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
-        {
-            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-            event_emitter.Repay_filter()
-                .from_block(start_block)
-                .to_block(end_block)
-                .address(self.config.event_emitter)
-                .query()
-                .await?
-                .into_iter()
-                .for_each(|(log, _)| {
-                    res.push(log);
-                });
-        }
-
-        Ok(res)
-    }
-
-    // fetch all redeem events from the from_block to to_block
-    async fn get_withdraw_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Withdraw>> {
-        let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
-
-        let mut res = Vec::new();
-        for start_block in
-            (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
-        {
-            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-            event_emitter.Withdraw_filter()
-                .from_block(start_block)
-                .to_block(end_block)
-                .address(self.config.event_emitter)
-                .query()
-                .await?
-                .into_iter()
-                .for_each(|(log,_)|{
-                    res.push(log);
-                });
-        }
-
-        Ok(res)
-    }
-
-    // fetch all swap events from the from_block to to_block
-    async fn get_swap_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Swap>> {
-        let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
-
-        let mut res = Vec::new();
-        for start_block in
-            (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
-        {
-            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-            event_emitter.Swap_filter()
-                .from_block(start_block)
-                .to_block(end_block)
-                .address(self.config.event_emitter)
-                .query()
-                .await?
-                .into_iter()
-                .for_each(|(log,_)| {
-                    res.push(log);
-                });
-        }
-
-        Ok(res)
-    }
-
-    // async fn get_logs<F,E>(
-    //     &self,
-    //     from_block: u64,
-    //     to_block: u64,
-    //     filter_fn: F,
-    // ) -> Result<Vec<EventEmitter:E>> 
-    // where
-    //     F:Fn(&EventEmitter::EventEmitterInstance<T, P, N>) -> EventEmitter:E,
-    // {
-    //     let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
-
-    //     let mut res = Vec::new();
-    //     for start_block in (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize) {
-    //         let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-    //         filter_fn(&event_emitter)
-    //             .from_block(start_block)
-    //             .to_block(end_block)
-    //             .address(self.config.event_emitter)
-    //             .query()
-    //             .await?
-    //             .into_iter()
-    //             .for_each(|(log, _)| {
-    //                 res.push(log);
-    //             });
-    //     }
-
-    //     Ok(res)
-    // }
-
-
-    // // fetch all liquidation events from the from_block to to_block
-    async fn get_liquidation_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Liquidation>> {
-        let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
-
-        let mut res = Vec::new();
-        for start_block in
-            (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
-        {
-            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-            event_emitter.Liquidation_filter()
-                .from_block(start_block)
-                .to_block(end_block)
-                .address(self.config.event_emitter)
-                .query()
-                .await?
-                .into_iter()
-                .for_each(|(log,_)|{
-                    res.push(log);
-                });
-        }
-
-        Ok(res)
-    }
-
-    // fetch all close events from the from_block to to_block
-    async fn get_close_logs(&self, from_block: u64, to_block: u64) -> Result<Vec<EventEmitter::Close>> {
-        let event_emitter = EventEmitter::new(self.config.event_emitter, self.client.clone());
-
-        let mut res = Vec::new();
-        for start_block in
-            (from_block..to_block).step_by(LOG_BLOCK_RANGE as usize)
-        {
-            let end_block = std::cmp::min(start_block + LOG_BLOCK_RANGE - 1, to_block);
-            event_emitter.Close_filter()
-                .from_block(start_block)
-                .to_block(end_block)
-                .address(self.config.event_emitter)
-                .query()
-                .await?
-                .into_iter()
-                .for_each(|(log,_)|{
-                    res.push(log);
-                });
-        }
-
-        Ok(res)
-    }
-
-
 
     async fn update_pools(&mut self) -> Result<()> {
         let reader = Reader::new(self.config.reader.clone(), self.client.clone());
-        let all_pools = reader.getPools_0(self.config.data_store.clone()).call().await.unwrap();
 
-        for pool in all_pools._0.iter() {
-            info!("pool {:?} {} {} ", pool.assets[1].token, pool.assets[1].symbol, pool.price);
-            self.pools.insert(
-                hash_pool_key(pool.assets[0].token, pool.assets[1].token),
-                Pool {
+        if self.tick_counter % UPDATE_ALL_POOLS_TICKS == 0 {  // Every 50 seconds (5p) update all pools
+            //let all_pools = reader.getPoolsInfo_0(self.config.data_store.clone()).call().await.unwrap();
+            let all_pools = match reader.getPoolsInfo_0(self.config.data_store.clone()).call().await {
+                Ok(pools) => pools,
+                Err(e) => {
+                    warn!("Failed to get pools info: {}", e);
+                    // Handle the error, maybe return a default value or propagate the error
+                    //return Err(Box::new(e)); // Or return a default value, depending on your use case
+                    return Err(e.into());
+                }
+            };  
+
+            // Iterate through the pools and insert them
+            for pool in all_pools._0.iter() {
+                let pool_data = Pool {
                     price: pool.price,
                     price_decimals: pool.priceDecimals,
                     base_token: pool.assets[0].token,
@@ -717,8 +567,64 @@ impl<
                     meme_symbol: pool.assets[1].symbol.clone(),
                     meme_token_decimals: pool.assets[1].decimals,
                     meme_borrow_index: pool.assets[1].borrowIndex,
-                },
-            );           
+                    activity_level: 0,  // Set to zero or leave as placeholder (not provided by reader)
+                };
+
+                self.insert_or_update_pool(pool_data);  // Insert or update the pool
+            }
+        } else {  // Every tick  update first  pools with activity_level > 0
+            // Filter pools with activity_level > 0
+            let mut filtered_pools: Vec<_> = self.pools.values()
+                .filter(|pool| pool.activity_level > 0)  // Only pools with activity_level > 0
+                .collect();
+
+            // Sort pools by activity_level in descending order
+            filtered_pools.sort_by(|a, b| b.activity_level.cmp(&a.activity_level));  // Sort descending by activity_level
+
+            // Get the first 10 pools from the sorted list
+            let active_pools_ids: Vec<_> = filtered_pools.iter().take(10)
+                .map(|pool| hash_pool_key(pool.base_token, pool.meme_token))
+                .collect();
+
+            //let active_pools = reader.getPoolsInfo_1(self.config.data_store.clone(), active_pools_ids).call().await.unwrap();
+            let active_pools = match reader.getPoolsInfo_2(self.config.data_store.clone(), active_pools_ids).call().await {
+                Ok(pools) => pools,
+                Err(e) => {
+                    warn!("Failed to get pools info: {}", e);
+                    // Handle the error, maybe return a default value or propagate the error
+                    //return Err(Box::new(e)); // Or return a default value, depending on your use case
+                    return Err(e.into());
+                }
+            };
+
+            // Insert the updated first 10 pools
+            for pool in active_pools._0.iter() {
+                let pool_data = Pool {
+                    price: pool.price,
+                    price_decimals: pool.priceDecimals,
+                    base_token: pool.assets[0].token,
+                    base_symbol: pool.assets[0].symbol.clone(),
+                    base_token_decimals: pool.assets[0].decimals,
+                    base_borrow_index: pool.assets[0].borrowIndex,
+                    meme_token: pool.assets[1].token,
+                    meme_symbol: pool.assets[1].symbol.clone(),
+                    meme_token_decimals: pool.assets[1].decimals,
+                    meme_borrow_index: pool.assets[1].borrowIndex,
+                    activity_level: 0,  // Set to zero or leave as placeholder (not provided by reader)
+                };
+
+                self.insert_or_update_pool(pool_data);  // Insert or update the pool
+            }
+        }
+
+        // Decrease activity_level every ACTIVITY_LEVEL_DECREASE_PER_TIMES ticks
+        if self.tick_counter % ACTIVITY_LEVEL_DECREASE_TICKS == 0 {
+            for pool in self.pools.values_mut() {
+                if pool.activity_level > 0 {
+                    pool.activity_level -= 1;
+                    info!("Decreased activity_level for pool: {:?}", pool);
+                }
+            }
         }
 
         Ok(())
@@ -764,6 +670,7 @@ impl<
                 base_debt_scaled:base_debt_scaled,
                 meme_collateral:meme_collateral,
                 meme_debt_scaled:meme_debt_scaled,
+                margin_level:U256::ZERO,
             }
         );
 
@@ -839,4 +746,101 @@ fn adjust_precision(a: U256, decimals: U256) -> U256 {
     let a512 : U512 = U512::from(a);
     return U256::from_str(&(a512*precision/U512::from(10).pow(U512::from(decimals))).to_string()).unwrap();
 }
+
+    // async fn get_underwater_positions(&mut self) -> Option<Vec<(Address, U256, U256, U256, U256)>> {
+    //     let mut underwater_positions = Arc::new(Mutex::new(Vec::new()));  // Mutex protects shared state
+
+    //     let positions : &mut Vec<Position> = if self.tick_counter % CALC_ALL_POSITIONS_TICKS == 0 {
+    //         self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
+    //         &mut self.positions_all
+    //     } else {
+    //         &mut self.positions_critical
+    //     };
+
+    //     // Split positions into chunks for parallel processing
+    //     let chunk_size = MULTICALL_CHUNK_SIZE;  // Adjust as needed
+    //     let chunks: Vec<_> = positions.chunks_mut(chunk_size).collect();
+
+    //     // Spawn tasks to process each chunk
+    //     let mut tasks = Vec::new();
+
+    //     for chunk in chunks {
+    //         let underwater_positions_clone = Arc::clone(&underwater_positions); // Clone the Arc for task ownership
+
+    //         // Spawn a task for each chunk
+    //         let task = tokio::spawn(async move {
+    //             //let mut chunk_underwater_positions = Vec::new(); // Collect underwater positions for this chunk
+
+    //             for position in chunk.iter_mut() {
+    //                 let mut user_total_collateral_usd = U256::ZERO;
+    //                 let mut user_total_debt_usd = U256::ZERO;
+
+    //                 // Check if the pool exists before processing
+    //                 let pool = match self.pools.get(&position.pool) {
+    //                     Some(pool) => pool,
+    //                     None => {
+    //                         info!("No pool found for position {:?}", position.pool);
+    //                         continue; // Skip this position
+    //                     }
+    //                 };
+
+    //                 let price = pool.price;
+    //                 let base_borrow_index = pool.base_borrow_index;
+    //                 let base_debt = ray_mul(position.base_debt_scaled, base_borrow_index);
+    //                 let base_decimals = pool.base_token_decimals;
+    //                 user_total_collateral_usd += adjust_precision(position.base_collateral, base_decimals);
+    //                 user_total_debt_usd += adjust_precision(base_debt, base_decimals);
+
+    //                 let meme_borrow_index = pool.meme_borrow_index;
+    //                 let meme_debt = ray_mul(position.meme_debt_scaled, meme_borrow_index);
+    //                 let meme_decimals = pool.meme_token_decimals;
+    //                 user_total_collateral_usd += ray_mul(price, adjust_precision(position.meme_collateral, meme_decimals));
+    //                 user_total_debt_usd += ray_mul(price, adjust_precision(meme_debt, meme_decimals));
+
+    //                 let margin_level = if user_total_debt_usd == U256::ZERO {
+    //                     U256::MAX
+    //                 } else {
+    //                     ray_div(user_total_collateral_usd, user_total_debt_usd)
+    //                 };
+
+    //                 // Update the margin_level in position
+    //                 position.margin_level = margin_level;
+    //                 // let mut updated_position = position.clone();
+    //                 // updated_position.margin_level = margin_level;
+
+    //                 if margin_level < self.margin_levle_threshold {
+    //                     chunk_underwater_positions.push((
+    //                         position.account,
+    //                         position.position_id,
+    //                         margin_level,
+    //                         user_total_collateral_usd,
+    //                         user_total_debt_usd,
+    //                     ));
+    //                 }
+    //             }
+
+    //             // Lock the Mutex and push results into the shared vector
+    //             let mut underwater_positions = underwater_positions_clone.lock().await;
+    //             underwater_positions.extend(chunk_underwater_positions);
+    //         });
+
+    //         tasks.push(task);
+    //     }
+
+    //     // Wait for all tasks to finish
+    //     futures::future::join_all(tasks).await;
+
+    //     // Process positions on every 5th tick
+    //     if self.tick_counter % 5 == 0 {
+    //         self.positions_all.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
+    //         self.positions_critical = self.positions_all.iter()
+    //             .filter(|p| p.margin_level < U256::from(POSITION_MONITOR_MARGIN_LEVEL_THRESOLD))
+    //             .cloned()
+    //             .collect();
+    //     } else {
+    //         self.positions_critical.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
+    //     }
+
+    //     Some(underwater_positions.lock().await.clone())  // Return the final result after all tasks are done
+    // }
 

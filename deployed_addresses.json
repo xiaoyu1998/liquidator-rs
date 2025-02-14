@@ -1,0 +1,23 @@
+{
+  "PoolInterestRateStrategy#PoolInterestRateStrategy": "0x4ab43AF58567Dde16404B3904c4f5CD0260c1CAF",
+  "PoolStoreUtils#PoolStoreUtils": "0x0E915F90866d7eA21881dA41bB5c456D332C1575",
+  "PositionStoreUtils#PositionStoreUtils": "0xCad073E1A0aD6B99751f23190c5d775526a0e558",
+  "RoleStore#RoleStore": "0xa5F6A37215d3E5CAD4261AFD92fB49a70F2A8841",
+  "ReaderPoolUtils#ReaderPoolUtils": "0x71E389C1648a1cD0f940E33c8b188a1e60EE86A4",
+  "Reader#Reader": "0xa0C67E6374FC73bF024C0902C132Bd5d1BC16759",
+  "DataStore#DataStore": "0x8Ec037359c975E41dC89fd7f5aFACaD340a573bf",
+  "EventEmitter#EventEmitter": "0x4e50B162192fDbc2E4e298dFD251D47F47ecD046",
+  "Router#Router": "0x9b9Ef284E6b1869d9C202149205d4091C5A35E75",
+  "BorrowHandler#BorrowHandler": "0x82AD3c63fF8CEfD19C51D66428650dcF5099716A",
+  "CloseHandler#CloseHandler": "0x1cD744Af609959943cC678746A3dCc961c6CDBe2",
+  "Config#Config": "0xb3015A6dDb3a8f2004e95AF8b85A2A1C665d3b81",
+  "DepositHandler#DepositHandler": "0xFC752505BD8Ea776Abb88e5559542e72E4E02639",
+  "FeeHandler#FeeHandler": "0x2fc3EEB6E7CAfa32109D4F625c4e4dF5639dCFA5",
+  "LiquidationHandler#LiquidationHandler": "0xd03F39A9697b7A44D2f0E9e867aA81DEAeC236aF",
+  "LiquidityHandler#LiquidityHandler": "0xD274Fd9A5Bb4cb06A1AA767E2d324D8008cDded6",
+  "PoolFactory#PoolFactory": "0xDA3568Ec9B0579fe1d29C240c77A4BC2e0C58319",
+  "RepayHandler#RepayHandler": "0x56F88bD77aAFA670463c759cc21B41256E3609BD",
+  "SwapHandler#SwapHandler": "0x99254b31BD5bE3fB82899311Fb6490FC22408AeA",
+  "WithdrawHandler#WithdrawHandler": "0x2Ea3AD5AD41Ee5Ad1841BC7598071FDa1f81b897",
+  "ExchangeRouter#ExchangeRouter": "0x7fF3F34409ccC725EC36a8ee97e61E2312ed4eEB"
+}

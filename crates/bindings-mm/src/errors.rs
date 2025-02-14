@@ -39,8 +39,8 @@ interface Errors {
     error InsufficientAvailableLiquidity(uint256 amount, uint256 availableLiquidity);
     error InsufficientCollateralAmount(uint256 amountToRemove, uint256 amountBalance);
     error InsufficientCollateralAmountForRepay(uint256 repayAmount, uint256 collateralAmount);
+    error InsufficientCollateralForWidthdraw(uint256 amountToWithdraw, uint256 collateral);
     error InsufficientReverveForBorrow(uint256 amountToBorrow, uint256 availableReserve);
-    error InsufficientReverveForWithdraw(uint256 amountToWithdraw, uint256 availableReserve);
     error InsufficientSwapAmount(uint256 lastVirtualLiquidity0, uint256 lastVirtualLiquidity1, uint256 adjustedVirtualLiquidity0, uint256 adjustedVirtualLiquidity1);
     error InsufficientSwapCollateral(uint256 amountIn, uint256 collateral);
     error InsufficientUserBalance(uint256 balance, uint256 liquidity);
@@ -393,15 +393,15 @@ interface Errors {
   },
   {
     "type": "error",
-    "name": "InsufficientReverveForBorrow",
+    "name": "InsufficientCollateralForWidthdraw",
     "inputs": [
       {
-        "name": "amountToBorrow",
+        "name": "amountToWithdraw",
         "type": "uint256",
         "internalType": "uint256"
       },
       {
-        "name": "availableReserve",
+        "name": "collateral",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -409,10 +409,10 @@ interface Errors {
   },
   {
     "type": "error",
-    "name": "InsufficientReverveForWithdraw",
+    "name": "InsufficientReverveForBorrow",
     "inputs": [
       {
-        "name": "amountToWithdraw",
+        "name": "amountToBorrow",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -867,22 +867,22 @@ pub mod Errors {
     /// The creation / init bytecode of the contract.
     ///
     /// ```text
-    ///0x60556032600b8282823980515f1a607314602657634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220820369aa47af454af7dd1ed99f5f721192692ff9a2c5a899dffe01d517b6b04f64736f6c634300081c0033
+    ///0x60556032600b8282823980515f1a607314602657634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220c117b9dbfe2bb73c3053ca3903ab91cc5b0bcc69f2450a5cf09bec76fcc2823764736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"`U`2`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`&WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \x82\x03i\xAAG\xAFEJ\xF7\xDD\x1E\xD9\x9F_r\x11\x92i/\xF9\xA2\xC5\xA8\x99\xDF\xFE\x01\xD5\x17\xB6\xB0OdsolcC\0\x08\x1C\x003",
+        b"`U`2`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`&WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \xC1\x17\xB9\xDB\xFE+\xB7<0S\xCA9\x03\xAB\x91\xCC[\x0B\xCCi\xF2E\n\\\xF0\x9B\xECv\xFC\xC2\x827dsolcC\0\x08\x1C\x003",
     );
     /// The runtime bytecode of the contract, as deployed on the network.
     ///
     /// ```text
-    ///0x730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220820369aa47af454af7dd1ed99f5f721192692ff9a2c5a899dffe01d517b6b04f64736f6c634300081c0033
+    ///0x730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220c117b9dbfe2bb73c3053ca3903ab91cc5b0bcc69f2450a5cf09bec76fcc2823764736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static DEPLOYED_BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \x82\x03i\xAAG\xAFEJ\xF7\xDD\x1E\xD9\x9F_r\x11\x92i/\xF9\xA2\xC5\xA8\x99\xDF\xFE\x01\xD5\x17\xB6\xB0OdsolcC\0\x08\x1C\x003",
+        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \xC1\x17\xB9\xDB\xFE+\xB7<0S\xCA9\x03\xAB\x91\xCC[\x0B\xCCi\xF2E\n\\\xF0\x9B\xECv\xFC\xC2\x827dsolcC\0\x08\x1C\x003",
     );
     /**Custom error with signature `AccountNotMatch(address,address)` and selector `0x25c7157e`.
 ```solidity
@@ -3419,6 +3419,91 @@ error InsufficientCollateralAmountForRepay(uint256 repayAmount, uint256 collater
             }
         }
     };
+    /**Custom error with signature `InsufficientCollateralForWidthdraw(uint256,uint256)` and selector `0x8ef2e53e`.
+```solidity
+error InsufficientCollateralForWidthdraw(uint256 amountToWithdraw, uint256 collateral);
+```*/
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct InsufficientCollateralForWidthdraw {
+        pub amountToWithdraw: alloy::sol_types::private::primitives::aliases::U256,
+        pub collateral: alloy::sol_types::private::primitives::aliases::U256,
+    }
+    #[allow(
+        non_camel_case_types,
+        non_snake_case,
+        clippy::pub_underscore_fields,
+        clippy::style
+    )]
+    const _: () = {
+        use alloy::sol_types as alloy_sol_types;
+        #[doc(hidden)]
+        type UnderlyingSolTuple<'a> = (
+            alloy::sol_types::sol_data::Uint<256>,
+            alloy::sol_types::sol_data::Uint<256>,
+        );
+        #[doc(hidden)]
+        type UnderlyingRustTuple<'a> = (
+            alloy::sol_types::private::primitives::aliases::U256,
+            alloy::sol_types::private::primitives::aliases::U256,
+        );
+        #[cfg(test)]
+        #[allow(dead_code, unreachable_patterns)]
+        fn _type_assertion(
+            _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+        ) {
+            match _t {
+                alloy_sol_types::private::AssertTypeEq::<
+                    <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                >(_) => {}
+            }
+        }
+        #[automatically_derived]
+        #[doc(hidden)]
+        impl ::core::convert::From<InsufficientCollateralForWidthdraw>
+        for UnderlyingRustTuple<'_> {
+            fn from(value: InsufficientCollateralForWidthdraw) -> Self {
+                (value.amountToWithdraw, value.collateral)
+            }
+        }
+        #[automatically_derived]
+        #[doc(hidden)]
+        impl ::core::convert::From<UnderlyingRustTuple<'_>>
+        for InsufficientCollateralForWidthdraw {
+            fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                Self {
+                    amountToWithdraw: tuple.0,
+                    collateral: tuple.1,
+                }
+            }
+        }
+        #[automatically_derived]
+        impl alloy_sol_types::SolError for InsufficientCollateralForWidthdraw {
+            type Parameters<'a> = UnderlyingSolTuple<'a>;
+            type Token<'a> = <Self::Parameters<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            const SIGNATURE: &'static str = "InsufficientCollateralForWidthdraw(uint256,uint256)";
+            const SELECTOR: [u8; 4] = [142u8, 242u8, 229u8, 62u8];
+            #[inline]
+            fn new<'a>(
+                tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
+            ) -> Self {
+                tuple.into()
+            }
+            #[inline]
+            fn tokenize(&self) -> Self::Token<'_> {
+                (
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.amountToWithdraw),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.collateral),
+                )
+            }
+        }
+    };
     /**Custom error with signature `InsufficientReverveForBorrow(uint256,uint256)` and selector `0x47959502`.
 ```solidity
 error InsufficientReverveForBorrow(uint256 amountToBorrow, uint256 availableReserve);
@@ -3497,91 +3582,6 @@ error InsufficientReverveForBorrow(uint256 amountToBorrow, uint256 availableRese
                     <alloy::sol_types::sol_data::Uint<
                         256,
                     > as alloy_sol_types::SolType>::tokenize(&self.amountToBorrow),
-                    <alloy::sol_types::sol_data::Uint<
-                        256,
-                    > as alloy_sol_types::SolType>::tokenize(&self.availableReserve),
-                )
-            }
-        }
-    };
-    /**Custom error with signature `InsufficientReverveForWithdraw(uint256,uint256)` and selector `0xe3f5a43f`.
-```solidity
-error InsufficientReverveForWithdraw(uint256 amountToWithdraw, uint256 availableReserve);
-```*/
-    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
-    #[derive(Clone)]
-    pub struct InsufficientReverveForWithdraw {
-        pub amountToWithdraw: alloy::sol_types::private::primitives::aliases::U256,
-        pub availableReserve: alloy::sol_types::private::primitives::aliases::U256,
-    }
-    #[allow(
-        non_camel_case_types,
-        non_snake_case,
-        clippy::pub_underscore_fields,
-        clippy::style
-    )]
-    const _: () = {
-        use alloy::sol_types as alloy_sol_types;
-        #[doc(hidden)]
-        type UnderlyingSolTuple<'a> = (
-            alloy::sol_types::sol_data::Uint<256>,
-            alloy::sol_types::sol_data::Uint<256>,
-        );
-        #[doc(hidden)]
-        type UnderlyingRustTuple<'a> = (
-            alloy::sol_types::private::primitives::aliases::U256,
-            alloy::sol_types::private::primitives::aliases::U256,
-        );
-        #[cfg(test)]
-        #[allow(dead_code, unreachable_patterns)]
-        fn _type_assertion(
-            _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
-        ) {
-            match _t {
-                alloy_sol_types::private::AssertTypeEq::<
-                    <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
-                >(_) => {}
-            }
-        }
-        #[automatically_derived]
-        #[doc(hidden)]
-        impl ::core::convert::From<InsufficientReverveForWithdraw>
-        for UnderlyingRustTuple<'_> {
-            fn from(value: InsufficientReverveForWithdraw) -> Self {
-                (value.amountToWithdraw, value.availableReserve)
-            }
-        }
-        #[automatically_derived]
-        #[doc(hidden)]
-        impl ::core::convert::From<UnderlyingRustTuple<'_>>
-        for InsufficientReverveForWithdraw {
-            fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
-                Self {
-                    amountToWithdraw: tuple.0,
-                    availableReserve: tuple.1,
-                }
-            }
-        }
-        #[automatically_derived]
-        impl alloy_sol_types::SolError for InsufficientReverveForWithdraw {
-            type Parameters<'a> = UnderlyingSolTuple<'a>;
-            type Token<'a> = <Self::Parameters<
-                'a,
-            > as alloy_sol_types::SolType>::Token<'a>;
-            const SIGNATURE: &'static str = "InsufficientReverveForWithdraw(uint256,uint256)";
-            const SELECTOR: [u8; 4] = [227u8, 245u8, 164u8, 63u8];
-            #[inline]
-            fn new<'a>(
-                tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
-            ) -> Self {
-                tuple.into()
-            }
-            #[inline]
-            fn tokenize(&self) -> Self::Token<'_> {
-                (
-                    <alloy::sol_types::sol_data::Uint<
-                        256,
-                    > as alloy_sol_types::SolType>::tokenize(&self.amountToWithdraw),
                     <alloy::sol_types::sol_data::Uint<
                         256,
                     > as alloy_sol_types::SolType>::tokenize(&self.availableReserve),
@@ -6106,8 +6106,8 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
         InsufficientAvailableLiquidity(InsufficientAvailableLiquidity),
         InsufficientCollateralAmount(InsufficientCollateralAmount),
         InsufficientCollateralAmountForRepay(InsufficientCollateralAmountForRepay),
+        InsufficientCollateralForWidthdraw(InsufficientCollateralForWidthdraw),
         InsufficientReverveForBorrow(InsufficientReverveForBorrow),
-        InsufficientReverveForWithdraw(InsufficientReverveForWithdraw),
         InsufficientSwapAmount(InsufficientSwapAmount),
         InsufficientSwapCollateral(InsufficientSwapCollateral),
         InsufficientUserBalance(InsufficientUserBalance),
@@ -6185,6 +6185,7 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
             [122u8, 67u8, 156u8, 73u8],
             [130u8, 214u8, 53u8, 63u8],
             [134u8, 196u8, 236u8, 33u8],
+            [142u8, 242u8, 229u8, 62u8],
             [149u8, 192u8, 190u8, 200u8],
             [151u8, 157u8, 199u8, 128u8],
             [157u8, 30u8, 167u8, 11u8],
@@ -6205,7 +6206,6 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
             [207u8, 15u8, 21u8, 130u8],
             [213u8, 81u8, 130u8, 61u8],
             [221u8, 112u8, 22u8, 162u8],
-            [227u8, 245u8, 164u8, 63u8],
             [231u8, 15u8, 145u8, 82u8],
             [231u8, 26u8, 81u8, 190u8],
             [232u8, 150u8, 69u8, 20u8],
@@ -6330,11 +6330,11 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                 Self::InsufficientCollateralAmountForRepay(_) => {
                     <InsufficientCollateralAmountForRepay as alloy_sol_types::SolError>::SELECTOR
                 }
+                Self::InsufficientCollateralForWidthdraw(_) => {
+                    <InsufficientCollateralForWidthdraw as alloy_sol_types::SolError>::SELECTOR
+                }
                 Self::InsufficientReverveForBorrow(_) => {
                     <InsufficientReverveForBorrow as alloy_sol_types::SolError>::SELECTOR
-                }
-                Self::InsufficientReverveForWithdraw(_) => {
-                    <InsufficientReverveForWithdraw as alloy_sol_types::SolError>::SELECTOR
                 }
                 Self::InsufficientSwapAmount(_) => {
                     <InsufficientSwapAmount as alloy_sol_types::SolError>::SELECTOR
@@ -6919,6 +6919,19 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                     InsufficientCollateralAmountForRepay
                 },
                 {
+                    fn InsufficientCollateralForWidthdraw(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<ErrorsErrors> {
+                        <InsufficientCollateralForWidthdraw as alloy_sol_types::SolError>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(ErrorsErrors::InsufficientCollateralForWidthdraw)
+                    }
+                    InsufficientCollateralForWidthdraw
+                },
+                {
                     fn InvalidBorrowCapacity(
                         data: &[u8],
                         validate: bool,
@@ -7177,19 +7190,6 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                             .map(ErrorsErrors::EmptyAccount)
                     }
                     EmptyAccount
-                },
-                {
-                    fn InsufficientReverveForWithdraw(
-                        data: &[u8],
-                        validate: bool,
-                    ) -> alloy_sol_types::Result<ErrorsErrors> {
-                        <InsufficientReverveForWithdraw as alloy_sol_types::SolError>::abi_decode_raw(
-                                data,
-                                validate,
-                            )
-                            .map(ErrorsErrors::InsufficientReverveForWithdraw)
-                    }
-                    InsufficientReverveForWithdraw
                 },
                 {
                     fn SelfTransferNotSupported(
@@ -7525,13 +7525,13 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                         inner,
                     )
                 }
-                Self::InsufficientReverveForBorrow(inner) => {
-                    <InsufficientReverveForBorrow as alloy_sol_types::SolError>::abi_encoded_size(
+                Self::InsufficientCollateralForWidthdraw(inner) => {
+                    <InsufficientCollateralForWidthdraw as alloy_sol_types::SolError>::abi_encoded_size(
                         inner,
                     )
                 }
-                Self::InsufficientReverveForWithdraw(inner) => {
-                    <InsufficientReverveForWithdraw as alloy_sol_types::SolError>::abi_encoded_size(
+                Self::InsufficientReverveForBorrow(inner) => {
+                    <InsufficientReverveForBorrow as alloy_sol_types::SolError>::abi_encoded_size(
                         inner,
                     )
                 }
@@ -7898,14 +7898,14 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                         out,
                     )
                 }
-                Self::InsufficientReverveForBorrow(inner) => {
-                    <InsufficientReverveForBorrow as alloy_sol_types::SolError>::abi_encode_raw(
+                Self::InsufficientCollateralForWidthdraw(inner) => {
+                    <InsufficientCollateralForWidthdraw as alloy_sol_types::SolError>::abi_encode_raw(
                         inner,
                         out,
                     )
                 }
-                Self::InsufficientReverveForWithdraw(inner) => {
-                    <InsufficientReverveForWithdraw as alloy_sol_types::SolError>::abi_encode_raw(
+                Self::InsufficientReverveForBorrow(inner) => {
+                    <InsufficientReverveForBorrow as alloy_sol_types::SolError>::abi_encode_raw(
                         inner,
                         out,
                     )
