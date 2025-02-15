@@ -109,7 +109,9 @@ pub const UPDATE_ALL_POOLS_TICKS: u64 = 5;
 pub const CALC_ALL_POSITIONS_TICKS: u64 = 5;
 pub const ACTIVITY_LEVEL_DECREASE_TICKS: u64 = 500;
 pub const ACTIVITY_LEVEL_START: u64 = 100;
-pub const POSITION_MONITOR_MARGIN_LEVEL_THRESOLD: u128 = 1700000000000000000000000000;
+// pub const POSITION_MONITOR_MARGIN_LEVEL_THRESOLD: u128 = 1300000000000000000000000000;
+pub const POSITION_MONITOR_MARGIN_LEVEL_THRESOLD: u128 = 130 * 10_u128.pow(25);
+
 
 fn get_deployment_config(deployment: Deployment, last_block_number: u64, total_profit:u128) -> DeploymentConfig {
 
