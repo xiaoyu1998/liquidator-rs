@@ -852,32 +852,6 @@ pub fn hash_pool_key(token0: Address, token1: Address) -> Bytes32 {
     FixedBytes::try_from(hash_result.as_slice()).expect("Hash should be 32 bytes")
 }
 
-// fn hash_pool_key(addr1: Address, addr2: Address) -> Bytes32 {
-//     // Determine the order: the smaller address comes first
-//     let (first, second) = if addr1 < addr2 {
-//         (addr1, addr2)
-//     } else {
-//         (addr2, addr1)
-//     };
-
-//     let bytes1: [u8; 20] = first.into();  // Convert Address to a 20-byte array
-//     let bytes2: [u8; 20] = second.into();  // Convert Address to a 20-byte array
-
-//     // Create a Keccak256 hasher
-//     let mut hasher = Keccak256::new();
-
-//     // Concatenate the addresses in the determined order
-//     hasher.update(&bytes1);
-//     hasher.update(&bytes2);
-
-//     // Finalize the hash and convert to Bytes32
-//     let hash_result = hasher.finalize();
-
-//     // Convert the result to Bytes32
-//     FixedBytes::try_from(hash_result.as_slice()).expect("Hash should be 32 bytes")
-
-// }
-
 fn hash_position_key(account: Address, position_id: U256) -> Bytes32 {
 
     let bytes1: [u8; 20] = account.into();  // Convert Address to a 20-byte array
