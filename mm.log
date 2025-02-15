@@ -1,0 +1,9 @@
+Args { rpc: "https://base-sepolia.g.alchemy.com/v2/vhyhey20q3EcxB1ZQZIJpAcNFJC4jj7M", private_key: "0x6ee1d6db9b9eaa05c5d0ed235d1f1eb84d877076819c873e08ff0cd5987d7413", bid_percentage: 10, deployment: LOCALNET, total_profit: 800000000000000, chain_id: 84532, last_block_number: 21706113, pool_interval_secs: 10 }
+[2m2025-02-15T14:27:03.524876Z[0m [32m INFO[0m [2mmm_liquidator::strategies::mm_strategy[0m[2m:[0m syncing state
+[2m2025-02-15T14:27:03.524878Z[0m [32m INFO[0m [2martemis_core::engine[0m[2m:[0m starting executor... 
+[2m2025-02-15T14:27:03.525002Z[0m [32m INFO[0m [2mmm_liquidator::strategies::mm_strategy[0m[2m:[0m self.config.data_store 0x2279b7a0a67db372996a5fab50d91eaa73d2ebe6
+[2m2025-02-15T14:27:03.525062Z[0m [32m INFO[0m [2mmm_liquidator::strategies::mm_strategy[0m[2m:[0m self.config.reader 0x610178da211fef7d417bc0e6fed39f05609ad788
+[2m2025-02-15T14:27:03.525083Z[0m [32m INFO[0m [2mmm_liquidator::strategies::mm_strategy[0m[2m:[0m self.config.event_emitter 0x8a791620dd6260079bf849dc5567adc3f2fdc318
+[2m2025-02-15T14:27:03.526669Z[0m [32m INFO[0m [2mmm_liquidator::strategies::mm_strategy[0m[2m:[0m read state cache from file
+[2m2025-02-15T14:27:03.526706Z[0m [32m INFO[0m [2mmm_liquidator::strategies::mm_strategy[0m[2m:[0m tick_counter: 0
+[2m2025-02-15T14:27:06.364694Z[0m [33m WARN[0m [2mmm_liquidator::strategies::mm_strategy[0m[2m:[0m Failed to get pools info: buffer overrun while deserializing
