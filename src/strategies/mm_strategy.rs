@@ -552,7 +552,7 @@ impl<
                 existing_pool.meme_borrow_index = pool.meme_borrow_index;
 
                 // The activity_level remains unchanged
-                info!("Updated existing pool, keeping activity_level: {:?}", pool_id);
+                //info!("Updated existing pool, keeping activity_level: {:?}", pool_id);
             }
         }
     }
@@ -620,6 +620,8 @@ impl<
                     return Err(e.into());
                 }
             };
+
+            info!("active_pools: {:?}", active_pools._0.len());
 
             // Insert the updated first 10 pools
             for pool in active_pools._0.iter() {
