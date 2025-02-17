@@ -11,3 +11,4 @@ crates/liquidator-contract/ignition
 .DS_Store
 ._.DS_Store
 borrowers.json
+mm.log
