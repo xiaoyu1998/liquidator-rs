@@ -206,11 +206,6 @@ pub struct MmStrategy<T, P, N = alloy_contract::private::Ethereum>
     config: DeploymentConfig,
     liquidator: Address,
     margin_level_threshold: U256,
-    // update_all_pools_ticks: u64,
-    // activity_level_decrease_ticks: u64,
-    // activity_level_init: u64,
-    // calc_all_positions_ticks: u64,
-    // monitor_margin_level_thresold: u128,
     tick_counter: u64,
      _network_transport: ::core::marker::PhantomData<(N, T)>,
 }
@@ -391,8 +386,29 @@ impl<
             //     &mut self.positions_critical
             // };
 
-            self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
-            let positions : &mut Vec<Position> = &mut self.positions_all;
+            let positions : &mut Vec<Position> = if self.tick_counter % self.config.calc_all_positions_ticks == 0 {
+                self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
+                &mut self.positions_all
+            } else {
+                self.positions_critical = self.positions.iter()
+                    .filter_map(|(_, pos)| {
+                        if let Some(pool) = self.pools.get(&pos.pool) {
+                            if pool.activity_level > 0 {
+                                Some(pos.clone()) // Include the position if the pool has activity_level > 0
+                            } else {
+                                None // Skip this position if the pool's activity_level is not greater than 0
+                            }
+                        } else {
+                            info!("No pool found for position {:?}", pos.pool);
+                            None // Skip this position if no pool is found
+                        }
+                    })
+                    .collect();
+                &mut self.positions_critical
+            };
+
+            //self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
+            //let positions : &mut Vec<Position> = &mut self.positions_all;
      
             // dbg!(&positions);
 
@@ -408,6 +424,11 @@ impl<
                         continue; // Skip this position
                     }
                 };
+
+                //if didn't get price
+                if pool.price <= U256::ZERO  {
+                    continue;
+                }
 
                 let price = pool.price;
                 let base_borrow_index = pool.base_borrow_index;
