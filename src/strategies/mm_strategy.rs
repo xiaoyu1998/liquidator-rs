@@ -27,9 +27,7 @@ use tracing::{error, info};
 use chrono::{DateTime, Duration, Utc};
 use clap::{Parser, ValueEnum};
 use super::types::{Action, Event};
-//use alloy_primitives::{Address, Uint, String};
 use sha3::{Digest, Keccak256};
-//use alloy::contract as alloy_contract;
 
 use tracing::warn;
 
@@ -51,7 +49,12 @@ struct DeploymentConfig {
     event_emitter: Address,
     exchange_router: Address,
     last_block_number: u64,
-    total_profit: u128
+    total_profit: u128,
+    update_all_pools_ticks: u64,
+    activity_level_decrease_ticks: u64,
+    activity_level_init: u64,
+    calc_all_positions_ticks: u64,
+    monitor_margin_level_thresold: u128,
 }
 
 #[derive(Debug, Clone, Parser, ValueEnum )]
@@ -102,24 +105,34 @@ pub const DEPLOYED_ADDRESSES: &str = "deployments/deployed_addresses.json";
 pub const STATE_CACHE_FILE: &str = "borrowers.json";
 pub const LOG_BLOCK_RANGE: u64 = 1024;
 pub const MULTICALL_CHUNK_SIZE: usize = 1000;
-pub const RETRY_DURATION_IN_SECS: i64 = 60;
+pub const RETRY_DURATION_IN_SECS: i64 = 600;
 pub const POLL_POOL_CHUNK_SIZE: u64 = 100;
+pub const LIQUIDATIONL_TOP_CHUNK_SIZE: u64 = 100;
 
 //production
-// pub const UPDATE_ALL_POOLS_TICKS: u64 = 16000;//about 2days poll all pools 
-// pub const ACTIVITY_LEVEL_DECREASE_TICKS: u64 = 600;//about 7days to 0
-// pub const ACTIVITY_LEVEL_START: u64 = 100;
-// pub const CALC_ALL_POSITIONS_TICKS: u64 = 5;//about 50 seconds
-// pub const POSITION_MONITOR_MARGIN_LEVEL_THRESOLD: u128 = 130 * 10_u128.pow(25);
+// self.config.update_all_pools_ticks: u64 = 16000;//about 2days poll all pools 
+// self.config.activity_level_decrease_ticks: u64 = 600;//about 7days to 0
+// self.config.activity_level_init: u64 = 100;
+// self.config.calc_all_positions_ticks: u64 = 5;//about 50 seconds
+// self.config.monitor_margin_level_thresold: u128 = 130 ;
 
 //testing
-pub const UPDATE_ALL_POOLS_TICKS: u64 = 10;//about 100 seconds
-pub const ACTIVITY_LEVEL_DECREASE_TICKS: u64 = 5;//about 4 minutes to 0
-pub const ACTIVITY_LEVEL_START: u64 = 5;
-pub const CALC_ALL_POSITIONS_TICKS: u64 = 5;//about 50 seconds
-pub const POSITION_MONITOR_MARGIN_LEVEL_THRESOLD: u128 = 150 * 10_u128.pow(25);
+// self.config.update_all_pools_ticks: u64 = 10;//about 100 seconds
+// self.config.activity_level_decrease_ticks: u64 = 5;//about 4 minutes to 0
+// self.config.activity_level_init: u64 = 5;
+// self.config.calc_all_positions_ticks: u64 = 5;//about 50 seconds
+// self.config.monitor_margin_level_thresold: u128 = 150;
 
-fn get_deployment_config(deployment: Deployment, last_block_number: u64, total_profit:u128) -> DeploymentConfig {
+fn get_deployment_config(
+    deployment: Deployment, 
+    last_block_number: u64,
+    total_profit: u128,
+    update_all_pools_ticks: u64,
+    activity_level_decrease_ticks: u64,
+    activity_level_init: u64,
+    calc_all_positions_ticks: u64,
+    monitor_margin_level_thresold: u128,
+) -> DeploymentConfig {
 
     let file = File::open(DEPLOYED_ADDRESSES).unwrap();
     let mm_contracts: HashMap<String, Address> = serde_json::from_reader(file).unwrap();
@@ -132,6 +145,12 @@ fn get_deployment_config(deployment: Deployment, last_block_number: u64, total_p
             exchange_router: *mm_contracts.get("ExchangeRouter#ExchangeRouter").unwrap(),
             last_block_number: last_block_number,
             total_profit: total_profit,
+            update_all_pools_ticks: update_all_pools_ticks,
+            activity_level_decrease_ticks: activity_level_decrease_ticks,
+            activity_level_init: activity_level_init,
+            calc_all_positions_ticks: calc_all_positions_ticks,
+            monitor_margin_level_thresold: monitor_margin_level_thresold,
+
         }
     }
 }
@@ -141,7 +160,7 @@ pub struct StateCache {
     last_block_number: u64,
     pools: HashMap<Bytes32, Pool>,
     positions: HashMap<Bytes32, Position>,
-    //sents: HashMap<Address, DateTime<Utc>>,
+    sents: HashMap<Bytes32, DateTime<Utc>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -182,11 +201,16 @@ pub struct MmStrategy<T, P, N = alloy_contract::private::Ethereum>
     positions: HashMap<Bytes32, Position>,
     positions_critical: Vec<Position>,
     positions_all: Vec<Position>,
-    //sents: HashMap<Address, DateTime<Utc>>,
+    sents: HashMap<Bytes32, DateTime<Utc>>,
     chain_id: u64,
     config: DeploymentConfig,
     liquidator: Address,
     margin_level_threshold: U256,
+    // update_all_pools_ticks: u64,
+    // activity_level_decrease_ticks: u64,
+    // activity_level_init: u64,
+    // calc_all_positions_ticks: u64,
+    // monitor_margin_level_thresold: u128,
     tick_counter: u64,
      _network_transport: ::core::marker::PhantomData<(N, T)>,
 }
@@ -202,9 +226,23 @@ impl<
         deployment: Deployment,
         liquidator_address: Address,
         last_block_number: u64,
-        total_profit: u128
+        total_profit: u128,
+        update_all_pools_ticks: u64,
+        activity_level_decrease_ticks: u64,
+        activity_level_init: u64,
+        calc_all_positions_ticks: u64,
+        monitor_margin_level_thresold: u128,
     ) -> Self {
-        let deployment_config = get_deployment_config(deployment, last_block_number, total_profit);
+        let deployment_config = get_deployment_config(
+            deployment, 
+            last_block_number, 
+            total_profit,
+            update_all_pools_ticks,
+            activity_level_decrease_ticks,
+            activity_level_init,
+            calc_all_positions_ticks,   
+            monitor_margin_level_thresold * 10_u128.pow(25)         
+        );
         Self {
             client,
             last_block_number: last_block_number,
@@ -212,7 +250,7 @@ impl<
             positions_critical: Vec::new(),
             positions_all: Vec::new(),
             pools: HashMap::new(),
-            //sents: HashMap::new(),
+            sents: HashMap::new(),
             chain_id: config.chain_id,
             config: deployment_config,
             liquidator: liquidator_address,
@@ -301,6 +339,10 @@ impl<
         let mut actions: Vec<Action<N>> = Vec::new();
         for (account, position_id, _margin_level, _collateral, _debt) in underwaters {
             info!("underwater: {:?} position_id:{} ", account, position_id);
+
+            let now: DateTime<Utc> = Utc::now();
+            self.sents.insert(hash_position_key(account.clone(), position_id), now);
+
             let action = async {
                 self.build_liquidation_tx(&account, position_id)
                     .await
@@ -342,13 +384,16 @@ impl<
      async fn get_underwater_positions(&mut self) -> Option<Vec<(Address, U256, U256, U256, U256)>> {
             let mut underwater_positions = Vec::new();  // Mutex protects shared state
 
-            let positions : &mut Vec<Position> = if self.tick_counter % CALC_ALL_POSITIONS_TICKS == 0 {
-                self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
-                &mut self.positions_all
-            } else {
-                &mut self.positions_critical
-            };
+            // let positions : &mut Vec<Position> = if self.tick_counter % self.config.calc_all_positions_ticks == 0 {
+            //     self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
+            //     &mut self.positions_all
+            // } else {
+            //     &mut self.positions_critical
+            // };
 
+            self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
+            let positions : &mut Vec<Position> = &mut self.positions_all;
+     
             // dbg!(&positions);
 
             for position in positions.iter_mut() {
@@ -387,6 +432,18 @@ impl<
                 position.margin_level = margin_level;
 
                 if margin_level < self.margin_level_threshold {
+                    //prevent resend tx
+                    let now: DateTime<Utc> = Utc::now();
+                    match self.sents.get(&hash_position_key(position.account.clone(), position.position_id)) {
+                        Some(&sent_time) => {
+                            let duration: Duration = now - sent_time;
+                            if duration.num_seconds() < RETRY_DURATION_IN_SECS {
+                                continue;
+                            }
+                        },
+                        None => {}
+                    }
+
                     underwater_positions.push((
                         position.account,
                         position.position_id,
@@ -401,17 +458,26 @@ impl<
             // dbg!(&self.positions_critical);
 
             // Process positions on every 5th tick
-            if self.tick_counter % POLL_POOL_CHUNK_SIZE == 0 {
-                self.positions_all.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
-                self.positions_critical = self.positions_all.iter()
-                    .filter(|p| p.margin_level < U256::from(POSITION_MONITOR_MARGIN_LEVEL_THRESOLD))
-                    .cloned()
-                    .collect();
-            } else {
-                self.positions_critical.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
-            }
+            // if self.tick_counter % self.config.calc_all_positions_ticks == 0 {
+            //     self.positions_all.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
+            //     self.positions_critical = self.positions_all.iter()
+            //         .filter(|p| p.margin_level < U256::from(self.config.monitor_margin_level_thresold))
+            //         .cloned()
+            //         .collect();
+            // } else {
+            //     self.positions_critical.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
+            // }
 
-            Some(underwater_positions)  
+
+            info!("Underwater count: {}", underwater_positions.len());
+            underwater_positions.sort_by(|a, b| a.1.cmp(&b.1));
+            let top_underwater_positions = underwater_positions
+                .iter()
+                .take(LIQUIDATIONL_TOP_CHUNK_SIZE as usize)
+                .cloned()
+                .collect();
+
+            Some(top_underwater_positions)  
         }
 
     // load borrower state cache from file if exists
@@ -423,7 +489,7 @@ impl<
                 self.last_block_number = cache.last_block_number;
                 self.positions = cache.positions;
                 self.pools = cache.pools;
-                //self.sents = cache.sents;
+                self.sents = cache.sents;
             }
             Err(_) => {
                 info!("no state cache file found, creating new one");
@@ -470,7 +536,7 @@ impl<
 
                 // Insert or update the pool's activity_level to 100
                 if let Some(existing_pool) = self.pools.get_mut(&pool_key) {
-                    existing_pool.activity_level = ACTIVITY_LEVEL_START;  // Update existing pool's activity level
+                    existing_pool.activity_level = self.config.activity_level_init;  // Update existing pool's activity level
                 } else {
                     let new_pool = Pool {
                         price: U256::ZERO,  // Set to a default value, update later as needed
@@ -483,7 +549,7 @@ impl<
                         meme_symbol: "".to_string(),
                         meme_token_decimals: U256::ZERO,  // Set to a default value
                         meme_borrow_index: U256::ZERO,  // Set to a default value
-                        activity_level: ACTIVITY_LEVEL_START,  // Set activity_level to ACTIVITY_LEVEL_START when the pool is new
+                        activity_level: self.config.activity_level_init,  // Set activity_level to self.config.activity_level_init when the pool is new
                     };
                     self.pools.insert(pool_key, new_pool);
                 } 
@@ -492,6 +558,7 @@ impl<
                 if ActionType::from_u256(log.actionType).map_or(false, |action| action == ActionType::Liquidation) || 
                    ActionType::from_u256(log.actionType).map_or(false, |action| action == ActionType::Closed) {
                     self.positions.remove(&hash_position_key(user, log.positionId)); 
+                    self.sents.remove(&hash_position_key(user, log.positionId));
                     return;
                 }     
                 self.update_position(
@@ -513,7 +580,7 @@ impl<
             last_block_number: latest_block,
             pools: self.pools.clone(),
             positions: self.positions.clone(),
-            //sents: self.sents.clone(),
+            sents: self.sents.clone(),
         };
 
         self.last_block_number = latest_block;
@@ -575,7 +642,7 @@ impl<
 
         info!("tick_counter: {:?}", self.tick_counter);
 
-        if self.tick_counter % UPDATE_ALL_POOLS_TICKS == 0 {  // Every 50 seconds (5p) update all pools
+        if self.tick_counter % self.config.update_all_pools_ticks == 0 {  // Every 50 seconds (5p) update all pools
             info!("getPoolsInfo_1");
             //1.get pool account
             let mut pools_count :u64 = 0;
@@ -716,7 +783,7 @@ impl<
         }
 
         // Decrease activity_level every ACTIVITY_LEVEL_DECREASE_PER_TIMES ticks
-        if self.tick_counter % ACTIVITY_LEVEL_DECREASE_TICKS == 0 {
+        if self.tick_counter % self.config.activity_level_decrease_ticks == 0 {
             for pool in self.pools.values_mut() {
                 if pool.activity_level > 0 {
                     pool.activity_level -= 1;
@@ -776,7 +843,7 @@ impl<
 
     // async fn get_underwater_positions(&mut self) -> Option<Vec<(Address, U256, U256, U256, U256)>> {
 
-    //     let positions: Vec<Position> = if self.tick_counter % CALC_ALL_POSITIONS_TICKS == 0 {
+    //     let positions: Vec<Position> = if self.tick_counter % self.config.calc_all_positions_ticks == 0 {
     //         self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
     //         self.positions_all.clone()
     //     } else {
@@ -873,7 +940,7 @@ impl<
     //         self.positions_all = updated_positions.clone(); 
     //         self.positions_all.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
     //         self.positions_critical = self.positions_all.iter()
-    //             .filter(|p| p.margin_level < U256::from(POSITION_MONITOR_MARGIN_LEVEL_THRESOLD))
+    //             .filter(|p| p.margin_level < U256::from(self.config.monitor_margin_level_thresold))
     //             .cloned()
     //             .collect();
     //     } else {
