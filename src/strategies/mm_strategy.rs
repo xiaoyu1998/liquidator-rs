@@ -107,18 +107,17 @@ pub const POLL_POOL_CHUNK_SIZE: u64 = 100;
 
 //production
 // pub const UPDATE_ALL_POOLS_TICKS: u64 = 16000;//about 2days poll all pools 
-// pub const CALC_ALL_POSITIONS_TICKS: u64 = 5;//about 100 seconds
 // pub const ACTIVITY_LEVEL_DECREASE_TICKS: u64 = 600;//about 7days to 0
 // pub const ACTIVITY_LEVEL_START: u64 = 100;
+// pub const CALC_ALL_POSITIONS_TICKS: u64 = 5;//about 50 seconds
 // pub const POSITION_MONITOR_MARGIN_LEVEL_THRESOLD: u128 = 130 * 10_u128.pow(25);
 
 //testing
 pub const UPDATE_ALL_POOLS_TICKS: u64 = 10;//about 100 seconds
-pub const CALC_ALL_POSITIONS_TICKS: u64 = 5;//about 50 seconds
 pub const ACTIVITY_LEVEL_DECREASE_TICKS: u64 = 5;//about 4 minutes to 0
 pub const ACTIVITY_LEVEL_START: u64 = 5;
+pub const CALC_ALL_POSITIONS_TICKS: u64 = 5;//about 50 seconds
 pub const POSITION_MONITOR_MARGIN_LEVEL_THRESOLD: u128 = 150 * 10_u128.pow(25);
-
 
 fn get_deployment_config(deployment: Deployment, last_block_number: u64, total_profit:u128) -> DeploymentConfig {
 
