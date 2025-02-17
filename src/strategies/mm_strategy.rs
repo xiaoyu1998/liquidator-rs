@@ -113,7 +113,7 @@ pub const LIQUIDATIONL_TOP_CHUNK_SIZE: u64 = 100;
 // self.config.update_all_pools_ticks: u64 = 16000;//about 2days poll all pools 
 // self.config.activity_level_decrease_ticks: u64 = 600;//about 7days to 0
 // self.config.activity_level_init: u64 = 100;
-// self.config.calc_all_positions_ticks: u64 = 5;//about 50 seconds
+// self.config.calc_all_positions_ticks: u64 = 8000;//about 1day
 // self.config.monitor_margin_level_thresold: u128 = 130 ;
 
 //testing
@@ -409,7 +409,6 @@ impl<
 
             //self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
             //let positions : &mut Vec<Position> = &mut self.positions_all;
-     
             // dbg!(&positions);
 
             for position in positions.iter_mut() {

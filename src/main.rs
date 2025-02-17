@@ -68,7 +68,7 @@ pub struct Args {
     #[arg(long, default_value_t = 100)]
     pub activity_level_init: u64,
 
-    #[arg(long, default_value_t = 600)]
+    #[arg(long, default_value_t = 8000)]
     pub calc_all_positions_ticks: u64,
 
     #[arg(long, default_value_t = 130)]
