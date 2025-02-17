@@ -33,8 +33,6 @@ use sha3::{Digest, Keccak256};
 
 use tracing::warn;
 
-use tokio::sync::Mutex;
-
 use alloy::{
     contract as alloy_contract,
     network::{ Network, TransactionBuilder},
@@ -105,11 +103,12 @@ pub const STATE_CACHE_FILE: &str = "borrowers.json";
 pub const LOG_BLOCK_RANGE: u64 = 1024;
 pub const MULTICALL_CHUNK_SIZE: usize = 1000;
 pub const RETRY_DURATION_IN_SECS: i64 = 60;
-pub const UPDATE_ALL_POOLS_TICKS: u64 = 5;
-pub const CALC_ALL_POSITIONS_TICKS: u64 = 5;
-pub const ACTIVITY_LEVEL_DECREASE_TICKS: u64 = 500;
-pub const ACTIVITY_LEVEL_START: u64 = 100;
-// pub const POSITION_MONITOR_MARGIN_LEVEL_THRESOLD: u128 = 1300000000000000000000000000;
+pub const UPDATE_ALL_POOLS_TICKS: u64 = 10;
+pub const CALC_ALL_POSITIONS_TICKS: u64 = 10;
+//pub const ACTIVITY_LEVEL_DECREASE_TICKS: u64 = 500;
+pub const ACTIVITY_LEVEL_DECREASE_TICKS: u64 = 5;
+pub const ACTIVITY_LEVEL_START: u64 = 5;
+pub const POLL_POOL_CHUNK_SIZE: u64 = 100;
 pub const POSITION_MONITOR_MARGIN_LEVEL_THRESOLD: u128 = 130 * 10_u128.pow(25);
 
 
@@ -237,12 +236,32 @@ impl<
         Ok(())
     }
 
+    // async fn process_event(&mut self, event: Event) -> Vec<Action<N>> {
+    //     match event {
+    //         Event::NewTick(block) => self
+    //             .process_new_tick_event(block)
+    //             .await
+    //             .unwrap_or_else(Vec::new),
+    //     }
+    // }
+
     async fn process_event(&mut self, event: Event) -> Vec<Action<N>> {
         match event {
-            Event::NewTick(block) => self
-                .process_new_tick_event(block)
-                .await
-                .unwrap_or_else(Vec::new),
+            Event::NewTick(block) => {
+                let actions = self.process_new_tick_event(block).await;
+                match actions {
+                    Some(actions) => {
+                        if actions.is_empty() {
+                            warn!("No actions generated for NewTick event");
+                        }
+                        actions
+                    }
+                    None => {
+                        warn!("No actions returned for NewTick event");
+                        Vec::new()  // Return an empty vector if None is returned
+                    }
+                }
+            }
         }
     }
 }
@@ -385,7 +404,7 @@ impl<
             // dbg!(&self.positions_critical);
 
             // Process positions on every 5th tick
-            if self.tick_counter % 5 == 0 {
+            if self.tick_counter % POLL_POOL_CHUNK_SIZE == 0 {
                 self.positions_all.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
                 self.positions_critical = self.positions_all.iter()
                     .filter(|p| p.margin_level < U256::from(POSITION_MONITOR_MARGIN_LEVEL_THRESOLD))
@@ -454,7 +473,7 @@ impl<
 
                 // Insert or update the pool's activity_level to 100
                 if let Some(existing_pool) = self.pools.get_mut(&pool_key) {
-                    existing_pool.activity_level = 100;  // Update existing pool's activity level
+                    existing_pool.activity_level = ACTIVITY_LEVEL_START;  // Update existing pool's activity level
                 } else {
                     let new_pool = Pool {
                         price: U256::ZERO,  // Set to a default value, update later as needed
@@ -467,7 +486,7 @@ impl<
                         meme_symbol: "".to_string(),
                         meme_token_decimals: U256::ZERO,  // Set to a default value
                         meme_borrow_index: U256::ZERO,  // Set to a default value
-                        activity_level: 100,  // Set activity_level to 100 when the pool is new
+                        activity_level: ACTIVITY_LEVEL_START,  // Set activity_level to ACTIVITY_LEVEL_START when the pool is new
                     };
                     self.pools.insert(pool_key, new_pool);
                 } 
@@ -550,9 +569,6 @@ impl<
                 existing_pool.meme_symbol = pool.meme_symbol;
                 existing_pool.meme_token_decimals = pool.meme_token_decimals;
                 existing_pool.meme_borrow_index = pool.meme_borrow_index;
-
-                // The activity_level remains unchanged
-                //info!("Updated existing pool, keeping activity_level: {:?}", pool_id);
             }
         }
     }
@@ -563,21 +579,88 @@ impl<
         info!("tick_counter: {:?}", self.tick_counter);
 
         if self.tick_counter % UPDATE_ALL_POOLS_TICKS == 0 {  // Every 50 seconds (5p) update all pools
-            //let all_pools = reader.getPoolsInfo_0(self.config.data_store.clone()).call().await.unwrap();
-            let all_pools = match reader.getPoolsInfo_0(self.config.data_store.clone()).call().await {
-                Ok(pools) => pools,
-                Err(e) => {
-                    warn!("Failed to get pools info: {}", e);
-                    // Handle the error, maybe return a default value or propagate the error
-                    //return Err(Box::new(e)); // Or return a default value, depending on your use case
-                    return Err(e.into());
+            info!("getPoolsInfo_1");
+            //let ret = reader.getPoolsCount(self.config.data_store.clone()).call().await.expect("Failed to fetch pools");
+
+            //1.get pool account
+            let mut pools_count :u64 = 0;
+            let pools_count_ret = reader.getPoolsCount(
+                self.config.data_store.clone(), 
+            ).call().await;
+            match pools_count_ret {
+                Ok(ret) => {
+                    //all_pools.extend(pools._0);
+                    pools_count = ret._0.try_into().unwrap();;
                 }
-            };  
+                Err(e) => {
+                    error!("Error fetching pools account:{:?}", e);
+                    //break;
+                }
+            }
 
-            info!("all_pools: {:?}", all_pools._0.len());
+            //2.get pools
+            //let pools_count :u64 =  ret._0.try_into().unwrap();
+            let mut all_pools: Vec<_> = Vec::new();
+            for i in 0..(pools_count / POLL_POOL_CHUNK_SIZE) {
+                // let pools = reader.getPoolsInfo_1(
+                //     self.config.data_store.clone(), 
+                //     U256::from(i*POLL_POOL_CHUNK_SIZE), 
+                //     U256::from((i+1)*POLL_POOL_CHUNK_SIZE)
+                // ).call().await.expect("Failed to fetch pools");
 
-            // Iterate through the pools and insert them
-            for pool in all_pools._0.iter() {
+                // all_pools.extend(pools._0);
+
+                let pools_result = reader.getPoolsInfo_1(
+                    self.config.data_store.clone(), 
+                    U256::from(i * POLL_POOL_CHUNK_SIZE), 
+                    U256::from((i + 1) * POLL_POOL_CHUNK_SIZE)
+                ).call().await;
+
+                match pools_result {
+                    Ok(pools) => {
+                        all_pools.extend(pools._0);
+                    }
+                    Err(e) => {
+                        error!("Error fetching pools by getPoolsInfo_1 at index {}: {:?}", i, e);
+                        break;
+                    }
+                }
+            }
+
+            // 3.Get remaining pools if pools_count is not divisible by POLL_POOL_CHUNK_SIZE
+            if pools_count % POLL_POOL_CHUNK_SIZE != 0 {
+                // let pools = reader
+                //     .getPoolsInfo_1(
+                //         self.config.data_store.clone(),
+                //         U256::from((pools_count / POLL_POOL_CHUNK_SIZE) * POLL_POOL_CHUNK_SIZE),
+                //         U256::from(pools_count),
+                //     )
+                //     .call()
+                //     .await
+                //     .expect("Failed to fetch pools");  // Handle errors as needed
+
+                // all_pools.extend(pools._0);
+                let pools_result = reader.getPoolsInfo_1(
+                    self.config.data_store.clone(), 
+                    U256::from((pools_count / POLL_POOL_CHUNK_SIZE) * POLL_POOL_CHUNK_SIZE), 
+                    U256::from(pools_count),
+                ).call().await;
+
+                match pools_result {
+                    Ok(pools) => {
+                        all_pools.extend(pools._0);
+                    }
+                    Err(e) => {
+                        error!("Error fetching rest pools by getPoolsInfo_1: {:?}", e);
+                        //break;
+                    }
+                }
+
+            }
+
+            info!("all_pools: {:?}", all_pools.len());
+            // 4.update pools
+            for pool in all_pools.iter() {
                 let pool_data = Pool {
                     price: pool.price,
                     price_decimals: pool.priceDecimals,
@@ -594,37 +677,58 @@ impl<
 
                 self.insert_or_update_pool(pool_data);  // Insert or update the pool
             }
+
         } else {  // Every tick  update first  pools with activity_level > 0
-            // Filter pools with activity_level > 0
+            // 1.Filter pools with activity_level > 0
             let mut filtered_pools: Vec<_> = self.pools.values()
                 .filter(|pool| pool.activity_level > 0)  // Only pools with activity_level > 0
                 .collect();
 
-            // Sort pools by activity_level in descending order
+            // 2.Sort pools by activity_level in descending order
             filtered_pools.sort_by(|a, b| b.activity_level.cmp(&a.activity_level));  // Sort descending by activity_level
 
-            // Get the first 10 pools from the sorted list
-            let active_pools_ids: Vec<_> = filtered_pools.iter().take(10)
+            // 3.Get active pool ids
+            let active_pools_ids: Vec<_> = filtered_pools.iter()
                 .map(|pool| hash_pool_key(pool.base_token, pool.meme_token))
                 .collect();
 
-            // dbg!(&active_pools_ids);
+            info!("getPoolsInfo_2");
 
-            //let active_pools = reader.getPoolsInfo_1(self.config.data_store.clone(), active_pools_ids).call().await.unwrap();
-            let active_pools = match reader.getPoolsInfo_2(self.config.data_store.clone(), active_pools_ids).call().await {
-                Ok(pools) => pools,
-                Err(e) => {
-                    warn!("Failed to get pools info: {}", e);
-                    // Handle the error, maybe return a default value or propagate the error
-                    //return Err(Box::new(e)); // Or return a default value, depending on your use case
-                    return Err(e.into());
+            // 4.Get pools by chunks
+            let pool_chunks = active_pools_ids.chunks(POLL_POOL_CHUNK_SIZE as usize);
+            let mut active_pools = Vec::new(); 
+            for chunk in pool_chunks {
+                // let chunk_clone = chunk.to_vec(); // Clone the chunk to move it into the future
+                // let pools = reader.getPoolsInfo_2(self.config.data_store.clone(), chunk_clone)
+                //     .call()
+                //     .await
+                //     .expect("Failed to fetch pools");
+
+                // active_pools.extend(pools._0); 
+
+                let chunk_clone = chunk.to_vec();
+                let pools_result = reader.getPoolsInfo_2(
+                    self.config.data_store.clone(), 
+                    chunk_clone, 
+                ).call().await;
+
+                match pools_result {
+                    Ok(pools) => {
+                        active_pools.extend(pools._0);
+                    }
+                    Err(e) => {
+                        error!("Error fetching pools by getPoolsInfo_2: {:?}", e);
+                        break;
+                    }
                 }
-            };
 
-            info!("active_pools: {:?}", active_pools._0.len());
+ 
+            }
+
+            info!("active_pools: {:?}", active_pools.len());
 
             // Insert the updated first 10 pools
-            for pool in active_pools._0.iter() {
+            for pool in active_pools.iter() {
                 let pool_data = Pool {
                     price: pool.price,
                     price_decimals: pool.priceDecimals,
@@ -648,7 +752,7 @@ impl<
             for pool in self.pools.values_mut() {
                 if pool.activity_level > 0 {
                     pool.activity_level -= 1;
-                    info!("Decreased activity_level for pool: {:?}", pool);
+                    //info!("Decreased activity_level for pool: {:?}", pool);
                 }
             }
         }
