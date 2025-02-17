@@ -56,9 +56,26 @@ pub struct Args {
     #[arg(long)]
     pub last_block_number: u64,
 
-    #[arg(long)]
+    #[arg(long, default_value_t = 10)]
     pub pool_interval_secs: u64,
+
+    #[arg(long)]
+    pub update_all_pools_ticks: u64,
+
+    #[arg(long)]
+    pub activity_level_decrease_ticks: u64,
+
+    #[arg(long)]
+    pub activity_level_init: u64,
+
+    #[arg(long)]
+    pub calc_all_positions_ticks: u64,
+
+    #[arg(long)]
+    pub position_monitor_margin_level_thresold: u128,
 }
+
+
 
 #[tokio::main]
 async fn main() -> Result<()> {
