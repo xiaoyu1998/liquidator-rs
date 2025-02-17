@@ -283,16 +283,6 @@ impl<
     async fn process_new_tick_event(&mut self, event: NewTick) -> Option<Vec<Action<N>>> {
         info!("received new tick: {:?}", event);
 
-        // self.update_pools()
-        //     .await
-        //     .map_err(|e| error!("Update Pools error: {}", e))
-        //     .ok()?;
-
-        // self.update_state()
-        //     .await
-        //     .map_err(|e| error!("Update State error: {}", e))
-        //     .ok()?;
-
         // Update pools and handle error separately
         if let Err(e) = self.update_pools().await {
             error!("Update Pools error: {}", e);
@@ -587,8 +577,6 @@ impl<
 
         if self.tick_counter % UPDATE_ALL_POOLS_TICKS == 0 {  // Every 50 seconds (5p) update all pools
             info!("getPoolsInfo_1");
-            //let ret = reader.getPoolsCount(self.config.data_store.clone()).call().await.expect("Failed to fetch pools");
-
             //1.get pool account
             let mut pools_count :u64 = 0;
             let pools_count_ret = reader.getPoolsCount(
@@ -606,16 +594,8 @@ impl<
             }
 
             //2.get pools
-            //let pools_count :u64 =  ret._0.try_into().unwrap();
             let mut all_pools: Vec<_> = Vec::new();
             for i in 0..(pools_count / POLL_POOL_CHUNK_SIZE) {
-                // let pools = reader.getPoolsInfo_1(
-                //     self.config.data_store.clone(), 
-                //     U256::from(i*POLL_POOL_CHUNK_SIZE), 
-                //     U256::from((i+1)*POLL_POOL_CHUNK_SIZE)
-                // ).call().await.expect("Failed to fetch pools");
-
-                // all_pools.extend(pools._0);
 
                 let pools_result = reader.getPoolsInfo_1(
                     self.config.data_store.clone(), 
@@ -636,17 +616,6 @@ impl<
 
             // 3.Get remaining pools if pools_count is not divisible by POLL_POOL_CHUNK_SIZE
             if pools_count % POLL_POOL_CHUNK_SIZE != 0 {
-                // let pools = reader
-                //     .getPoolsInfo_1(
-                //         self.config.data_store.clone(),
-                //         U256::from((pools_count / POLL_POOL_CHUNK_SIZE) * POLL_POOL_CHUNK_SIZE),
-                //         U256::from(pools_count),
-                //     )
-                //     .call()
-                //     .await
-                //     .expect("Failed to fetch pools");  // Handle errors as needed
-
-                // all_pools.extend(pools._0);
                 let pools_result = reader.getPoolsInfo_1(
                     self.config.data_store.clone(), 
                     U256::from((pools_count / POLL_POOL_CHUNK_SIZE) * POLL_POOL_CHUNK_SIZE), 
@@ -705,14 +674,6 @@ impl<
             let pool_chunks = active_pools_ids.chunks(POLL_POOL_CHUNK_SIZE as usize);
             let mut active_pools = Vec::new(); 
             for chunk in pool_chunks {
-                // let chunk_clone = chunk.to_vec(); // Clone the chunk to move it into the future
-                // let pools = reader.getPoolsInfo_2(self.config.data_store.clone(), chunk_clone)
-                //     .call()
-                //     .await
-                //     .expect("Failed to fetch pools");
-
-                // active_pools.extend(pools._0); 
-
                 let chunk_clone = chunk.to_vec();
                 let pools_result = reader.getPoolsInfo_2(
                     self.config.data_store.clone(), 
