@@ -23,6 +23,7 @@ use std::fs::File;
 use std::iter::zip;
 use std::str::FromStr;
 use std::sync::Arc;
+use std::time::{Instant};
 use tracing::{error, info};
 use chrono::{DateTime, Duration, Utc};
 use clap::{Parser, ValueEnum};
@@ -115,14 +116,12 @@ pub const ACTIVITY_LEVEL_INIT_TEST: u64 = 5;
 //production
 // self.config.update_all_pools_ticks: u64 = 16000;//about 2days poll all pools 
 // self.config.activity_level_decrease_ticks: u64 = 600;//about 7days to 0
-// self.config.activity_level_init: u64 = 100;
 // self.config.calc_all_positions_ticks: u64 = 8000;//about 1day
 // self.config.monitor_margin_level_thresold: u128 = 130 ;
 
 //testing
 // self.config.update_all_pools_ticks: u64 = 10;//about 100 seconds
 // self.config.activity_level_decrease_ticks: u64 = 5;//about 4 minutes to 0
-// self.config.activity_level_init: u64 = 5;
 // self.config.calc_all_positions_ticks: u64 = 5;//about 50 seconds
 // self.config.monitor_margin_level_thresold: u128 = 150;
 
@@ -214,7 +213,8 @@ pub struct MmStrategy<T, P, N = alloy_contract::private::Ethereum>
     last_block_number: u64,
     pools: HashMap<Bytes32, Pool>,
     positions: HashMap<Bytes32, Position>,
-    positions_critical: Vec<Position>,
+    //positions_critical: Vec<Position>,
+    positions_active: Vec<Position>,
     positions_all: Vec<Position>,
     sents: HashMap<Bytes32, DateTime<Utc>>,
     chain_id: u64,
@@ -255,7 +255,8 @@ impl<
             client,
             last_block_number: last_block_number,
             positions: HashMap::new(),
-            positions_critical: Vec::new(),
+            //positions_critical: Vec::new(),
+            positions_active: Vec::new(),
             positions_all: Vec::new(),
             pools: HashMap::new(),
             sents: HashMap::new(),
@@ -390,8 +391,10 @@ impl<
     }
 
      async fn get_underwater_positions(&mut self) -> Option<Vec<(Address, U256, U256, U256, U256)>> {
-            let mut underwater_positions = Vec::new();  // Mutex protects shared state
 
+            let start = Instant::now();  // Record the start time
+
+            let mut underwater_positions = Vec::new();  
             // let positions : &mut Vec<Position> = if self.tick_counter % self.config.calc_all_positions_ticks == 0 {
             //     self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
             //     &mut self.positions_all
@@ -403,7 +406,7 @@ impl<
                 self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
                 &mut self.positions_all
             } else {
-                self.positions_critical = self.positions.iter()
+                self.positions_active = self.positions.iter()
                     .filter_map(|(_, pos)| {
                         if let Some(pool) = self.pools.get(&pos.pool) {
                             if pool.activity_level > 0 {
@@ -417,7 +420,7 @@ impl<
                         }
                     })
                     .collect();
-                &mut self.positions_critical
+                &mut self.positions_active
             };
 
             //self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
@@ -509,6 +512,9 @@ impl<
                 .take(LIQUIDATIONL_TOP_CHUNK_SIZE as usize)
                 .cloned()
                 .collect();
+
+            let duration = start.elapsed();  // Calculate elapsed time
+            info!("Underwater elapsed time: {:?}", duration);
 
             Some(top_underwater_positions)  
         }
