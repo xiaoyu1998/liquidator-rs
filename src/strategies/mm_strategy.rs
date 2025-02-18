@@ -400,15 +400,15 @@ impl<
         let mut actions: Vec<Action<N>> = Vec::new();
         for chunk in underwaters_chunks {
             //info!("underwater: {:?} position_id:{} ", account, position_id);
-            let mut account_list: Vec<LiquidationParams> = Vec::new();
+            let mut positions_batch_to_liquidation: Vec<LiquidationParams> = Vec::new();
             for (account, position_id, _margin_level, _collateral, _debt) in chunk {
                 let now: DateTime<Utc> = Utc::now();
                 self.sents.insert(hash_position_key(account.clone(), *position_id), now);
-                account_list.push(LiquidationParams{account:account.clone(), positionId: *position_id});
+                positions_batch_to_liquidation.push(LiquidationParams{account:account.clone(), positionId: *position_id});
             }
 
             let action = async {
-                self.build_liquidation_tx(&account_list)
+                self.build_liquidation_tx(&positions_batch_to_liquidation)
                     .await
                     .map_err(|e| {
                         error!("Error building liquidation: {}", e);
@@ -445,9 +445,9 @@ impl<
     //     Ok(tx)
     // }
 
-    async fn build_liquidation_tx(&self, liquidation_list: &Vec<LiquidationParams>) -> Result<<N as Network>::TransactionRequest> {
+    async fn build_liquidation_tx(&self, positions_batch: &Vec<LiquidationParams>) -> Result<<N as Network>::TransactionRequest> {
         let exchange_router = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
-        let call_build = exchange_router.executeLiquidationBatch(liquidation_list.clone());
+        let call_build = exchange_router.executeLiquidationBatch(positions_batch.clone());
         
         let mut tx = call_build.into_transaction_request();
         tx.set_chain_id(self.chain_id);
