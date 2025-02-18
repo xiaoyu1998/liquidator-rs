@@ -110,6 +110,7 @@ pub const MULTICALL_CHUNK_SIZE: usize = 1000;
 pub const RETRY_DURATION_IN_SECS: i64 = 600;
 pub const POLL_POOL_CHUNK_SIZE: u64 = 100;
 pub const LIQUIDATIONL_TOP_CHUNK_SIZE: u64 = 100;
+pub const LIQUIDATIONL_BATCH_SIZE: u64 = 100;
 pub const ACTIVITY_LEVEL_INIT: u64 = 100;
 pub const ACTIVITY_LEVEL_INIT_TEST: u64 = 5;
 
@@ -326,6 +327,57 @@ impl<
     N: alloy_contract::private::Network,
 > MmStrategy<T, P, N> {
 
+    // /// Process new block events, updating the internal state.
+    // async fn process_new_tick_event(&mut self, event: NewTick) -> Option<Vec<Action<N>>> {
+    //     info!("received new tick: {:?}", event);
+
+    //     // Update pools and handle error separately
+    //     if let Err(e) = self.update_pools().await {
+    //         error!("Update Pools error: {}", e);
+    //     }
+
+    //     // Update state and handle error separately
+    //     if let Err(e) = self.update_state().await {
+    //         error!("Update State error: {}", e);
+    //     }
+
+    //     info!("Total position count: {}", self.positions.len());
+    //     let underwaters = self.get_underwater_positions().await?;
+    //     //let position_chunks = active_pools_ids.chunks(LIQUIDATIONL_BATCH_SIZE as usize);
+
+    //     self.tick_counter = self.tick_counter + 1;
+
+    //     let mut actions: Vec<Action<N>> = Vec::new();
+    //     for (account, position_id, _margin_level, _collateral, _debt) in underwaters {
+    //         info!("underwater: {:?} position_id:{} ", account, position_id);
+
+    //         let now: DateTime<Utc> = Utc::now();
+    //         self.sents.insert(hash_position_key(account.clone(), position_id), now);
+
+    //         let action = async {
+    //             self.build_liquidation_tx(&account, position_id)
+    //                 .await
+    //                 .map_err(|e| {
+    //                     error!("Error building liquidation: {}", e);
+    //                     e
+    //                 })
+    //                 .ok()
+    //                 .map(|tx| Action::SubmitTx(SubmitTxToMempool {
+    //                     tx,
+    //                     gas_bid_info: Some(GasBidInfo{total_profit:self.config.total_profit, bid_percentage:0}),
+    //                 }))
+    //         }
+    //         .await;
+
+    //         if let Some(action) = action {
+    //             actions.push(action);
+    //         }
+    //     }
+
+    //     Some(actions)
+    //     //None
+    // }
+
     /// Process new block events, updating the internal state.
     async fn process_new_tick_event(&mut self, event: NewTick) -> Option<Vec<Action<N>>> {
         info!("received new tick: {:?}", event);
@@ -342,18 +394,22 @@ impl<
 
         info!("Total position count: {}", self.positions.len());
         let underwaters = self.get_underwater_positions().await?;
+        let underwaters_chunks = underwaters.chunks(LIQUIDATIONL_BATCH_SIZE as usize);
 
         self.tick_counter = self.tick_counter + 1;
 
         let mut actions: Vec<Action<N>> = Vec::new();
-        for (account, position_id, _margin_level, _collateral, _debt) in underwaters {
-            info!("underwater: {:?} position_id:{} ", account, position_id);
-
-            let now: DateTime<Utc> = Utc::now();
-            self.sents.insert(hash_position_key(account.clone(), position_id), now);
+        for chunk in underwaters_chunks {
+            //info!("underwater: {:?} position_id:{} ", account, position_id);
+            let mut account_list: Vec<LiquidationParams>;
+            for (account, position_id, _margin_level, _collateral, _debt) in underwaters {
+                let now: DateTime<Utc> = Utc::now();
+                self.sents.insert(hash_position_key(account.clone(), position_id), now);
+                account_list.push(LiquidationParams{&account, positionId: position_id});
+            }
 
             let action = async {
-                self.build_liquidation_tx(&account, position_id)
+                self.build_liquidation_tx(&account_list)
                     .await
                     .map_err(|e| {
                         error!("Error building liquidation: {}", e);
@@ -376,12 +432,23 @@ impl<
         //None
     }
 
-    async fn build_liquidation_tx(&self, account: &Address, position_id: U256) -> Result<<N as Network>::TransactionRequest> {
+    // async fn build_liquidation_tx(&self, account: &Address, position_id: U256) -> Result<<N as Network>::TransactionRequest> {
+    //     let exchange_router = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
+    //     let call_build = exchange_router.executeLiquidation(LiquidationParams{
+    //         account: *account,
+    //         positionId: position_id
+    //     });
+        
+    //     let mut tx = call_build.into_transaction_request();
+    //     tx.set_chain_id(self.chain_id);
+    //     tx.set_from(self.liquidator);
+
+    //     Ok(tx)
+    // }
+
+    async fn build_liquidation_tx(&self, liquidation_list: &Vec<LiquidationParams>) -> Result<<N as Network>::TransactionRequest> {
         let exchange_router = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
-        let call_build = exchange_router.executeLiquidation(LiquidationParams{
-            account: *account,
-            positionId: position_id
-        });
+        let call_build = exchange_router.executeLiquidationBatch(liquidation_list);
         
         let mut tx = call_build.into_transaction_request();
         tx.set_chain_id(self.chain_id);
@@ -503,7 +570,6 @@ impl<
             // } else {
             //     self.positions_critical.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
             // }
-
 
             info!("Underwater count: {}", underwater_positions.len());
             underwater_positions.sort_by(|a, b| a.1.cmp(&b.1));
