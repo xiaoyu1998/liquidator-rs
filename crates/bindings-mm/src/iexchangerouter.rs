@@ -3828,6 +3828,7 @@ interface IExchangeRouter {
     function executeClose(CloseUtils.CloseParams memory params) external payable;
     function executeDeposit(DepositUtils.DepositParams memory params) external payable;
     function executeLiquidation(LiquidationUtils.LiquidationParams memory params) external payable;
+    function executeLiquidationBatch(LiquidationUtils.LiquidationParams[] memory params) external payable;
     function executeRemove(LiquidityUtils.RemoveParams memory params) external payable;
     function executeRepay(RepayUtils.RepayParams memory params) external payable;
     function executeSwap(SwapUtils.SwapParams memory params) external payable;
@@ -3962,6 +3963,31 @@ interface IExchangeRouter {
         "name": "params",
         "type": "tuple",
         "internalType": "struct LiquidationUtils.LiquidationParams",
+        "components": [
+          {
+            "name": "account",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "positionId",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "executeLiquidationBatch",
+    "inputs": [
+      {
+        "name": "params",
+        "type": "tuple[]",
+        "internalType": "struct LiquidationUtils.LiquidationParams[]",
         "components": [
           {
             "name": "account",
@@ -4831,6 +4857,142 @@ function executeLiquidation(LiquidationUtils.LiquidationParams memory params) ex
             }
         }
     };
+    /**Function with signature `executeLiquidationBatch((address,uint256)[])` and selector `0xa76718d2`.
+```solidity
+function executeLiquidationBatch(LiquidationUtils.LiquidationParams[] memory params) external payable;
+```*/
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct executeLiquidationBatchCall {
+        pub params: alloy::sol_types::private::Vec<
+            <LiquidationUtils::LiquidationParams as alloy::sol_types::SolType>::RustType,
+        >,
+    }
+    ///Container type for the return parameters of the [`executeLiquidationBatch((address,uint256)[])`](executeLiquidationBatchCall) function.
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct executeLiquidationBatchReturn {}
+    #[allow(
+        non_camel_case_types,
+        non_snake_case,
+        clippy::pub_underscore_fields,
+        clippy::style
+    )]
+    const _: () = {
+        use alloy::sol_types as alloy_sol_types;
+        {
+            #[doc(hidden)]
+            type UnderlyingSolTuple<'a> = (
+                alloy::sol_types::sol_data::Array<LiquidationUtils::LiquidationParams>,
+            );
+            #[doc(hidden)]
+            type UnderlyingRustTuple<'a> = (
+                alloy::sol_types::private::Vec<
+                    <LiquidationUtils::LiquidationParams as alloy::sol_types::SolType>::RustType,
+                >,
+            );
+            #[cfg(test)]
+            #[allow(dead_code, unreachable_patterns)]
+            fn _type_assertion(
+                _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+            ) {
+                match _t {
+                    alloy_sol_types::private::AssertTypeEq::<
+                        <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                    >(_) => {}
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<executeLiquidationBatchCall>
+            for UnderlyingRustTuple<'_> {
+                fn from(value: executeLiquidationBatchCall) -> Self {
+                    (value.params,)
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<UnderlyingRustTuple<'_>>
+            for executeLiquidationBatchCall {
+                fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                    Self { params: tuple.0 }
+                }
+            }
+        }
+        {
+            #[doc(hidden)]
+            type UnderlyingSolTuple<'a> = ();
+            #[doc(hidden)]
+            type UnderlyingRustTuple<'a> = ();
+            #[cfg(test)]
+            #[allow(dead_code, unreachable_patterns)]
+            fn _type_assertion(
+                _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+            ) {
+                match _t {
+                    alloy_sol_types::private::AssertTypeEq::<
+                        <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                    >(_) => {}
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<executeLiquidationBatchReturn>
+            for UnderlyingRustTuple<'_> {
+                fn from(value: executeLiquidationBatchReturn) -> Self {
+                    ()
+                }
+            }
+            #[automatically_derived]
+            #[doc(hidden)]
+            impl ::core::convert::From<UnderlyingRustTuple<'_>>
+            for executeLiquidationBatchReturn {
+                fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                    Self {}
+                }
+            }
+        }
+        #[automatically_derived]
+        impl alloy_sol_types::SolCall for executeLiquidationBatchCall {
+            type Parameters<'a> = (
+                alloy::sol_types::sol_data::Array<LiquidationUtils::LiquidationParams>,
+            );
+            type Token<'a> = <Self::Parameters<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            type Return = executeLiquidationBatchReturn;
+            type ReturnTuple<'a> = ();
+            type ReturnToken<'a> = <Self::ReturnTuple<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            const SIGNATURE: &'static str = "executeLiquidationBatch((address,uint256)[])";
+            const SELECTOR: [u8; 4] = [167u8, 103u8, 24u8, 210u8];
+            #[inline]
+            fn new<'a>(
+                tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
+            ) -> Self {
+                tuple.into()
+            }
+            #[inline]
+            fn tokenize(&self) -> Self::Token<'_> {
+                (
+                    <alloy::sol_types::sol_data::Array<
+                        LiquidationUtils::LiquidationParams,
+                    > as alloy_sol_types::SolType>::tokenize(&self.params),
+                )
+            }
+            #[inline]
+            fn abi_decode_returns(
+                data: &[u8],
+                validate: bool,
+            ) -> alloy_sol_types::Result<Self::Return> {
+                <Self::ReturnTuple<
+                    '_,
+                > as alloy_sol_types::SolType>::abi_decode_sequence(data, validate)
+                    .map(Into::into)
+            }
+        }
+    };
     /**Function with signature `executeRemove((address,address,uint256,address))` and selector `0xf3e01a4e`.
 ```solidity
 function executeRemove(LiquidityUtils.RemoveParams memory params) external payable;
@@ -5464,6 +5626,7 @@ function executeWithdraw(WithdrawUtils.WithdrawParams memory params) external pa
         executeClose(executeCloseCall),
         executeDeposit(executeDepositCall),
         executeLiquidation(executeLiquidationCall),
+        executeLiquidationBatch(executeLiquidationBatchCall),
         executeRemove(executeRemoveCall),
         executeRepay(executeRepayCall),
         executeSwap(executeSwapCall),
@@ -5484,6 +5647,7 @@ function executeWithdraw(WithdrawUtils.WithdrawParams memory params) external pa
             [71u8, 87u8, 12u8, 220u8],
             [123u8, 18u8, 59u8, 200u8],
             [144u8, 126u8, 116u8, 84u8],
+            [167u8, 103u8, 24u8, 210u8],
             [173u8, 12u8, 153u8, 52u8],
             [177u8, 132u8, 6u8, 117u8],
             [182u8, 16u8, 50u8, 21u8],
@@ -5495,7 +5659,7 @@ function executeWithdraw(WithdrawUtils.WithdrawParams memory params) external pa
     impl alloy_sol_types::SolInterface for IExchangeRouterCalls {
         const NAME: &'static str = "IExchangeRouterCalls";
         const MIN_DATA_LENGTH: usize = 32usize;
-        const COUNT: usize = 10usize;
+        const COUNT: usize = 11usize;
         #[inline]
         fn selector(&self) -> [u8; 4] {
             match self {
@@ -5513,6 +5677,9 @@ function executeWithdraw(WithdrawUtils.WithdrawParams memory params) external pa
                 }
                 Self::executeLiquidation(_) => {
                     <executeLiquidationCall as alloy_sol_types::SolCall>::SELECTOR
+                }
+                Self::executeLiquidationBatch(_) => {
+                    <executeLiquidationBatchCall as alloy_sol_types::SolCall>::SELECTOR
                 }
                 Self::executeRemove(_) => {
                     <executeRemoveCall as alloy_sol_types::SolCall>::SELECTOR
@@ -5616,6 +5783,19 @@ function executeWithdraw(WithdrawUtils.WithdrawParams memory params) external pa
                     executeBorrow
                 },
                 {
+                    fn executeLiquidationBatch(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<IExchangeRouterCalls> {
+                        <executeLiquidationBatchCall as alloy_sol_types::SolCall>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(IExchangeRouterCalls::executeLiquidationBatch)
+                    }
+                    executeLiquidationBatch
+                },
+                {
                     fn executeWithdraw(
                         data: &[u8],
                         validate: bool,
@@ -5717,6 +5897,11 @@ function executeWithdraw(WithdrawUtils.WithdrawParams memory params) external pa
                         inner,
                     )
                 }
+                Self::executeLiquidationBatch(inner) => {
+                    <executeLiquidationBatchCall as alloy_sol_types::SolCall>::abi_encoded_size(
+                        inner,
+                    )
+                }
                 Self::executeRemove(inner) => {
                     <executeRemoveCall as alloy_sol_types::SolCall>::abi_encoded_size(
                         inner,
@@ -5773,6 +5958,12 @@ function executeWithdraw(WithdrawUtils.WithdrawParams memory params) external pa
                 }
                 Self::executeLiquidation(inner) => {
                     <executeLiquidationCall as alloy_sol_types::SolCall>::abi_encode_raw(
+                        inner,
+                        out,
+                    )
+                }
+                Self::executeLiquidationBatch(inner) => {
+                    <executeLiquidationBatchCall as alloy_sol_types::SolCall>::abi_encode_raw(
                         inner,
                         out,
                     )
@@ -6008,6 +6199,19 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
             params: <LiquidationUtils::LiquidationParams as alloy::sol_types::SolType>::RustType,
         ) -> alloy_contract::SolCallBuilder<T, &P, executeLiquidationCall, N> {
             self.call_builder(&executeLiquidationCall { params })
+        }
+        ///Creates a new call builder for the [`executeLiquidationBatch`] function.
+        pub fn executeLiquidationBatch(
+            &self,
+            params: alloy::sol_types::private::Vec<
+                <LiquidationUtils::LiquidationParams as alloy::sol_types::SolType>::RustType,
+            >,
+        ) -> alloy_contract::SolCallBuilder<T, &P, executeLiquidationBatchCall, N> {
+            self.call_builder(
+                &executeLiquidationBatchCall {
+                    params,
+                },
+            )
         }
         ///Creates a new call builder for the [`executeRemove`] function.
         pub fn executeRemove(
