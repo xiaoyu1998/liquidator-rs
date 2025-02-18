@@ -54,12 +54,13 @@ struct DeploymentConfig {
     activity_level_decrease_ticks: u64,
     activity_level_init: u64,
     calc_all_positions_ticks: u64,
-    monitor_margin_level_thresold: u128,
+    //monitor_margin_level_thresold: u128,
 }
 
 #[derive(Debug, Clone, Parser, ValueEnum )]
 pub enum Deployment {
-    LOCALNET
+    LOCALNET,
+    BASE,
 }
 
 #[derive(Debug, PartialEq)]
@@ -108,6 +109,8 @@ pub const MULTICALL_CHUNK_SIZE: usize = 1000;
 pub const RETRY_DURATION_IN_SECS: i64 = 600;
 pub const POLL_POOL_CHUNK_SIZE: u64 = 100;
 pub const LIQUIDATIONL_TOP_CHUNK_SIZE: u64 = 100;
+pub const ACTIVITY_LEVEL_INIT: u64 = 100;
+pub const ACTIVITY_LEVEL_INIT_TEST: u64 = 5;
 
 //production
 // self.config.update_all_pools_ticks: u64 = 16000;//about 2days poll all pools 
@@ -127,11 +130,11 @@ fn get_deployment_config(
     deployment: Deployment, 
     last_block_number: u64,
     total_profit: u128,
-    update_all_pools_ticks: u64,
-    activity_level_decrease_ticks: u64,
-    activity_level_init: u64,
-    calc_all_positions_ticks: u64,
-    monitor_margin_level_thresold: u128,
+    pool_interval_secs: u64,
+    update_all_pools_secs: u64,
+    activity_level_clean_secs: u64,
+    calc_all_positions_secs: u64,
+    //monitor_margin_level_thresold: u128,
 ) -> DeploymentConfig {
 
     let file = File::open(DEPLOYED_ADDRESSES).unwrap();
@@ -145,13 +148,25 @@ fn get_deployment_config(
             exchange_router: *mm_contracts.get("ExchangeRouter#ExchangeRouter").unwrap(),
             last_block_number: last_block_number,
             total_profit: total_profit,
-            update_all_pools_ticks: update_all_pools_ticks,
-            activity_level_decrease_ticks: activity_level_decrease_ticks,
-            activity_level_init: activity_level_init,
-            calc_all_positions_ticks: calc_all_positions_ticks,
-            monitor_margin_level_thresold: monitor_margin_level_thresold,
-
-        }
+            update_all_pools_ticks: update_all_pools_secs/pool_interval_secs,
+            activity_level_decrease_ticks: activity_level_clean_secs/(pool_interval_secs*ACTIVITY_LEVEL_INIT),
+            activity_level_init: ACTIVITY_LEVEL_INIT,
+            calc_all_positions_ticks: calc_all_positions_secs/pool_interval_secs,
+            //monitor_margin_level_thresold: monitor_margin_level_thresold,
+        },
+        Deployment::BASE => DeploymentConfig {
+            data_store: *mm_contracts.get("DataStore#DataStore").unwrap(),
+            reader: *mm_contracts.get("Reader#Reader").unwrap(),
+            event_emitter: *mm_contracts.get("EventEmitter#EventEmitter").unwrap(),
+            exchange_router: *mm_contracts.get("ExchangeRouter#ExchangeRouter").unwrap(),
+            last_block_number: last_block_number,
+            total_profit: total_profit,
+            update_all_pools_ticks: update_all_pools_secs/pool_interval_secs,
+            activity_level_decrease_ticks: activity_level_clean_secs/(pool_interval_secs*ACTIVITY_LEVEL_INIT_TEST),
+            activity_level_init: ACTIVITY_LEVEL_INIT_TEST,
+            calc_all_positions_ticks: calc_all_positions_secs/pool_interval_secs,
+            //monitor_margin_level_thresold: monitor_margin_level_thresold,
+        },
     }
 }
 
@@ -222,21 +237,19 @@ impl<
         liquidator_address: Address,
         last_block_number: u64,
         total_profit: u128,
-        update_all_pools_ticks: u64,
-        activity_level_decrease_ticks: u64,
-        activity_level_init: u64,
-        calc_all_positions_ticks: u64,
-        monitor_margin_level_thresold: u128,
+        pool_interval_secs : u64,
+        update_all_pools_secs: u64,
+        activity_level_clean_secs: u64,
+        calc_all_positions_secs: u64,
     ) -> Self {
         let deployment_config = get_deployment_config(
             deployment, 
             last_block_number, 
             total_profit,
-            update_all_pools_ticks,
-            activity_level_decrease_ticks,
-            activity_level_init,
-            calc_all_positions_ticks,   
-            monitor_margin_level_thresold * 10_u128.pow(25)         
+            pool_interval_secs,
+            update_all_pools_secs,
+            activity_level_clean_secs,
+            calc_all_positions_secs,         
         );
         Self {
             client,

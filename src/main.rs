@@ -59,20 +59,20 @@ pub struct Args {
     #[arg(long, default_value_t = 10)]
     pub pool_interval_secs: u64,
 
-    #[arg(long, default_value_t = 16000)]
-    pub update_all_pools_ticks: u64,
+    #[arg(long, default_value_t = 60*60*24*2)]
+    pub update_all_pools_secs: u64,
 
-    #[arg(long, default_value_t = 600)]
-    pub activity_level_decrease_ticks: u64,
+    #[arg(long, default_value_t = 60*60*24*7)]
+    pub activity_level_clean_secs: u64,
 
-    #[arg(long, default_value_t = 100)]
-    pub activity_level_init: u64,
+    // #[arg(long, default_value_t = 100)]
+    // pub activity_level_init: u64,
 
-    #[arg(long, default_value_t = 8000)]
-    pub calc_all_positions_ticks: u64,
+    #[arg(long, default_value_t = 60*60*24)]
+    pub calc_all_positions_secs: u64,
 
-    #[arg(long, default_value_t = 130)]
-    pub monitor_margin_level_thresold: u128,
+    // #[arg(long, default_value_t = 130)]
+    // pub monitor_margin_level_thresold: u128,
 }
 
 
@@ -122,11 +122,10 @@ async fn main() -> Result<()> {
         liquidator,
         args.last_block_number,
         args.total_profit,
-        args.update_all_pools_ticks,
-        args.activity_level_decrease_ticks,
-        args.activity_level_init,
-        args.calc_all_positions_ticks,
-        args.monitor_margin_level_thresold,
+        args.pool_interval_secs,
+        args.update_all_pools_secs,
+        args.activity_level_clean_secs,
+        args.calc_all_positions_secs,
     );
     engine.add_strategy(Box::new(strategy));
 
