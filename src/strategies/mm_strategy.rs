@@ -109,8 +109,8 @@ pub const LOG_BLOCK_RANGE: u64 = 1024;
 pub const MULTICALL_CHUNK_SIZE: usize = 1000;
 pub const RETRY_DURATION_IN_SECS: i64 = 600;
 pub const POLL_POOL_CHUNK_SIZE: u64 = 100;
-pub const LIQUIDATIONL_TOP_CHUNK_SIZE: u64 = 100;
-pub const LIQUIDATIONL_BATCH_SIZE: u64 = 100;
+pub const LIQUIDATIONL_CHUNK_SIZE: u64 = 100;
+pub const LIQUIDATIONL_BATCH_SIZE: u64 = 20;
 pub const ACTIVITY_LEVEL_INIT: u64 = 100;
 pub const ACTIVITY_LEVEL_INIT_TEST: u64 = 5;
 
@@ -343,7 +343,6 @@ impl<
 
     //     info!("Total position count: {}", self.positions.len());
     //     let underwaters = self.get_underwater_positions().await?;
-    //     //let position_chunks = active_pools_ids.chunks(LIQUIDATIONL_BATCH_SIZE as usize);
 
     //     self.tick_counter = self.tick_counter + 1;
 
@@ -401,11 +400,11 @@ impl<
         let mut actions: Vec<Action<N>> = Vec::new();
         for chunk in underwaters_chunks {
             //info!("underwater: {:?} position_id:{} ", account, position_id);
-            let mut account_list: Vec<LiquidationParams>;
-            for (account, position_id, _margin_level, _collateral, _debt) in underwaters {
+            let mut account_list: Vec<LiquidationParams> = Vec::new();
+            for (account, position_id, _margin_level, _collateral, _debt) in chunk {
                 let now: DateTime<Utc> = Utc::now();
-                self.sents.insert(hash_position_key(account.clone(), position_id), now);
-                account_list.push(LiquidationParams{&account, positionId: position_id});
+                self.sents.insert(hash_position_key(account.clone(), *position_id), now);
+                account_list.push(LiquidationParams{account:account.clone(), positionId: *position_id});
             }
 
             let action = async {
@@ -448,7 +447,7 @@ impl<
 
     async fn build_liquidation_tx(&self, liquidation_list: &Vec<LiquidationParams>) -> Result<<N as Network>::TransactionRequest> {
         let exchange_router = ExchangeRouter::new(self.config.exchange_router, self.client.clone());
-        let call_build = exchange_router.executeLiquidationBatch(liquidation_list);
+        let call_build = exchange_router.executeLiquidationBatch(liquidation_list.clone());
         
         let mut tx = call_build.into_transaction_request();
         tx.set_chain_id(self.chain_id);
@@ -575,7 +574,7 @@ impl<
             underwater_positions.sort_by(|a, b| a.1.cmp(&b.1));
             let top_underwater_positions = underwater_positions
                 .iter()
-                .take(LIQUIDATIONL_TOP_CHUNK_SIZE as usize)
+                .take((LIQUIDATIONL_CHUNK_SIZE * LIQUIDATIONL_BATCH_SIZE) as usize)
                 .cloned()
                 .collect();
 
@@ -746,6 +745,7 @@ impl<
         let reader = Reader::new(self.config.reader.clone(), self.client.clone());
 
         info!("tick_counter: {:?}", self.tick_counter);
+        let start = Instant::now();  // Record the start time
 
         if self.tick_counter % self.config.update_all_pools_ticks == 0 {  // Every 50 seconds (5p) update all pools
             info!("getPoolsInfo_1");
@@ -897,6 +897,9 @@ impl<
             }
         }
 
+        let duration = start.elapsed();  // Calculate elapsed time
+        info!("Update pools elapsed time: {:?}", duration);
+
         Ok(())
     }
 
@@ -946,115 +949,7 @@ impl<
 
     }
 
-    // async fn get_underwater_positions(&mut self) -> Option<Vec<(Address, U256, U256, U256, U256)>> {
-
-    //     let positions: Vec<Position> = if self.tick_counter % self.config.calc_all_positions_ticks == 0 {
-    //         self.positions_all = self.positions.iter().map(|(_, pos)| pos.clone()).collect::<Vec<Position>>();
-    //         self.positions_all.clone()
-    //     } else {
-    //         self.positions_critical.clone()
-    //     };
-
-    //     // Split positions into chunks for parallel processing
-    //     let chunk_size = MULTICALL_CHUNK_SIZE;  // Adjust as needed
-    //     //let mut chunks = positions.chunks(chunk_size);  // Use `chunks_mut` to modify positions
-    //     let mut chunks: Vec<Vec<Position>> = positions.chunks(chunk_size).map(|chunk| chunk.to_vec()).collect();
-
-    //     // Spawn tasks to process each chunk
-    //     let mut tasks = Vec::new();
-
-    //     for chunk in chunks.iter_mut() {
-    //         // Spawn a task for each chunk
-    //         let task = tokio::spawn({
-    //             let mut chunk_underwater_positions = Vec::new(); // Collect underwater positions for this chunk
-
-    //             async move {
-    //                 for position in chunk.iter_mut() {
-    //                     let mut user_total_collateral_usd = U256::ZERO;
-    //                     let mut user_total_debt_usd = U256::ZERO;
-
-    //                     // Check if the pool exists before processing
-    //                     let pool = match self.pools.get(&position.pool) {
-    //                         Some(pool) => pool,
-    //                         None => {
-    //                             info!("No pool found for position {:?}", position.pool);
-    //                             continue; // Skip this position
-    //                         }
-    //                     };
-
-    //                     let price = pool.price;
-    //                     let base_borrow_index = pool.base_borrow_index;
-    //                     let base_debt = ray_mul(position.base_debt_scaled, base_borrow_index);
-    //                     let base_decimals = pool.base_token_decimals;
-    //                     user_total_collateral_usd += adjust_precision(position.base_collateral, base_decimals);
-    //                     user_total_debt_usd += adjust_precision(base_debt, base_decimals);
-
-    //                     let meme_borrow_index = pool.meme_borrow_index;
-    //                     let meme_debt = ray_mul(position.meme_debt_scaled, meme_borrow_index);
-    //                     let meme_decimals = pool.meme_token_decimals;
-    //                     user_total_collateral_usd += ray_mul(price, adjust_precision(position.meme_collateral, meme_decimals));
-    //                     user_total_debt_usd += ray_mul(price, adjust_precision(meme_debt, meme_decimals));
-
-    //                     let margin_level = if user_total_debt_usd == U256::ZERO {
-    //                         U256::MAX
-    //                     } else {
-    //                         ray_div(user_total_collateral_usd, user_total_debt_usd)
-    //                     };
-
-    //                     // Update the margin_level in position
-    //                     position.margin_level = margin_level;
-    //                     let mut updated_position = position.clone();
-    //                     updated_position.margin_level = margin_level;
-
-    //                     if margin_level < self.margin_level_threshold {
-    //                         chunk_underwater_positions.push((
-    //                             updated_position.account,
-    //                             updated_position.position_id,
-    //                             margin_level,
-    //                             user_total_collateral_usd,
-    //                             user_total_debt_usd,
-    //                         ));
-    //                     }
-    //                 }
-
-    //                 chunk_underwater_positions
-    //             }
-    //         });
-
-    //         tasks.push(task);
-    //     }
-
-    //     // Wait for all tasks to finish and collect the results
-    //     let mut all_underwater_positions = Vec::new();
-    //     let results = futures::future::join_all(tasks).await;
-
-    //     for result in results {
-    //         if let Ok(chunk_positions) = result {
-    //             all_underwater_positions.extend(chunk_positions);
-    //         }
-    //     }
-
-    //     // After processing, merge the underwater positions back into positions
-    //     let mut updated_positions = Vec::new();
-    //     for chunk in chunks {
-    //         updated_positions.extend_from_slice(&chunk);  // Add modified positions back
-    //     }
-
-    //     // Sort and filter positions if necessary
-    //     if self.tick_counter % 5 == 0 {
-    //         self.positions_all = updated_positions.clone(); 
-    //         self.positions_all.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
-    //         self.positions_critical = self.positions_all.iter()
-    //             .filter(|p| p.margin_level < U256::from(self.config.monitor_margin_level_thresold))
-    //             .cloned()
-    //             .collect();
-    //     } else {
-    //         self.positions_critical = updated_positions.clone(); 
-    //         self.positions_critical.sort_by(|a, b| a.margin_level.cmp(&b.margin_level));
-    //     }
-
-    //     Some(all_underwater_positions)  // Return the final result after all tasks are done
-    // }
+ 
 }
 
 pub fn hash_data(data: Vec<Vec<u8>>) -> Vec<u8> {
