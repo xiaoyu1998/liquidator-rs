@@ -12,6 +12,7 @@ interface Errors {
     error DebtTokenOperationNotSupported();
     error EmptyAccount();
     error EmptyAddAmounts();
+    error EmptyAmount();
     error EmptyBase();
     error EmptyBorrowAmounts();
     error EmptyBurnAmounts();
@@ -186,6 +187,11 @@ interface Errors {
   {
     "type": "error",
     "name": "EmptyAddAmounts",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "EmptyAmount",
     "inputs": []
   },
   {
@@ -867,22 +873,22 @@ pub mod Errors {
     /// The creation / init bytecode of the contract.
     ///
     /// ```text
-    ///0x60556032600b8282823980515f1a607314602657634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220c117b9dbfe2bb73c3053ca3903ab91cc5b0bcc69f2450a5cf09bec76fcc2823764736f6c634300081c0033
+    ///0x60556032600b8282823980515f1a607314602657634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220253b0377015c945866847a266ef4f0012c0612d8e47ff2f5863d6536c1d1b36e64736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"`U`2`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`&WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \xC1\x17\xB9\xDB\xFE+\xB7<0S\xCA9\x03\xAB\x91\xCC[\x0B\xCCi\xF2E\n\\\xF0\x9B\xECv\xFC\xC2\x827dsolcC\0\x08\x1C\x003",
+        b"`U`2`\x0B\x82\x82\x829\x80Q_\x1A`s\x14`&WcNH{q`\xE0\x1B_R_`\x04R`$_\xFD[0_R`s\x81S\x82\x81\xF3\xFEs\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 %;\x03w\x01\\\x94Xf\x84z&n\xF4\xF0\x01,\x06\x12\xD8\xE4\x7F\xF2\xF5\x86=e6\xC1\xD1\xB3ndsolcC\0\x08\x1C\x003",
     );
     /// The runtime bytecode of the contract, as deployed on the network.
     ///
     /// ```text
-    ///0x730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220c117b9dbfe2bb73c3053ca3903ab91cc5b0bcc69f2450a5cf09bec76fcc2823764736f6c634300081c0033
+    ///0x730000000000000000000000000000000000000000301460806040525f5ffdfea2646970667358221220253b0377015c945866847a266ef4f0012c0612d8e47ff2f5863d6536c1d1b36e64736f6c634300081c0033
     /// ```
     #[rustfmt::skip]
     #[allow(clippy::all)]
     pub static DEPLOYED_BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
-        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 \xC1\x17\xB9\xDB\xFE+\xB7<0S\xCA9\x03\xAB\x91\xCC[\x0B\xCCi\xF2E\n\\\xF0\x9B\xECv\xFC\xC2\x827dsolcC\0\x08\x1C\x003",
+        b"s\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x000\x14`\x80`@R__\xFD\xFE\xA2dipfsX\"\x12 %;\x03w\x01\\\x94Xf\x84z&n\xF4\xF0\x01,\x06\x12\xD8\xE4\x7F\xF2\xF5\x86=e6\xC1\xD1\xB3ndsolcC\0\x08\x1C\x003",
     );
     /**Custom error with signature `AccountNotMatch(address,address)` and selector `0x25c7157e`.
 ```solidity
@@ -1569,6 +1575,70 @@ error EmptyAddAmounts();
             > as alloy_sol_types::SolType>::Token<'a>;
             const SIGNATURE: &'static str = "EmptyAddAmounts()";
             const SELECTOR: [u8; 4] = [105u8, 119u8, 202u8, 12u8];
+            #[inline]
+            fn new<'a>(
+                tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
+            ) -> Self {
+                tuple.into()
+            }
+            #[inline]
+            fn tokenize(&self) -> Self::Token<'_> {
+                ()
+            }
+        }
+    };
+    /**Custom error with signature `EmptyAmount()` and selector `0x0d143458`.
+```solidity
+error EmptyAmount();
+```*/
+    #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
+    #[derive(Clone)]
+    pub struct EmptyAmount {}
+    #[allow(
+        non_camel_case_types,
+        non_snake_case,
+        clippy::pub_underscore_fields,
+        clippy::style
+    )]
+    const _: () = {
+        use alloy::sol_types as alloy_sol_types;
+        #[doc(hidden)]
+        type UnderlyingSolTuple<'a> = ();
+        #[doc(hidden)]
+        type UnderlyingRustTuple<'a> = ();
+        #[cfg(test)]
+        #[allow(dead_code, unreachable_patterns)]
+        fn _type_assertion(
+            _t: alloy_sol_types::private::AssertTypeEq<UnderlyingRustTuple>,
+        ) {
+            match _t {
+                alloy_sol_types::private::AssertTypeEq::<
+                    <UnderlyingSolTuple as alloy_sol_types::SolType>::RustType,
+                >(_) => {}
+            }
+        }
+        #[automatically_derived]
+        #[doc(hidden)]
+        impl ::core::convert::From<EmptyAmount> for UnderlyingRustTuple<'_> {
+            fn from(value: EmptyAmount) -> Self {
+                ()
+            }
+        }
+        #[automatically_derived]
+        #[doc(hidden)]
+        impl ::core::convert::From<UnderlyingRustTuple<'_>> for EmptyAmount {
+            fn from(tuple: UnderlyingRustTuple<'_>) -> Self {
+                Self {}
+            }
+        }
+        #[automatically_derived]
+        impl alloy_sol_types::SolError for EmptyAmount {
+            type Parameters<'a> = UnderlyingSolTuple<'a>;
+            type Token<'a> = <Self::Parameters<
+                'a,
+            > as alloy_sol_types::SolType>::Token<'a>;
+            const SIGNATURE: &'static str = "EmptyAmount()";
+            const SELECTOR: [u8; 4] = [13u8, 20u8, 52u8, 88u8];
             #[inline]
             fn new<'a>(
                 tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
@@ -6079,6 +6149,7 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
         DebtTokenOperationNotSupported(DebtTokenOperationNotSupported),
         EmptyAccount(EmptyAccount),
         EmptyAddAmounts(EmptyAddAmounts),
+        EmptyAmount(EmptyAmount),
         EmptyBase(EmptyBase),
         EmptyBorrowAmounts(EmptyBorrowAmounts),
         EmptyBurnAmounts(EmptyBurnAmounts),
@@ -6151,6 +6222,7 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
         pub const SELECTORS: &'static [[u8; 4usize]] = &[
             [1u8, 175u8, 140u8, 36u8],
             [11u8, 132u8, 34u8, 195u8],
+            [13u8, 20u8, 52u8, 88u8],
             [14u8, 121u8, 59u8, 175u8],
             [23u8, 141u8, 29u8, 43u8],
             [24u8, 84u8, 153u8, 52u8],
@@ -6224,7 +6296,7 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
     impl alloy_sol_types::SolInterface for ErrorsErrors {
         const NAME: &'static str = "ErrorsErrors";
         const MIN_DATA_LENGTH: usize = 0usize;
-        const COUNT: usize = 69usize;
+        const COUNT: usize = 70usize;
         #[inline]
         fn selector(&self) -> [u8; 4] {
             match self {
@@ -6254,6 +6326,9 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                 }
                 Self::EmptyAddAmounts(_) => {
                     <EmptyAddAmounts as alloy_sol_types::SolError>::SELECTOR
+                }
+                Self::EmptyAmount(_) => {
+                    <EmptyAmount as alloy_sol_types::SolError>::SELECTOR
                 }
                 Self::EmptyBase(_) => <EmptyBase as alloy_sol_types::SolError>::SELECTOR,
                 Self::EmptyBorrowAmounts(_) => {
@@ -6475,6 +6550,19 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                             .map(ErrorsErrors::PoolAlreadyExists)
                     }
                     PoolAlreadyExists
+                },
+                {
+                    fn EmptyAmount(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<ErrorsErrors> {
+                        <EmptyAmount as alloy_sol_types::SolError>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(ErrorsErrors::EmptyAmount)
+                    }
+                    EmptyAmount
                 },
                 {
                     fn Reserve1Insufficient(
@@ -7404,6 +7492,9 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                         inner,
                     )
                 }
+                Self::EmptyAmount(inner) => {
+                    <EmptyAmount as alloy_sol_types::SolError>::abi_encoded_size(inner)
+                }
                 Self::EmptyBase(inner) => {
                     <EmptyBase as alloy_sol_types::SolError>::abi_encoded_size(inner)
                 }
@@ -7741,6 +7832,12 @@ error liquidityDidNotReachShortThreshord(uint256 threshold, uint256 basePriceRes
                 }
                 Self::EmptyAddAmounts(inner) => {
                     <EmptyAddAmounts as alloy_sol_types::SolError>::abi_encode_raw(
+                        inner,
+                        out,
+                    )
+                }
+                Self::EmptyAmount(inner) => {
+                    <EmptyAmount as alloy_sol_types::SolError>::abi_encode_raw(
                         inner,
                         out,
                     )

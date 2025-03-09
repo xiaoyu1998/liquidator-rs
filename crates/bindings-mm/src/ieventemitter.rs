@@ -438,7 +438,7 @@ library Event {
 }
 
 interface IEventEmitter {
-    function emitAdd(address adder, address baseToken, address memeToken, address to, uint256 amount0, uint256 amount1) external;
+    function emitAdd(address adder, address baseToken, address memeToken, address to, uint256 amount0, uint256 amount1, uint256 liquidity) external;
     function emitBorrow(address borrower, address baseToken, address memeToken, uint256 positionId, uint8 tokenIndex, uint256 borrowAmount, uint256 borrowRate, Event.Liquidation memory liquidation) external;
     function emitClaimFees(address underlyingAsset, uint256 scaledUnclaimedFee, uint256 liquidityIndex, uint256 unclaimedFee) external;
     function emitClose(address account, uint256 positionId) external;
@@ -488,6 +488,11 @@ interface IEventEmitter {
       },
       {
         "name": "amount1",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "liquidity",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -1103,9 +1108,9 @@ pub mod IEventEmitter {
     pub static DEPLOYED_BYTECODE: alloy_sol_types::private::Bytes = alloy_sol_types::private::Bytes::from_static(
         b"",
     );
-    /**Function with signature `emitAdd(address,address,address,address,uint256,uint256)` and selector `0x9ed486eb`.
+    /**Function with signature `emitAdd(address,address,address,address,uint256,uint256,uint256)` and selector `0x33b365b4`.
 ```solidity
-function emitAdd(address adder, address baseToken, address memeToken, address to, uint256 amount0, uint256 amount1) external;
+function emitAdd(address adder, address baseToken, address memeToken, address to, uint256 amount0, uint256 amount1, uint256 liquidity) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -1116,8 +1121,9 @@ function emitAdd(address adder, address baseToken, address memeToken, address to
         pub to: alloy::sol_types::private::Address,
         pub amount0: alloy::sol_types::private::primitives::aliases::U256,
         pub amount1: alloy::sol_types::private::primitives::aliases::U256,
+        pub liquidity: alloy::sol_types::private::primitives::aliases::U256,
     }
-    ///Container type for the return parameters of the [`emitAdd(address,address,address,address,uint256,uint256)`](emitAddCall) function.
+    ///Container type for the return parameters of the [`emitAdd(address,address,address,address,uint256,uint256,uint256)`](emitAddCall) function.
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
     pub struct emitAddReturn {}
@@ -1138,6 +1144,7 @@ function emitAdd(address adder, address baseToken, address memeToken, address to
                 alloy::sol_types::sol_data::Address,
                 alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
             );
             #[doc(hidden)]
             type UnderlyingRustTuple<'a> = (
@@ -1145,6 +1152,7 @@ function emitAdd(address adder, address baseToken, address memeToken, address to
                 alloy::sol_types::private::Address,
                 alloy::sol_types::private::Address,
                 alloy::sol_types::private::Address,
+                alloy::sol_types::private::primitives::aliases::U256,
                 alloy::sol_types::private::primitives::aliases::U256,
                 alloy::sol_types::private::primitives::aliases::U256,
             );
@@ -1170,6 +1178,7 @@ function emitAdd(address adder, address baseToken, address memeToken, address to
                         value.to,
                         value.amount0,
                         value.amount1,
+                        value.liquidity,
                     )
                 }
             }
@@ -1184,6 +1193,7 @@ function emitAdd(address adder, address baseToken, address memeToken, address to
                         to: tuple.3,
                         amount0: tuple.4,
                         amount1: tuple.5,
+                        liquidity: tuple.6,
                     }
                 }
             }
@@ -1228,6 +1238,7 @@ function emitAdd(address adder, address baseToken, address memeToken, address to
                 alloy::sol_types::sol_data::Address,
                 alloy::sol_types::sol_data::Uint<256>,
                 alloy::sol_types::sol_data::Uint<256>,
+                alloy::sol_types::sol_data::Uint<256>,
             );
             type Token<'a> = <Self::Parameters<
                 'a,
@@ -1237,8 +1248,8 @@ function emitAdd(address adder, address baseToken, address memeToken, address to
             type ReturnToken<'a> = <Self::ReturnTuple<
                 'a,
             > as alloy_sol_types::SolType>::Token<'a>;
-            const SIGNATURE: &'static str = "emitAdd(address,address,address,address,uint256,uint256)";
-            const SELECTOR: [u8; 4] = [158u8, 212u8, 134u8, 235u8];
+            const SIGNATURE: &'static str = "emitAdd(address,address,address,address,uint256,uint256,uint256)";
+            const SELECTOR: [u8; 4] = [51u8, 179u8, 101u8, 180u8];
             #[inline]
             fn new<'a>(
                 tuple: <Self::Parameters<'a> as alloy_sol_types::SolType>::RustType,
@@ -1266,6 +1277,9 @@ function emitAdd(address adder, address baseToken, address memeToken, address to
                     <alloy::sol_types::sol_data::Uint<
                         256,
                     > as alloy_sol_types::SolType>::tokenize(&self.amount1),
+                    <alloy::sol_types::sol_data::Uint<
+                        256,
+                    > as alloy_sol_types::SolType>::tokenize(&self.liquidity),
                 )
             }
             #[inline]
@@ -3537,6 +3551,7 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
             [17u8, 156u8, 108u8, 131u8],
             [17u8, 204u8, 178u8, 29u8],
             [41u8, 42u8, 231u8, 34u8],
+            [51u8, 179u8, 101u8, 180u8],
             [66u8, 255u8, 100u8, 165u8],
             [85u8, 172u8, 132u8, 186u8],
             [90u8, 122u8, 55u8, 118u8],
@@ -3544,7 +3559,6 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
             [130u8, 98u8, 0u8, 158u8],
             [130u8, 252u8, 216u8, 202u8],
             [156u8, 132u8, 87u8, 146u8],
-            [158u8, 212u8, 134u8, 235u8],
             [234u8, 52u8, 165u8, 119u8],
         ];
     }
@@ -3665,6 +3679,19 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                     emitRemove
                 },
                 {
+                    fn emitAdd(
+                        data: &[u8],
+                        validate: bool,
+                    ) -> alloy_sol_types::Result<IEventEmitterCalls> {
+                        <emitAddCall as alloy_sol_types::SolCall>::abi_decode_raw(
+                                data,
+                                validate,
+                            )
+                            .map(IEventEmitterCalls::emitAdd)
+                    }
+                    emitAdd
+                },
+                {
                     fn emitLiquidation(
                         data: &[u8],
                         validate: bool,
@@ -3754,19 +3781,6 @@ function emitWithdraw(address withdrawer, address baseToken, address memeToken, 
                             .map(IEventEmitterCalls::emitClaimFees)
                     }
                     emitClaimFees
-                },
-                {
-                    fn emitAdd(
-                        data: &[u8],
-                        validate: bool,
-                    ) -> alloy_sol_types::Result<IEventEmitterCalls> {
-                        <emitAddCall as alloy_sol_types::SolCall>::abi_decode_raw(
-                                data,
-                                validate,
-                            )
-                            .map(IEventEmitterCalls::emitAdd)
-                    }
-                    emitAdd
                 },
                 {
                     fn emitBorrow(
@@ -4104,6 +4118,7 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
             to: alloy::sol_types::private::Address,
             amount0: alloy::sol_types::private::primitives::aliases::U256,
             amount1: alloy::sol_types::private::primitives::aliases::U256,
+            liquidity: alloy::sol_types::private::primitives::aliases::U256,
         ) -> alloy_contract::SolCallBuilder<T, &P, emitAddCall, N> {
             self.call_builder(
                 &emitAddCall {
@@ -4113,6 +4128,7 @@ the bytecode concatenated with the constructor's ABI-encoded arguments.*/
                     to,
                     amount0,
                     amount1,
+                    liquidity,
                 },
             )
         }

@@ -3823,17 +3823,17 @@ library WithdrawUtils {
 }
 
 interface IExchangeRouter {
-    function executeAdd(LiquidityUtils.AddParams memory params) external payable;
-    function executeBorrow(BorrowUtils.BorrowParams memory params) external payable;
-    function executeClose(CloseUtils.CloseParams memory params) external payable;
-    function executeDeposit(DepositUtils.DepositParams memory params) external payable;
-    function executeLiquidation(LiquidationUtils.LiquidationParams memory params) external payable;
-    function executeLiquidationBatch(LiquidationUtils.LiquidationParams[] memory params) external payable;
-    function executeRemove(LiquidityUtils.RemoveParams memory params) external payable;
-    function executeRepay(RepayUtils.RepayParams memory params) external payable;
-    function executeSwap(SwapUtils.SwapParams memory params) external payable;
-    function executeSwapInPosition(SwapUtils.SwapInPositionParams memory params) external payable;
-    function executeWithdraw(WithdrawUtils.WithdrawParams memory params) external payable;
+    function executeAdd(LiquidityUtils.AddParams memory params) external;
+    function executeBorrow(BorrowUtils.BorrowParams memory params) external;
+    function executeClose(CloseUtils.CloseParams memory params) external;
+    function executeDeposit(DepositUtils.DepositParams memory params) external;
+    function executeLiquidation(LiquidationUtils.LiquidationParams memory params) external;
+    function executeLiquidationBatch(LiquidationUtils.LiquidationParams[] memory params) external;
+    function executeRemove(LiquidityUtils.RemoveParams memory params) external;
+    function executeRepay(RepayUtils.RepayParams memory params) external;
+    function executeSwap(SwapUtils.SwapParams memory params) external;
+    function executeSwapInPosition(SwapUtils.SwapInPositionParams memory params) external;
+    function executeWithdraw(WithdrawUtils.WithdrawParams memory params) external;
 }
 ```
 
@@ -3868,7 +3868,7 @@ interface IExchangeRouter {
       }
     ],
     "outputs": [],
-    "stateMutability": "payable"
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -3898,7 +3898,7 @@ interface IExchangeRouter {
       }
     ],
     "outputs": [],
-    "stateMutability": "payable"
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -3918,7 +3918,7 @@ interface IExchangeRouter {
       }
     ],
     "outputs": [],
-    "stateMutability": "payable"
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -3953,7 +3953,7 @@ interface IExchangeRouter {
       }
     ],
     "outputs": [],
-    "stateMutability": "payable"
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -3978,7 +3978,7 @@ interface IExchangeRouter {
       }
     ],
     "outputs": [],
-    "stateMutability": "payable"
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -4003,7 +4003,7 @@ interface IExchangeRouter {
       }
     ],
     "outputs": [],
-    "stateMutability": "payable"
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -4038,7 +4038,7 @@ interface IExchangeRouter {
       }
     ],
     "outputs": [],
-    "stateMutability": "payable"
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -4073,7 +4073,7 @@ interface IExchangeRouter {
       }
     ],
     "outputs": [],
-    "stateMutability": "payable"
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -4123,7 +4123,7 @@ interface IExchangeRouter {
       }
     ],
     "outputs": [],
-    "stateMutability": "payable"
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -4163,7 +4163,7 @@ interface IExchangeRouter {
       }
     ],
     "outputs": [],
-    "stateMutability": "payable"
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -4198,7 +4198,7 @@ interface IExchangeRouter {
       }
     ],
     "outputs": [],
-    "stateMutability": "payable"
+    "stateMutability": "nonpayable"
   }
 ]
 ```*/
@@ -4233,7 +4233,7 @@ pub mod IExchangeRouter {
     );
     /**Function with signature `executeAdd((address,address,address))` and selector `0x21b108cc`.
 ```solidity
-function executeAdd(LiquidityUtils.AddParams memory params) external payable;
+function executeAdd(LiquidityUtils.AddParams memory params) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -4357,7 +4357,7 @@ function executeAdd(LiquidityUtils.AddParams memory params) external payable;
     };
     /**Function with signature `executeBorrow((uint256,uint8,uint256))` and selector `0x907e7454`.
 ```solidity
-function executeBorrow(BorrowUtils.BorrowParams memory params) external payable;
+function executeBorrow(BorrowUtils.BorrowParams memory params) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -4481,7 +4481,7 @@ function executeBorrow(BorrowUtils.BorrowParams memory params) external payable;
     };
     /**Function with signature `executeClose((uint256))` and selector `0xc56d4a2a`.
 ```solidity
-function executeClose(CloseUtils.CloseParams memory params) external payable;
+function executeClose(CloseUtils.CloseParams memory params) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -4605,7 +4605,7 @@ function executeClose(CloseUtils.CloseParams memory params) external payable;
     };
     /**Function with signature `executeDeposit((uint256,address,address,uint8))` and selector `0x47570cdc`.
 ```solidity
-function executeDeposit(DepositUtils.DepositParams memory params) external payable;
+function executeDeposit(DepositUtils.DepositParams memory params) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -4731,7 +4731,7 @@ function executeDeposit(DepositUtils.DepositParams memory params) external payab
     };
     /**Function with signature `executeLiquidation((address,uint256))` and selector `0xb6103215`.
 ```solidity
-function executeLiquidation(LiquidationUtils.LiquidationParams memory params) external payable;
+function executeLiquidation(LiquidationUtils.LiquidationParams memory params) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -4859,7 +4859,7 @@ function executeLiquidation(LiquidationUtils.LiquidationParams memory params) ex
     };
     /**Function with signature `executeLiquidationBatch((address,uint256)[])` and selector `0xa76718d2`.
 ```solidity
-function executeLiquidationBatch(LiquidationUtils.LiquidationParams[] memory params) external payable;
+function executeLiquidationBatch(LiquidationUtils.LiquidationParams[] memory params) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -4995,7 +4995,7 @@ function executeLiquidationBatch(LiquidationUtils.LiquidationParams[] memory par
     };
     /**Function with signature `executeRemove((address,address,uint256,address))` and selector `0xf3e01a4e`.
 ```solidity
-function executeRemove(LiquidityUtils.RemoveParams memory params) external payable;
+function executeRemove(LiquidityUtils.RemoveParams memory params) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -5119,7 +5119,7 @@ function executeRemove(LiquidityUtils.RemoveParams memory params) external payab
     };
     /**Function with signature `executeRepay((uint256,uint8,uint256,uint8))` and selector `0x7b123bc8`.
 ```solidity
-function executeRepay(RepayUtils.RepayParams memory params) external payable;
+function executeRepay(RepayUtils.RepayParams memory params) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -5243,7 +5243,7 @@ function executeRepay(RepayUtils.RepayParams memory params) external payable;
     };
     /**Function with signature `executeSwap((address,address,uint256,uint256,uint256,uint256,address))` and selector `0x34f5db7e`.
 ```solidity
-function executeSwap(SwapUtils.SwapParams memory params) external payable;
+function executeSwap(SwapUtils.SwapParams memory params) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -5367,7 +5367,7 @@ function executeSwap(SwapUtils.SwapParams memory params) external payable;
     };
     /**Function with signature `executeSwapInPosition((uint256,uint256,uint256,uint256,uint256))` and selector `0xb1840675`.
 ```solidity
-function executeSwapInPosition(SwapUtils.SwapInPositionParams memory params) external payable;
+function executeSwapInPosition(SwapUtils.SwapInPositionParams memory params) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
@@ -5495,7 +5495,7 @@ function executeSwapInPosition(SwapUtils.SwapInPositionParams memory params) ext
     };
     /**Function with signature `executeWithdraw((uint256,uint8,uint256,address))` and selector `0xad0c9934`.
 ```solidity
-function executeWithdraw(WithdrawUtils.WithdrawParams memory params) external payable;
+function executeWithdraw(WithdrawUtils.WithdrawParams memory params) external;
 ```*/
     #[allow(non_camel_case_types, non_snake_case, clippy::pub_underscore_fields)]
     #[derive(Clone)]
