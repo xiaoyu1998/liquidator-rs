@@ -1,6 +1,5 @@
 /target
 out/
-borrowers.json
 ._.*
 crates/liquidator-contract/node_modules
 crates/liquidator-contract/cache
@@ -11,3 +10,5 @@ crates/liquidator-contract/out
 crates/liquidator-contract/ignition
 .DS_Store
 ._.DS_Store
+borrowers.json
+mm.log
