@@ -1,16 +1,16 @@
-# tradingbot-rs
-This trading bot will constant checking the status of all the accounts in dex and liquidate positions on chain
+# liquidator-rs
+This liquidator bot will constant checking the status of all the accounts in dex and liquidate positions on chain
 
 # Usage
 #### Download
 
 ```shell
-git clone git@github.com:xiaoyu1998/up-liquidator-rs.git --recursive
+git clone git@github.com:xiaoyu1998/mm-liquidator-rs.git --recursive
 ```
-#### copy addresses from up-contracts
+#### copy addresses from mm-contracts
 ```
-cp deployed_addresses.json /path/to/up-liquidator-rs/crates/liquidator-contract/deployments
-cp underlyAsset_addresses.json /path/to/up-liquidator-rs/deployments
+cp deployed_addresses.json /path/to/mm-liquidator-rs/crates/liquidator-contract/deployments
+cp underlyAsset_addresses.json /path/to/mm-liquidator-rs/deployments
 
 ```
 #### deploy liquidator contract
