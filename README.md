@@ -1,5 +1,5 @@
 # liquidator-rs
-This liquidator bot will constant checking the status of all the accounts in dex and liquidation 10K positions offchain in a millsecond.
+This liquidator bot continuously monitors the status of all accounts on the DEX and can liquidate up to 10,000 positions off-chain within milliseconds.
 
 # Usage
 #### Download
