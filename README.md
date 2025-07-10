@@ -1,16 +1,16 @@
 # liquidator-rs
-This liquidator bot will constant checking the status of all the accounts in dex and liquidate positions on chain
+This liquidator bot will constant checking the status of all the accounts in dex and liquidation 10K positions offchain in a millsecond.
 
 # Usage
 #### Download
 
 ```shell
-git clone git@github.com:xiaoyu1998/mm-liquidator-rs.git --recursive
+git clone git@github.com:xiaoyu1998/liquidator-rs.git --recursive
 ```
-#### copy addresses from mm-contracts
+#### copy addresses from contracts
 ```
-cp deployed_addresses.json /path/to/mm-liquidator-rs/crates/liquidator-contract/deployments
-cp underlyAsset_addresses.json /path/to/mm-liquidator-rs/deployments
+cp deployed_addresses.json /path/to/liquidator-rs/crates/liquidator-contract/deployments
+cp underlyAsset_addresses.json /path/to/liquidator-rs/deployments
 
 ```
 #### deploy liquidator contract
